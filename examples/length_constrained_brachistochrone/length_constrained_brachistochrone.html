@@ -559,6 +559,7 @@ const thebe_selector_output = ".output, .cell_output"
 <li class="toctree-l2"><a class="reference internal" href="../../features/phases/objective.html">Objective</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../features/phases/timeseries.html">Timeseries Outputs</a></li>
 
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/calc_expressions.html">Calculation Expressions</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../features/trajectories/trajectories.html">Organizing Phases into Trajectories</a></li>
@@ -784,8 +785,8 @@ Now, we seek to find the minimum time brachistochrone trajectory subject to a up
 <p>The most efficient way to approach this problem would be to treat the arc-length <span class="math notranslate nohighlight">\(S\)</span> as an integrated state variable.
 In this case, as is often the case in real-world MDO analyses, the implementation of our arc-length function is not integrated into our pseudospectral approach.
 Rather than rewrite an analysis tool to accommodate the pseudospectral approach, the arc-length analysis simply takes the result of the trajectory in its entirety and computes the arc-length constraint via the trapezoidal rule:\</p>
-<div class="amsmath math notranslate nohighlight" id="equation-43163c38-1c3c-47df-b036-0562679afd7c">
-<span class="eqno">(61)<a class="headerlink" href="#equation-43163c38-1c3c-47df-b036-0562679afd7c" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-c4a58557-2481-48d2-8c95-b8b1f35e79db">
+<span class="eqno">(61)<a class="headerlink" href="#equation-c4a58557-2481-48d2-8c95-b8b1f35e79db" title="Permalink to this equation">#</a></span>\[\begin{align}
     S &amp;= \frac{1}{2} \left( \sum_{i=1}^{N-1} \sqrt{1 + \frac{1}{\tan{\theta_{i-1}}}} + \sqrt{1 + \frac{1}{\tan{\theta_{i}}}} \right) \left(x_{i-1} - x_i \right)
 \end{align}\]</div>
 <p>The OpenMDAO component used to compute the arclength is defined as follows:</p>
@@ -1116,25 +1117,25 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000324 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000412 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000018 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000022 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000196 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000232 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000050 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000078 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
@@ -1146,19 +1147,19 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.002834 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.001367 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000034 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000035 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000002 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000003 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (220, 296)  (2.35% nonzero)
@@ -1167,10 +1168,10 @@ Total colors vs. total size: 21 vs 220  (90.45% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem&#39; was computed 3 times.
-Time to compute sparsity:   0.3976 sec
-Time to compute coloring:   0.3110 sec
+Time to compute sparsity:   0.3863 sec
+Time to compute coloring:   0.3122 sec
 Memory to compute coloring:   0.3750 MB
-Coloring created on: 2025-03-11 20:32:56
+Coloring created on: 2025-03-13 20:07:33
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully    (Exit mode 0)

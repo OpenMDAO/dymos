@@ -563,6 +563,7 @@ const thebe_selector_output = ".output, .cell_output"
 <li class="toctree-l2"><a class="reference internal" href="../../features/phases/objective.html">Objective</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../features/phases/timeseries.html">Timeseries Outputs</a></li>
 
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/calc_expressions.html">Calculation Expressions</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../features/trajectories/trajectories.html">Organizing Phases into Trajectories</a></li>
@@ -801,20 +802,20 @@ traveled by a block (that starts and ends at rest) sliding without
 friction along a horizontal surface, with acceleration as the control.</p>
 <p>We minimize the final time, <span class="math notranslate nohighlight">\(t_f\)</span>, by varying the dynamic control,
 <span class="math notranslate nohighlight">\(u\)</span>, subject to the dynamics:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-014e1300-9ffb-4c51-8fc5-91db1d7deaba">
-<span class="eqno">(45)<a class="headerlink" href="#equation-014e1300-9ffb-4c51-8fc5-91db1d7deaba" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-611ec120-4746-494b-ab0f-fb73f204bcf2">
+<span class="eqno">(45)<a class="headerlink" href="#equation-611ec120-4746-494b-ab0f-fb73f204bcf2" title="Permalink to this equation">#</a></span>\[\begin{align}
   \frac{dx}{dt} &amp;= v \\
   \frac{dv}{dt} &amp;= u
 \end{align}\]</div>
 <p>The initial conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-770003d5-7533-4a45-9af1-ba20629a5063">
-<span class="eqno">(46)<a class="headerlink" href="#equation-770003d5-7533-4a45-9af1-ba20629a5063" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-443e7ec6-d1cb-4bb8-adea-f5e0ab2fc699">
+<span class="eqno">(46)<a class="headerlink" href="#equation-443e7ec6-d1cb-4bb8-adea-f5e0ab2fc699" title="Permalink to this equation">#</a></span>\[\begin{align}
   x_0 &amp;= 0 \\
   v_0 &amp;= 0
 \end{align}\]</div>
 <p>and the final conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-032690d3-4b3c-41b4-9836-c88c71669829">
-<span class="eqno">(47)<a class="headerlink" href="#equation-032690d3-4b3c-41b4-9836-c88c71669829" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-01141d06-ebaa-4441-b648-9c1e3b1eaf65">
+<span class="eqno">(47)<a class="headerlink" href="#equation-01141d06-ebaa-4441-b648-9c1e3b1eaf65" title="Permalink to this equation">#</a></span>\[\begin{align}
   x_f &amp;= \rm{free} \\
   v_f &amp;= 0
 \end{align}\]</div>
@@ -1021,59 +1022,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 INFO: checking out_of_order...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000338 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000016 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000235 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000039 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000002 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.002786 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING: The following Components do not have any outputs:
-   traj.phases.phase0.rhs_all
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000446 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000002 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000189 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000243 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
@@ -1085,13 +1034,13 @@ INFO: checking out_of_order...
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000204 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000246 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000048 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000056 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
@@ -1103,7 +1052,7 @@ INFO: checking out_of_order...
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.003328 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.001227 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
@@ -1113,13 +1062,65 @@ INFO: checking out_of_order...
    traj.phases.phase0.rhs_all
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000440 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000565 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000002 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000003 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000182 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000015 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000117 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000030 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000002 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.001243 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING: The following Components do not have any outputs:
+   traj.phases.phase0.rhs_all
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000406 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000003 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (181, 327)  (1.51% nonzero)
@@ -1128,10 +1129,10 @@ Total colors vs. total size: 6 vs 181  (96.69% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem&#39; was computed 3 times.
-Time to compute sparsity:   0.0693 sec
-Time to compute coloring:   0.1916 sec
-Memory to compute coloring:   0.3750 MB
-Coloring created on: 2025-03-11 20:32:13
+Time to compute sparsity:   0.0675 sec
+Time to compute coloring:   0.1873 sec
+Memory to compute coloring:   0.1250 MB
+Coloring created on: 2025-03-13 20:06:51
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1140,11 +1141,11 @@ Coloring created on: 2025-03-11 20:32:13
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    2.6267
-       User Objective Time :       0.0207
-       User Sensitivity Time :     0.6840
-       Interface Time :            0.2355
-       Opt Solver Time:            1.6865
+    Total Time:                    2.5713
+       User Objective Time :       0.0153
+       User Sensitivity Time :     0.6523
+       Interface Time :            0.2316
+       Opt Solver Time:            1.6721
     Calls to Objective Function :      19
     Calls to Sens Function :           19
 
@@ -1746,11 +1747,11 @@ Coloring created on: 2025-03-11 20:32:13
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 21
-  runtime     : 2.9305E+00 s
+  runtime     : 2.8672E+00 s
   model_evals : 21
-  model_time  : 1.3513E-02 s
+  model_time  : 1.0242E-02 s
   deriv_evals : 20
-  deriv_time  : 7.4676E-02 s
+  deriv_time  : 6.8606E-02 s
   exit_status : SUCCESS
 </pre></div>
 </div>

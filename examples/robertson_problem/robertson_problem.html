@@ -563,6 +563,7 @@ const thebe_selector_output = ".output, .cell_output"
 <li class="toctree-l2"><a class="reference internal" href="../../features/phases/objective.html">Objective</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../features/phases/timeseries.html">Timeseries Outputs</a></li>
 
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/calc_expressions.html">Calculation Expressions</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../features/trajectories/trajectories.html">Organizing Phases into Trajectories</a></li>
@@ -800,15 +801,15 @@ title="Print to PDF"
 <section id="the-ode-system">
 <h2>The ODE system<a class="headerlink" href="#the-ode-system" title="Permalink to this heading">#</a></h2>
 <p>The ODE of the Robertson Problem is</p>
-<div class="amsmath math notranslate nohighlight" id="equation-30b41c45-a0a5-4569-b2ac-c148356b870d">
-<span class="eqno">(87)<a class="headerlink" href="#equation-30b41c45-a0a5-4569-b2ac-c148356b870d" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-6aea6798-e169-44a8-bb02-3a81d0fc0f24">
+<span class="eqno">(87)<a class="headerlink" href="#equation-6aea6798-e169-44a8-bb02-3a81d0fc0f24" title="Permalink to this equation">#</a></span>\[\begin{align}
     \dot x = &amp;        - 0.04 x + 10^4 y \cdot z &amp;                          \\
     \dot y = &amp; \;\;\;\: 0.04 x - 10^4 y \cdot z &amp;        - 3\cdot 10^7 y^2 \\
     \dot z = &amp;                                  &amp; \;\;\;\: 3\cdot 10^7 y^2 \\
 \end{align}\]</div>
 <p>where <span class="math notranslate nohighlight">\(x\)</span>, <span class="math notranslate nohighlight">\(y\)</span> and <span class="math notranslate nohighlight">\(z\)</span> are arbitrary states. The initial conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-263c3385-117b-4135-a8bd-ff25e81b5295">
-<span class="eqno">(88)<a class="headerlink" href="#equation-263c3385-117b-4135-a8bd-ff25e81b5295" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-305f6c97-d804-42aa-be22-b88225cff29a">
+<span class="eqno">(88)<a class="headerlink" href="#equation-305f6c97-d804-42aa-be22-b88225cff29a" title="Permalink to this equation">#</a></span>\[\begin{align}
     x_0 &amp;= 1 \\
     y_0 &amp;= z_0 = 0.
 \end{align}\]</div>
@@ -953,7 +954,7 @@ Providing more segments in this case (or a higher segment order) increases the n
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000263 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000252 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
@@ -965,13 +966,13 @@ Providing more segments in this case (or a higher segment order) increases the n
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000169 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000139 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000035 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000029 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
@@ -980,19 +981,19 @@ Providing more segments in this case (or a higher segment order) increases the n
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>WARNING: The Problem has no recorder of any kind attached
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000427 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000380 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.002355 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.000490 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000025 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000030 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...

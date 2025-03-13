@@ -554,6 +554,7 @@ const thebe_selector_output = ".output, .cell_output"
 <li class="toctree-l2"><a class="reference internal" href="../../../features/phases/objective.html">Objective</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../features/phases/timeseries.html">Timeseries Outputs</a></li>
 
+<li class="toctree-l2"><a class="reference internal" href="../../../features/phases/calc_expressions.html">Calculation Expressions</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../features/trajectories/trajectories.html">Organizing Phases into Trajectories</a></li>
@@ -727,7 +728,7 @@ title="Open an issue"
 <span class="kn">from</span><span class="w"> </span><span class="nn">..utils.indexing</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_constraint_flat_idxs</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..utils.introspection</span><span class="w"> </span><span class="kn">import</span> <span class="n">configure_time_introspection</span><span class="p">,</span> <span class="n">_configure_constraint_introspection</span><span class="p">,</span> \
     <span class="n">configure_controls_introspection</span><span class="p">,</span> <span class="n">configure_parameters_introspection</span><span class="p">,</span> \
-    <span class="n">configure_timeseries_output_introspection</span><span class="p">,</span> <span class="n">classify_var</span><span class="p">,</span> <span class="n">configure_timeseries_expr_introspection</span>
+    <span class="n">configure_timeseries_output_introspection</span><span class="p">,</span> <span class="n">classify_var</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..utils.misc</span><span class="w"> </span><span class="kn">import</span> <span class="n">_unspecified</span><span class="p">,</span> <span class="n">create_subprob</span><span class="p">,</span> <span class="n">om_version</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..utils.lgl</span><span class="w"> </span><span class="kn">import</span> <span class="n">lgl</span>
 
@@ -785,6 +786,9 @@ title="Open an issue"
                                            <span class="s1">&#39;outputs&#39;</span><span class="p">:</span> <span class="p">{}}}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_objectives</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sim_prob</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Expressions to be computed along with the ODE.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calc_exprs</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="nb">super</span><span class="p">(</span><span class="n">Phase</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">_kwargs</span><span class="p">)</span>
 
@@ -1992,27 +1996,21 @@ title="Open an issue"
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Invalid boundary constraint location &quot;</span><span class="si">{</span><span class="n">loc</span><span class="si">}</span><span class="s1">&quot;. Must be &#39;</span>
                              <span class="s1">&#39;&quot;initial&quot; or &quot;final&quot;.&#39;</span><span class="p">)</span>
 
-        <span class="n">expr_operators</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;(&#39;</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="s1">&#39;&amp;&#39;</span><span class="p">,</span> <span class="s1">&#39;%&#39;</span><span class="p">,</span> <span class="s1">&#39;@&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="s1">&#39;=&#39;</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
-            <span class="n">is_expr</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="k">elif</span> <span class="s1">&#39;=&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">name</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">opr</span> <span class="ow">in</span> <span class="n">name</span> <span class="k">for</span> <span class="n">opr</span> <span class="ow">in</span> <span class="n">expr_operators</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;The expression provided `</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">` has invalid format. &#39;</span>
-                             <span class="s1">&#39;Expression may be a single variable or an equation &#39;</span>
-                             <span class="s1">&#39;of the form `constraint_name = func(vars)`&#39;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">is_expr</span> <span class="o">=</span> <span class="kc">False</span>
-
-        <span class="k">if</span> <span class="n">is_expr</span><span class="p">:</span>
-            <span class="n">constraint_name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="n">_name</span> <span class="o">=</span> <span class="n">constraint_name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_calc_expr</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">constraint_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
             <span class="n">constraint_name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">rpartition</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
 
         <span class="n">bc_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initial_boundary_constraints</span> <span class="k">if</span> <span class="n">loc</span> <span class="o">==</span> <span class="s1">&#39;initial&#39;</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_final_boundary_constraints</span>
 
-        <span class="n">existing_bc</span> <span class="o">=</span> <span class="p">[</span><span class="n">bc</span> <span class="k">for</span> <span class="n">bc</span> <span class="ow">in</span> <span class="n">bc_list</span> <span class="k">if</span> <span class="n">bc</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">name</span> <span class="ow">and</span> <span class="n">bc</span><span class="p">[</span><span class="s1">&#39;indices&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">indices</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">existing_bc</span> <span class="o">=</span> <span class="p">[</span><span class="n">bc</span> <span class="k">for</span> <span class="n">bc</span> <span class="ow">in</span> <span class="n">bc_list</span> <span class="k">if</span> <span class="n">bc</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">_name</span> <span class="ow">and</span> <span class="n">bc</span><span class="p">[</span><span class="s1">&#39;indices&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">indices</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">existing_bc</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Cannot add new </span><span class="si">{</span><span class="n">loc</span><span class="si">}</span><span class="s1"> boundary constraint for variable `</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">` and indices </span><span class="si">{</span><span class="n">indices</span><span class="si">}</span><span class="s1">. &#39;</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Cannot add new </span><span class="si">{</span><span class="n">loc</span><span class="si">}</span><span class="s1"> boundary constraint for variable `</span><span class="si">{</span><span class="n">_name</span><span class="si">}</span><span class="s1">` and indices </span><span class="si">{</span><span class="n">indices</span><span class="si">}</span><span class="s1">. &#39;</span>
                              <span class="sa">f</span><span class="s1">&#39;One already exists.&#39;</span><span class="p">)</span>
 
         <span class="n">existing_bc_name</span> <span class="o">=</span> <span class="p">[</span><span class="n">bc</span> <span class="k">for</span> <span class="n">bc</span> <span class="ow">in</span> <span class="n">bc_list</span> <span class="k">if</span> <span class="n">bc</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">constraint_name</span> <span class="ow">and</span>
@@ -2026,7 +2024,7 @@ title="Open an issue"
         <span class="n">bc</span> <span class="o">=</span> <span class="n">ConstraintOptionsDictionary</span><span class="p">()</span>
         <span class="n">bc_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bc</span><span class="p">)</span>
 
-        <span class="n">bc</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="n">bc</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_name</span>
         <span class="n">bc</span><span class="p">[</span><span class="s1">&#39;constraint_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">constraint_name</span>
         <span class="n">bc</span><span class="p">[</span><span class="s1">&#39;lower&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">lower</span>
         <span class="n">bc</span><span class="p">[</span><span class="s1">&#39;upper&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">upper</span>
@@ -2040,7 +2038,6 @@ title="Open an issue"
         <span class="n">bc</span><span class="p">[</span><span class="s1">&#39;linear&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">linear</span>
         <span class="n">bc</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">units</span>
         <span class="n">bc</span><span class="p">[</span><span class="s1">&#39;flat_indices&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">flat_indices</span>
-        <span class="n">bc</span><span class="p">[</span><span class="s1">&#39;is_expr&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">is_expr</span>
 
         <span class="c1"># Automatically add the requested variable to the timeseries outputs if it&#39;s an ODE output.</span>
         <span class="n">var_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">classify_var</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
@@ -2105,26 +2102,20 @@ title="Open an issue"
 <span class="sd">            If True, treat indices as flattened C-ordered indices of elements to constrain at each given point in time.</span>
 <span class="sd">            Otherwise, indices should be a tuple or list giving the elements to constrain at each point in time.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">expr_operators</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;(&#39;</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="s1">&#39;&amp;&#39;</span><span class="p">,</span> <span class="s1">&#39;%&#39;</span><span class="p">,</span> <span class="s1">&#39;@&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="s1">&#39;=&#39;</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
-            <span class="n">is_expr</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="k">elif</span> <span class="s1">&#39;=&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">name</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">opr</span> <span class="ow">in</span> <span class="n">name</span> <span class="k">for</span> <span class="n">opr</span> <span class="ow">in</span> <span class="n">expr_operators</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;The expression provided `</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">` has invalid format. &#39;</span>
-                             <span class="s1">&#39;Expression may be a single variable or an equation &#39;</span>
-                             <span class="s1">&#39;of the form `constraint_name = func(vars)`&#39;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">is_expr</span> <span class="o">=</span> <span class="kc">False</span>
-
-        <span class="k">if</span> <span class="n">is_expr</span><span class="p">:</span>
-            <span class="n">constraint_name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="n">_name</span> <span class="o">=</span> <span class="n">constraint_name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_calc_expr</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">constraint_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
             <span class="n">constraint_name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">rpartition</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
 
         <span class="n">existing_pc</span> <span class="o">=</span> <span class="p">[</span><span class="n">pc</span> <span class="k">for</span> <span class="n">pc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_path_constraints</span>
                        <span class="k">if</span> <span class="n">pc</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">name</span> <span class="ow">and</span> <span class="n">pc</span><span class="p">[</span><span class="s1">&#39;indices&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">indices</span> <span class="ow">and</span> <span class="n">pc</span><span class="p">[</span><span class="s1">&#39;flat_indices&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">flat_indices</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">existing_pc</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Cannot add new path constraint for variable `</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">` and indices </span><span class="si">{</span><span class="n">indices</span><span class="si">}</span><span class="s1">. &#39;</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Cannot add new path constraint for variable `</span><span class="si">{</span><span class="n">_name</span><span class="si">}</span><span class="s1">` and indices </span><span class="si">{</span><span class="n">indices</span><span class="si">}</span><span class="s1">. &#39;</span>
                              <span class="sa">f</span><span class="s1">&#39;One already exists.&#39;</span><span class="p">)</span>
 
         <span class="n">existing_bc_name</span> <span class="o">=</span> <span class="p">[</span><span class="n">pc</span> <span class="k">for</span> <span class="n">pc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_path_constraints</span>
@@ -2138,7 +2129,7 @@ title="Open an issue"
         <span class="n">pc</span> <span class="o">=</span> <span class="n">ConstraintOptionsDictionary</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_path_constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pc</span><span class="p">)</span>
 
-        <span class="n">pc</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="n">pc</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_name</span>
         <span class="n">pc</span><span class="p">[</span><span class="s1">&#39;constraint_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">constraint_name</span>
         <span class="n">pc</span><span class="p">[</span><span class="s1">&#39;lower&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">lower</span>
         <span class="n">pc</span><span class="p">[</span><span class="s1">&#39;upper&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">upper</span>
@@ -2152,7 +2143,6 @@ title="Open an issue"
         <span class="n">pc</span><span class="p">[</span><span class="s1">&#39;linear&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">linear</span>
         <span class="n">pc</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">units</span>
         <span class="n">pc</span><span class="p">[</span><span class="s1">&#39;flat_indices&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">flat_indices</span>
-        <span class="n">pc</span><span class="p">[</span><span class="s1">&#39;is_expr&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">is_expr</span>
 
         <span class="c1"># Automatically add the requested variable to the timeseries outputs if it&#39;s an ODE output.</span>
         <span class="n">var_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">classify_var</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
@@ -2197,7 +2187,6 @@ title="Open an issue"
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name_i</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
-                <span class="n">expr</span> <span class="o">=</span> <span class="kc">True</span> <span class="k">if</span> <span class="s1">&#39;=&#39;</span> <span class="ow">in</span> <span class="n">name_i</span> <span class="k">else</span> <span class="kc">False</span>
                 <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">units</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">dict</span><span class="p">:</span>  <span class="c1"># accept dict for units when using array of name</span>
                     <span class="n">unit</span> <span class="o">=</span> <span class="n">units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name_i</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">units</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>  <span class="c1"># allow matching list for units</span>
@@ -2205,26 +2194,40 @@ title="Open an issue"
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">unit</span> <span class="o">=</span> <span class="n">units</span>
 
-                <span class="n">oname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_timeseries_output</span><span class="p">(</span><span class="n">name_i</span><span class="p">,</span> <span class="n">output_name</span><span class="o">=</span><span class="n">output_name</span><span class="p">,</span>
-                                                    <span class="n">units</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span>
-                                                    <span class="n">shape</span><span class="o">=</span><span class="n">shape</span><span class="p">,</span>
-                                                    <span class="n">timeseries</span><span class="o">=</span><span class="n">timeseries</span><span class="p">,</span>
-                                                    <span class="n">rate</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                                                    <span class="n">expr</span><span class="o">=</span><span class="n">expr</span><span class="p">)</span>
+                <span class="k">if</span> <span class="s1">&#39;=&#39;</span> <span class="ow">in</span> <span class="n">name_i</span><span class="p">:</span>
+                    <span class="n">output_i</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">add_calc_expr</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">add_timeseries</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">shape</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                    <span class="n">oname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_timeseries_output</span><span class="p">(</span><span class="n">output_i</span><span class="p">,</span>
+                                                        <span class="n">units</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span>
+                                                        <span class="n">shape</span><span class="o">=</span><span class="n">shape</span><span class="p">,</span>
+                                                        <span class="n">timeseries</span><span class="o">=</span><span class="n">timeseries</span><span class="p">,</span>
+                                                        <span class="n">rate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">oname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_timeseries_output</span><span class="p">(</span><span class="n">name_i</span><span class="p">,</span> <span class="n">output_name</span><span class="o">=</span><span class="n">output_name</span><span class="p">,</span>
+                                                        <span class="n">units</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span>
+                                                        <span class="n">shape</span><span class="o">=</span><span class="n">shape</span><span class="p">,</span>
+                                                        <span class="n">timeseries</span><span class="o">=</span><span class="n">timeseries</span><span class="p">,</span>
+                                                        <span class="n">rate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
                 <span class="c1"># Handle specific units for wildcard names.</span>
                 <span class="k">if</span> <span class="n">oname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s1">&#39;*&#39;</span> <span class="ow">in</span> <span class="n">name_i</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_timeseries</span><span class="p">[</span><span class="n">timeseries</span><span class="p">][</span><span class="s1">&#39;outputs&#39;</span><span class="p">][</span><span class="n">oname</span><span class="p">][</span><span class="s1">&#39;wildcard_units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">units</span>
 
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">expr</span> <span class="o">=</span> <span class="kc">True</span> <span class="k">if</span> <span class="s1">&#39;=&#39;</span> <span class="ow">in</span> <span class="n">name</span> <span class="k">else</span> <span class="kc">False</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_add_timeseries_output</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">output_name</span><span class="o">=</span><span class="n">output_name</span><span class="p">,</span>
+            <span class="k">if</span> <span class="s1">&#39;=&#39;</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+                <span class="n">output</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+                <span class="k">if</span> <span class="n">units</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_unspecified</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">output</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_kwargs</span><span class="p">:</span>
+                        <span class="n">_kwargs</span><span class="p">[</span><span class="n">output</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="n">units</span><span class="p">}</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_calc_expr</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">add_timeseries</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">_kwargs</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">output</span> <span class="o">=</span> <span class="n">name</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_add_timeseries_output</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">output_name</span><span class="o">=</span><span class="n">output_name</span><span class="p">,</span>
                                         <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span>
                                         <span class="n">shape</span><span class="o">=</span><span class="n">shape</span><span class="p">,</span>
                                         <span class="n">timeseries</span><span class="o">=</span><span class="n">timeseries</span><span class="p">,</span>
-                                        <span class="n">rate</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                                        <span class="n">expr</span><span class="o">=</span><span class="n">expr</span><span class="p">,</span>
-                                        <span class="n">expr_kwargs</span><span class="o">=</span><span class="n">kwargs</span><span class="p">)</span></div>
+                                        <span class="n">rate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">add_timeseries_rate_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">output_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
                                    <span class="n">timeseries</span><span class="o">=</span><span class="s1">&#39;timeseries&#39;</span><span class="p">):</span>
@@ -2282,7 +2285,7 @@ title="Open an issue"
                                         <span class="n">rate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_add_timeseries_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">output_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
-                               <span class="n">timeseries</span><span class="o">=</span><span class="s1">&#39;timeseries&#39;</span><span class="p">,</span> <span class="n">rate</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">expr</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">expr_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                               <span class="n">timeseries</span><span class="o">=</span><span class="s1">&#39;timeseries&#39;</span><span class="p">,</span> <span class="n">rate</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add a single variable or rate to the timeseries outputs of the phase.</span>
 
@@ -2312,11 +2315,6 @@ title="Open an issue"
 <span class="sd">        rate : bool</span>
 <span class="sd">            If True, add the rate of change of the named variable to the timeseries outputs of the</span>
 <span class="sd">            phase.  The rate variable will be named f&#39;{name}_rate&#39;.  Defaults to False.</span>
-<span class="sd">        expr : bool</span>
-<span class="sd">            True if the given name is an expression for an ExecComp.</span>
-<span class="sd">        expr_kwargs : dict</span>
-<span class="sd">            Keyword arguments for the expression.</span>
-
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -2327,9 +2325,7 @@ title="Open an issue"
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Timeseries </span><span class="si">{</span><span class="n">timeseries</span><span class="si">}</span><span class="s1"> does not exist in phase </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">pathname</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">output_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">expr</span><span class="p">:</span>
-                <span class="n">output_name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-            <span class="k">elif</span> <span class="s1">&#39;*&#39;</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;*&#39;</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
                 <span class="n">output_name</span> <span class="o">=</span> <span class="n">name</span>
             <span class="k">elif</span> <span class="n">output_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">output_name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">rpartition</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
@@ -2345,8 +2341,6 @@ title="Open an issue"
             <span class="n">ts_output</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">units</span>
             <span class="n">ts_output</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">shape</span>
             <span class="n">ts_output</span><span class="p">[</span><span class="s1">&#39;is_rate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rate</span>
-            <span class="n">ts_output</span><span class="p">[</span><span class="s1">&#39;is_expr&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">expr</span>
-            <span class="n">ts_output</span><span class="p">[</span><span class="s1">&#39;expr_kwargs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">expr_kwargs</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">_timeseries</span><span class="p">[</span><span class="n">timeseries</span><span class="p">][</span><span class="s1">&#39;outputs&#39;</span><span class="p">][</span><span class="n">output_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">ts_output</span>
 
@@ -2410,17 +2404,11 @@ title="Open an issue"
 <span class="sd">            If specified, this design var will be grouped for parallel derivative</span>
 <span class="sd">            calculations with other variables sharing the same parallel_deriv_color.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">expr_operators</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;(&#39;</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="s1">&#39;&amp;&#39;</span><span class="p">,</span> <span class="s1">&#39;%&#39;</span><span class="p">,</span> <span class="s1">&#39;@&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="s1">&#39;=&#39;</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
-            <span class="n">is_expr</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="k">elif</span> <span class="s1">&#39;=&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">name</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">opr</span> <span class="ow">in</span> <span class="n">name</span> <span class="k">for</span> <span class="n">opr</span> <span class="ow">in</span> <span class="n">expr_operators</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;The expression provided `</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">` has invalid format. &#39;</span>
-                             <span class="s1">&#39;Expression may be a single variable or an equation &#39;</span>
-                             <span class="s1">&#39;of the form `constraint_name = func(vars)`&#39;</span><span class="p">)</span>
+            <span class="n">obj_name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_calc_expr</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">is_expr</span> <span class="o">=</span> <span class="kc">False</span>
-
-        <span class="n">obj_name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">if</span> <span class="n">is_expr</span> <span class="k">else</span> <span class="n">name</span>
+            <span class="n">obj_name</span> <span class="o">=</span> <span class="n">name</span>
 
         <span class="n">obj_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
                     <span class="s1">&#39;loc&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">,</span>
@@ -2431,11 +2419,47 @@ title="Open an issue"
                     <span class="s1">&#39;ref0&#39;</span><span class="p">:</span> <span class="n">ref0</span><span class="p">,</span>
                     <span class="s1">&#39;adder&#39;</span><span class="p">:</span> <span class="n">adder</span><span class="p">,</span>
                     <span class="s1">&#39;scaler&#39;</span><span class="p">:</span> <span class="n">scaler</span><span class="p">,</span>
-                    <span class="s1">&#39;parallel_deriv_color&#39;</span><span class="p">:</span> <span class="n">parallel_deriv_color</span><span class="p">,</span>
-                    <span class="s1">&#39;is_expr&#39;</span><span class="p">:</span> <span class="n">is_expr</span><span class="p">}</span>
+                    <span class="s1">&#39;parallel_deriv_color&#39;</span><span class="p">:</span> <span class="n">parallel_deriv_color</span><span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_objectives</span><span class="p">[</span><span class="n">obj_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj_dict</span>
-        <span class="k">if</span> <span class="n">is_expr</span> <span class="ow">and</span> <span class="n">obj_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timeseries</span><span class="p">[</span><span class="s1">&#39;timeseries&#39;</span><span class="p">][</span><span class="s1">&#39;outputs&#39;</span><span class="p">]:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">add_timeseries_output</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">output_name</span><span class="o">=</span><span class="n">obj_name</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">shape</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Phase.add_calc_expr"><a class="viewcode-back" href="../../../features/phases/calc_expressions.html#dymos.Phase.add_calc_expr">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_calc_expr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">add_timeseries</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds an expression to be computed immediately after the user-given ODE.</span>
+
+<span class="sd">        Internally, dymos will wrap the user-given ODE in a group along with</span>
+<span class="sd">        an ExecComp that evalutes the expressions given.</span>
+
+<span class="sd">        Unlike standard OpenMDAO ExecComp expressions, those specified here</span>
+<span class="sd">        may use the ODE-relative path of variables (if they are not promoted</span>
+<span class="sd">        to the top of the ODE).</span>
+
+<span class="sd">        This function may be called more than one time with the same expression. In that case, any</span>
+<span class="sd">        new info from kwargs will be updated.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        expr : str</span>
+<span class="sd">            The expression to be computed.</span>
+<span class="sd">        add_timeseries : bool</span>
+<span class="sd">            If True, add the output of the expression to the timeseries.</span>
+<span class="sd">        **kwargs : dict</span>
+<span class="sd">            Any arguments to be forwarded to the ExecComp when the expression in added.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">expr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_exprs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_calc_exprs</span><span class="p">[</span><span class="n">expr</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_calc_exprs</span><span class="p">[</span><span class="n">expr</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span>
+
+        <span class="n">output_name</span> <span class="o">=</span> <span class="n">expr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">add_timeseries</span> <span class="ow">and</span> <span class="n">output_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timeseries</span><span class="p">[</span><span class="s1">&#39;timeseries&#39;</span><span class="p">][</span><span class="s1">&#39;outputs&#39;</span><span class="p">]:</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">expr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="s1">&#39;units&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="n">units</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">output</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="n">units</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">output</span><span class="p">][</span><span class="s1">&#39;units&#39;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">units</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_timeseries_output</span><span class="p">(</span><span class="n">output_name</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Phase.set_time_options"><a class="viewcode-back" href="../../../api/phase_api.html#dymos.Phase.set_time_options">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_time_options</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
                          <span class="n">fix_duration</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">input_initial</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
@@ -2804,19 +2828,12 @@ title="Open an issue"
                    <span class="s1">&#39;mult_val&#39;</span><span class="p">:</span> <span class="n">mult_val</span><span class="p">,</span>
                    <span class="s1">&#39;normalize&#39;</span><span class="p">:</span> <span class="n">normalize</span><span class="p">}</span>
 
-        <span class="n">expr_operators</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;(&#39;</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="s1">&#39;&amp;&#39;</span><span class="p">,</span> <span class="s1">&#39;%&#39;</span><span class="p">,</span> <span class="s1">&#39;@&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="s1">&#39;=&#39;</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
-            <span class="n">is_expr</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="k">elif</span> <span class="s1">&#39;=&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">name</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">opr</span> <span class="ow">in</span> <span class="n">name</span> <span class="k">for</span> <span class="n">opr</span> <span class="ow">in</span> <span class="n">expr_operators</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;The expression provided `</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">` has invalid format. &#39;</span>
-                             <span class="s1">&#39;Expression may be a single variable or an equation &#39;</span>
-                             <span class="s1">&#39;of the form `constraint_name = func(vars)`&#39;</span><span class="p">)</span>
+            <span class="n">balance_name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_calc_expr</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">is_expr</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">balance_name</span> <span class="o">=</span> <span class="n">name</span>
 
-        <span class="n">balance_name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">if</span> <span class="n">is_expr</span> <span class="k">else</span> <span class="n">name</span>
-
-        <span class="n">options</span><span class="p">[</span><span class="s1">&#39;is_expr&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">is_expr</span>
         <span class="n">options</span><span class="p">[</span><span class="s1">&#39;balance_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">balance_name</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">time_options</span><span class="p">[</span><span class="s1">&#39;t_duration_balance_options&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">options</span>
@@ -2939,8 +2956,6 @@ title="Open an issue"
         <span class="n">transcription</span><span class="o">.</span><span class="n">configure_defects</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
         <span class="n">_configure_constraint_introspection</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-
-        <span class="n">configure_timeseries_expr_introspection</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
         <span class="n">transcription</span><span class="o">.</span><span class="n">configure_boundary_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
@@ -3282,6 +3297,8 @@ title="Open an issue"
         <span class="n">sim_phase</span><span class="o">.</span><span class="n">simulate_options</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">simulate_options</span><span class="p">)</span>
         <span class="n">sim_phase</span><span class="o">.</span><span class="n">timeseries_options</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timeseries_options</span><span class="p">)</span>
 
+        <span class="n">sim_phase</span><span class="o">.</span><span class="n">_calc_exprs</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_calc_exprs</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="n">sim_phase</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">initialize_values_from_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prob</span><span class="p">,</span> <span class="n">from_phase</span><span class="p">,</span> <span class="n">phase_path</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">skip_params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -3322,13 +3339,13 @@ title="Open an issue"
 
         <span class="c1"># Set the integration times</span>
         <span class="n">time_name</span> <span class="o">=</span> <span class="n">phs</span><span class="o">.</span><span class="n">time_options</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
-        <span class="n">op</span> <span class="o">=</span> <span class="n">op_dict</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;timeseries.timeseries_comp.</span><span class="si">{</span><span class="n">time_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="n">op_dict</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;timeseries.</span><span class="si">{</span><span class="n">time_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span>
         <span class="n">prob</span><span class="o">.</span><span class="n">set_val</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">self_path</span><span class="si">}</span><span class="s1">t_initial&#39;</span><span class="p">,</span> <span class="n">op</span><span class="p">[</span><span class="s1">&#39;val&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span>
         <span class="n">prob</span><span class="o">.</span><span class="n">set_val</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">self_path</span><span class="si">}</span><span class="s1">t_duration&#39;</span><span class="p">,</span> <span class="n">op</span><span class="p">[</span><span class="s1">&#39;val&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">-</span> <span class="n">op</span><span class="p">[</span><span class="s1">&#39;val&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span>
 
         <span class="c1"># Assign initial state values</span>
         <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">phs</span><span class="o">.</span><span class="n">state_options</span><span class="p">:</span>
-            <span class="n">op</span> <span class="o">=</span> <span class="n">op_dict</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;timeseries.timeseries_comp.states:</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span>
+            <span class="n">op</span> <span class="o">=</span> <span class="n">op_dict</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;timeseries.states:</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span>
             <span class="n">prob</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">self_path</span><span class="si">}</span><span class="s1">initial_states:</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">][</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">op</span><span class="p">[</span><span class="s1">&#39;val&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
 
         <span class="c1"># Assign control values</span>
@@ -3708,7 +3725,7 @@ title="Open an issue"
         <span class="n">integration_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_options</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
 
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">prev_time_path</span> <span class="o">=</span> <span class="n">prev_vars_abs2prom</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">pathname</span><span class="si">}</span><span class="s1">.timeseries.timeseries_comp.</span><span class="si">{</span><span class="n">integration_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span>
+            <span class="n">prev_time_path</span> <span class="o">=</span> <span class="n">prev_vars_abs2prom</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">pathname</span><span class="si">}</span><span class="s1">.timeseries.</span><span class="si">{</span><span class="n">integration_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
             <span class="n">om</span><span class="o">.</span><span class="n">issue_warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;load_case for phase </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1"> failed - phase not found in case data.&#39;</span><span class="p">)</span>
             <span class="k">return</span>

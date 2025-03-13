@@ -563,6 +563,7 @@ const thebe_selector_output = ".output, .cell_output"
 <li class="toctree-l2"><a class="reference internal" href="../../features/phases/objective.html">Objective</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../features/phases/timeseries.html">Timeseries Outputs</a></li>
 
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/calc_expressions.html">Calculation Expressions</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../features/trajectories/trajectories.html">Organizing Phases into Trajectories</a></li>
@@ -834,13 +835,13 @@ Dynamic systems are typically defined by some set of ordinary
 differential equations (the ODE) which governs their behavior.</p>
 <p>Consider a simple damped harmonic oscillator.</p>
 <p><img alt="Damped harmonic oscillator free-body diagram" src="../../_images/spring_mass_damper.png" /></p>
-<div class="amsmath math notranslate nohighlight" id="equation-083a0d0b-c987-4ca8-be6d-351324777e94">
-<span class="eqno">(11)<a class="headerlink" href="#equation-083a0d0b-c987-4ca8-be6d-351324777e94" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-79182897-b63e-4e39-b612-854c62ee592c">
+<span class="eqno">(11)<a class="headerlink" href="#equation-79182897-b63e-4e39-b612-854c62ee592c" title="Permalink to this equation">#</a></span>\[\begin{align}
     \ddot{x} &amp;= -\frac{kx}{m} - \frac{c \dot{x}}{m}
 \end{align}\]</div>
 <p>Converting this to a first order system results in an ODE system with two states:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-a191b7d9-65be-4834-9e7d-7e114e57cbe3">
-<span class="eqno">(12)<a class="headerlink" href="#equation-a191b7d9-65be-4834-9e7d-7e114e57cbe3" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-78d5f524-5808-4571-91b8-020258664445">
+<span class="eqno">(12)<a class="headerlink" href="#equation-78d5f524-5808-4571-91b8-020258664445" title="Permalink to this equation">#</a></span>\[\begin{align}
     \dot{x} &amp;= v \\
     \dot{v} &amp;= -\frac{kx}{m} - \frac{c \dot{x}}{m}
 \end{align}\]</div>

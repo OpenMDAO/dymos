@@ -563,6 +563,7 @@ const thebe_selector_output = ".output, .cell_output"
 <li class="toctree-l2"><a class="reference internal" href="../../features/phases/objective.html">Objective</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../features/phases/timeseries.html">Timeseries Outputs</a></li>
 
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/calc_expressions.html">Calculation Expressions</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../features/trajectories/trajectories.html">Organizing Phases into Trajectories</a></li>
@@ -837,16 +838,16 @@ title="Print to PDF"
   <section class="tex2jax_ignore mathjax_ignore" id="the-van-der-pol-oscillator">
 <h1>The Van der Pol Oscillator<a class="headerlink" href="#the-van-der-pol-oscillator" title="Permalink to this heading">#</a></h1>
 <p>In dynamics, the Van Der Pol oscillator <span id="id1">[<a class="reference internal" href="#id23" title="Wikipedia contributors. Van der pol oscillator — Wikipedia, the free encyclopedia. 2020. [Online; accessed 12-June-2020]. URL: https://en.wikipedia.org/w/index.php?title=Van_der_Pol_oscillator&amp;oldid=953857769.">Wikipediacontributors20</a>]</span> is a non-conservative oscillator with non-linear damping. It evolves in time according to the second-order differential equation:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-999f3793-e762-4269-81b0-93b44c4d5240">
-<span class="eqno">(16)<a class="headerlink" href="#equation-999f3793-e762-4269-81b0-93b44c4d5240" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-305918e1-fcfa-42c7-9c82-194c047d86b2">
+<span class="eqno">(16)<a class="headerlink" href="#equation-305918e1-fcfa-42c7-9c82-194c047d86b2" title="Permalink to this equation">#</a></span>\[\begin{align}
     \frac{d^2x}{dt^2} - u (1 - x^2) \frac{dx}{dt} + x &amp;= 0
 \end{align}\]</div>
 <p>where <span class="math notranslate nohighlight">\(x\)</span> is the position coordinate (a function of the time <span class="math notranslate nohighlight">\(t\)</span>), and <span class="math notranslate nohighlight">\(u\)</span> is a scalar parameter
 indicating the nonlinearity and the strength of the damping.</p>
 <p>To make this an optimal control problem, we want to find the smallest control that will dampen the oscillation
 (drive the state variables to zero). We can express this as an objective function <span class="math notranslate nohighlight">\(J\)</span> to minimize:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-df9b8513-26a9-47d8-9f18-c76f81684551">
-<span class="eqno">(17)<a class="headerlink" href="#equation-df9b8513-26a9-47d8-9f18-c76f81684551" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-fa6ca021-ce49-40cd-a99d-94477b5eae83">
+<span class="eqno">(17)<a class="headerlink" href="#equation-fa6ca021-ce49-40cd-a99d-94477b5eae83" title="Permalink to this equation">#</a></span>\[\begin{align}
     J &amp;= \int x^2_0 + x^2_1 + u^2
 \end{align}\]</div>
 <p>In other words, we want to find the optimal (smallest) trajectory of the control <span class="math notranslate nohighlight">\(u\)</span> such that the oscillation
@@ -865,8 +866,8 @@ and the oscillation’s rate of change are driven to zero.</p>
 <section id="system-dynamics">
 <h2>System Dynamics<a class="headerlink" href="#system-dynamics" title="Permalink to this heading">#</a></h2>
 <p>The evolution of the state variables is given by the following ordinary differential equations (ODE):</p>
-<div class="amsmath math notranslate nohighlight" id="equation-1e0d6465-08d6-4a91-9bf0-6a25b027c679">
-<span class="eqno">(18)<a class="headerlink" href="#equation-1e0d6465-08d6-4a91-9bf0-6a25b027c679" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-3f447409-8a1b-42f0-ba69-e79b499f9f25">
+<span class="eqno">(18)<a class="headerlink" href="#equation-3f447409-8a1b-42f0-ba69-e79b499f9f25" title="Permalink to this equation">#</a></span>\[\begin{align}
     \frac{dx_0}{dt} &amp;= (1 - x^2_1) x_0 - x_1 + u \\
     \frac{dx_1}{dt} &amp;= x_0 \\
     \frac{dJ}{dt} &amp;= x^2_0 + x^2_1 + u^2
@@ -883,16 +884,16 @@ and the oscillation’s rate of change are driven to zero.</p>
 <section id="the-initial-and-final-conditions">
 <h2>The initial and final conditions<a class="headerlink" href="#the-initial-and-final-conditions" title="Permalink to this heading">#</a></h2>
 <p>The initial conditions are:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-49977421-b919-4129-a2c7-3603c2355c08">
-<span class="eqno">(19)<a class="headerlink" href="#equation-49977421-b919-4129-a2c7-3603c2355c08" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-fd1d658f-ce48-47e2-846f-ec71f01e52ff">
+<span class="eqno">(19)<a class="headerlink" href="#equation-fd1d658f-ce48-47e2-846f-ec71f01e52ff" title="Permalink to this equation">#</a></span>\[\begin{align}
     t_i &amp;= 0 \\
     x_{0i} &amp;= 1 \\
     x_{1i} &amp;= 1 \\
       u_i &amp;= -0.75
 \end{align}\]</div>
 <p>The final conditions are:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-b24cdda9-b94c-414a-b4ca-fbfe42bcdf41">
-<span class="eqno">(20)<a class="headerlink" href="#equation-b24cdda9-b94c-414a-b4ca-fbfe42bcdf41" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-f5315eb7-c5b3-4351-a2d9-b3a5d4c82270">
+<span class="eqno">(20)<a class="headerlink" href="#equation-f5315eb7-c5b3-4351-a2d9-b3a5d4c82270" title="Permalink to this equation">#</a></span>\[\begin{align}
     t_f &amp;= 10 \\
     x_{0f} &amp;= 0 \\
     x_{1f} &amp;= 0 \\
@@ -1135,43 +1136,43 @@ system response with the control variable <span class="math notranslate nohighli
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000374 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000332 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000017 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000015 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000193 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000162 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000063 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000067 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000003 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000001 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.003197 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.000985 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000051 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000033 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
@@ -1183,7 +1184,7 @@ system response with the control variable <span class="math notranslate nohighli
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000258 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000192 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
@@ -1195,37 +1196,37 @@ system response with the control variable <span class="math notranslate nohighli
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000148 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000177 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000050 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000082 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000002 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000001 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.003178 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.001566 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000050 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000038 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000003 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000002 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Simulating trajectory traj
@@ -1321,55 +1322,7 @@ If we take the simulation results as the truth, there is a bit of divergence in 
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000356 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000019 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000164 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000052 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000002 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.003014 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000045 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000002 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000253 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000336 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
@@ -1381,13 +1334,13 @@ If we take the simulation results as the truth, there is a bit of divergence in 
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000156 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000176 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000066 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000053 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
@@ -1399,13 +1352,13 @@ If we take the simulation results as the truth, there is a bit of divergence in 
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.002918 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.000974 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000039 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000031 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
@@ -1414,18 +1367,67 @@ If we take the simulation results as the truth, there is a bit of divergence in 
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000003 sec).
 </pre></div>
 </div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000189 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000040 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000177 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000088 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000001 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.001501 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000030 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000002 sec).
+</pre></div>
+</div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (60, 130)  (5.15% nonzero)
 FWD solves: 0   REV solves: 5
 Total colors vs. total size: 5 vs 60  (91.67% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem4&#39; was computed 3 times.
-Time to compute sparsity:   0.1018 sec
-Time to compute coloring:   0.0633 sec
-Memory to compute coloring:   0.2500 MB
-Coloring created on: 2025-03-11 20:36:31
-
-List of user-set options:
+Time to compute sparsity:   0.0989 sec
+Time to compute coloring:   0.0593 sec
+Memory to compute coloring:   0.1250 MB
+Coloring created on: 2025-03-13 20:11:01
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>List of user-set options:
 
                                     Name   Value                used
                         file_print_level = 5                     yes
@@ -1467,7 +1469,7 @@ Number of inequality constraint evaluations          = 0
 Number of equality constraint Jacobian evaluations   = 32
 Number of inequality constraint Jacobian evaluations = 0
 Number of Lagrangian Hessian evaluations             = 0
-Total seconds in IPOPT                               = 0.729
+Total seconds in IPOPT                               = 0.687
 
 EXIT: Optimal Solution Found.
 </pre></div>
@@ -1489,11 +1491,11 @@ EXIT: Optimal Solution Found.
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 35
-  runtime     : 9.3093E-01 s
+  runtime     : 8.7953E-01 s
   model_evals : 35
-  model_time  : 2.8721E-02 s
+  model_time  : 2.4091E-02 s
   deriv_evals : 33
-  deriv_time  : 1.1868E-01 s
+  deriv_time  : 1.1230E-01 s
   exit_status : SUCCESS
 </pre></div>
 </div>
@@ -1576,106 +1578,10 @@ and does not require supplying a good guess for the number segments.</p>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000383 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000297 sec).
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000383 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000021 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000021 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000181 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000181 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000053 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000053 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000003 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000003 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.003199 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.003199 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000045 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000045 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000004 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000004 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000244 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000244 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000297 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
@@ -1684,22 +1590,22 @@ and does not require supplying a good guess for the number segments.</p>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000017 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000014 sec).
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000017 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000014 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000145 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000145 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000139 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000139 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
@@ -1708,22 +1614,22 @@ and does not require supplying a good guess for the number segments.</p>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000051 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000049 sec).
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000051 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000049 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000003 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000003 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000001 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000001 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
@@ -1732,22 +1638,22 @@ and does not require supplying a good guess for the number segments.</p>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.002982 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.000992 sec).
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.002982 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.000992 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000038 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000038 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000030 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000030 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
@@ -1760,6 +1666,102 @@ and does not require supplying a good guess for the number segments.</p>
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000003 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000216 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000216 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000041 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000041 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000113 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000113 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000050 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000050 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000002 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000002 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.000985 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.000985 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000030 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000030 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000002 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000002 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (60, 74)  (8.74% nonzero)
@@ -1768,10 +1770,10 @@ Total colors vs. total size: 9 vs 74  (87.84% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem7&#39; was computed 3 times.
-Time to compute sparsity:   0.1005 sec
-Time to compute coloring:   0.0612 sec
+Time to compute sparsity:   0.1003 sec
+Time to compute coloring:   0.0640 sec
 Memory to compute coloring:   0.0000 MB
-Coloring created on: 2025-03-11 20:36:34
+Coloring created on: 2025-03-13 20:11:03
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully    (Exit mode 0)
@@ -1806,8 +1808,8 @@ Optimization Complete
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/system.py:4572: OpenMDAOWarning:Calling `list_inputs` before `final_setup` will only display the default values of variables and will not show the result of any `set_val` calls.
-/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3056: OpenMDAOWarning:phase0.states:x0 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
-/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3056: OpenMDAOWarning:phase0.states:x1 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
+/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3072: OpenMDAOWarning:phase0.states:x0 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
+/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3072: OpenMDAOWarning:phase0.states:x1 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (105, 149)  (6.78% nonzero)
@@ -1816,10 +1818,10 @@ Total colors vs. total size: 14 vs 149  (90.60% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem7&#39; was computed 3 times.
-Time to compute sparsity:   0.1936 sec
-Time to compute coloring:   0.1138 sec
+Time to compute sparsity:   0.1915 sec
+Time to compute coloring:   0.1131 sec
 Memory to compute coloring:   0.0000 MB
-Coloring created on: 2025-03-11 20:36:35
+Coloring created on: 2025-03-13 20:11:05
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully    (Exit mode 0)
@@ -1854,8 +1856,8 @@ Optimization Complete
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/system.py:4572: OpenMDAOWarning:Calling `list_inputs` before `final_setup` will only display the default values of variables and will not show the result of any `set_val` calls.
-/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3056: OpenMDAOWarning:phase0.states:x0 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
-/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3056: OpenMDAOWarning:phase0.states:x1 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
+/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3072: OpenMDAOWarning:phase0.states:x0 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
+/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3072: OpenMDAOWarning:phase0.states:x1 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (168, 239)  (4.28% nonzero)
@@ -1864,10 +1866,10 @@ Total colors vs. total size: 14 vs 239  (94.14% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem7&#39; was computed 3 times.
-Time to compute sparsity:   0.3181 sec
-Time to compute coloring:   0.1797 sec
+Time to compute sparsity:   0.3290 sec
+Time to compute coloring:   0.1798 sec
 Memory to compute coloring:   0.0000 MB
-Coloring created on: 2025-03-11 20:36:36
+Coloring created on: 2025-03-13 20:11:06
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully    (Exit mode 0)
@@ -1906,8 +1908,8 @@ Optimization Complete
 /usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/grid_refinement/hp_adaptive/hp_adaptive.py:411: RuntimeWarning: divide by zero encountered in divide
   q_split = np.log((self.error[phase_path][split_seg_idxs] /
 /usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/system.py:4572: OpenMDAOWarning:Calling `list_inputs` before `final_setup` will only display the default values of variables and will not show the result of any `set_val` calls.
-/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3056: OpenMDAOWarning:phase0.states:x0 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
-/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3056: OpenMDAOWarning:phase0.states:x1 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
+/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3072: OpenMDAOWarning:phase0.states:x0 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
+/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3072: OpenMDAOWarning:phase0.states:x1 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (274, 399)  (3.16% nonzero)
@@ -1916,10 +1918,10 @@ Total colors vs. total size: 27 vs 274  (90.15% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem7&#39; was computed 3 times.
-Time to compute sparsity:   0.5744 sec
-Time to compute coloring:   0.2918 sec
+Time to compute sparsity:   0.5807 sec
+Time to compute coloring:   0.2900 sec
 Memory to compute coloring:   0.0000 MB
-Coloring created on: 2025-03-11 20:36:38
+Coloring created on: 2025-03-13 20:11:08
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully    (Exit mode 0)
@@ -1956,8 +1958,8 @@ Optimization Complete
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/system.py:4572: OpenMDAOWarning:Calling `list_inputs` before `final_setup` will only display the default values of variables and will not show the result of any `set_val` calls.
-/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3056: OpenMDAOWarning:phase0.states:x0 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
-/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3056: OpenMDAOWarning:phase0.states:x1 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
+/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3072: OpenMDAOWarning:phase0.states:x0 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
+/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3072: OpenMDAOWarning:phase0.states:x1 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (307, 449)  (2.93% nonzero)
@@ -1966,10 +1968,10 @@ Total colors vs. total size: 30 vs 307  (90.23% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem7&#39; was computed 3 times.
-Time to compute sparsity:   0.6708 sec
-Time to compute coloring:   0.3155 sec
+Time to compute sparsity:   0.6519 sec
+Time to compute coloring:   0.3154 sec
 Memory to compute coloring:   0.0000 MB
-Coloring created on: 2025-03-11 20:36:41
+Coloring created on: 2025-03-13 20:11:10
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully    (Exit mode 0)
@@ -2006,8 +2008,8 @@ Optimization Complete
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/system.py:4572: OpenMDAOWarning:Calling `list_inputs` before `final_setup` will only display the default values of variables and will not show the result of any `set_val` calls.
-/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3056: OpenMDAOWarning:phase0.states:x0 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
-/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3056: OpenMDAOWarning:phase0.states:x1 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
+/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3072: OpenMDAOWarning:phase0.states:x0 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
+/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/phase/phase.py:3072: OpenMDAOWarning:phase0.states:x1 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (356, 529)  (2.84% nonzero)
@@ -2016,10 +2018,10 @@ Total colors vs. total size: 36 vs 356  (89.89% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem7&#39; was computed 3 times.
-Time to compute sparsity:   0.8090 sec
-Time to compute coloring:   0.3813 sec
+Time to compute sparsity:   0.7975 sec
+Time to compute coloring:   0.3767 sec
 Memory to compute coloring:   0.0000 MB
-Coloring created on: 2025-03-11 20:36:44
+Coloring created on: 2025-03-13 20:11:13
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully    (Exit mode 0)
@@ -2046,11 +2048,11 @@ Successfully completed grid refinement.
 Driver:  ScipyOptimizeDriver
   success     : True
   iterations  : 4
-  runtime     : 2.2473E+00 s
+  runtime     : 2.1817E+00 s
   model_evals : 4
-  model_time  : 3.8411E-03 s
+  model_time  : 3.3914E-03 s
   deriv_evals : 2
-  deriv_time  : 5.2764E-02 s
+  deriv_time  : 5.1243E-02 s
   exit_status : SUCCESS
 </pre></div>
 </div>

@@ -65,7 +65,7 @@ const thebe_selector_output = ".output, .cell_output"
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Exploiting Sparsity for Faster Derivative Calculation" href="../exploiting_sparsity.html" />
-    <link rel="prev" title="Timeseries Outputs" href="../phases/timeseries.html" />
+    <link rel="prev" title="Calculation Expressions" href="../phases/calc_expressions.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="docsearch:language" content="en">
   </head>
@@ -563,6 +563,7 @@ const thebe_selector_output = ".output, .cell_output"
 <li class="toctree-l2"><a class="reference internal" href="../phases/objective.html">Objective</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../phases/timeseries.html">Timeseries Outputs</a></li>
 
+<li class="toctree-l2"><a class="reference internal" href="../phases/calc_expressions.html">Calculation Expressions</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Organizing Phases into Trajectories</a></li>
@@ -891,8 +892,8 @@ In order to enforce continuity among certain variables across phases, the user m
 There are two methods in dymos which provide this functionality.
 The <code class="docutils literal notranslate"><span class="pre">add_linkage_constraint</span></code> method provides a very general way of coupling two phases together.
 It does so by generating a constraint of the following form:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-764ee7c3-4219-4d3c-b588-ad93e9b811e3">
-<span class="eqno">(107)<a class="headerlink" href="#equation-764ee7c3-4219-4d3c-b588-ad93e9b811e3" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-916b4388-e671-4b85-b6cf-7ee5ee292c53">
+<span class="eqno">(108)<a class="headerlink" href="#equation-916b4388-e671-4b85-b6cf-7ee5ee292c53" title="Permalink to this equation">#</a></span>\[\begin{align}
     c = \mathrm{sign}_a \mathrm{var}_a + \mathrm{sign}_b \mathrm{var}_b
 \end{align}\]</div>
 <p>Method <code class="docutils literal notranslate"><span class="pre">add_linkage_constraint</span></code> lets the user specify the variables and phases to be compared for this constraint, as well as the location of the variable in each phase (either ‘initial’ or ‘final’)
@@ -1164,11 +1165,11 @@ invoked, it will perform a simulation of each Phase in the trajectory.</p>
             <footer class="bd-footer-article">
                 <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-  <a class='left-prev' id="prev-link" href="../phases/timeseries.html" title="previous page">
+  <a class='left-prev' id="prev-link" href="../phases/calc_expressions.html" title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
           <p class="prev-next-subtitle">previous</p>
-          <p class="prev-next-title">Timeseries Outputs</p>
+          <p class="prev-next-title">Calculation Expressions</p>
       </div>
   </a>
   <a class='right-next' id="next-link" href="../exploiting_sparsity.html" title="next page">

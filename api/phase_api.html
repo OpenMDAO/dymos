@@ -561,6 +561,7 @@ const thebe_selector_output = ".output, .cell_output"
 <li class="toctree-l2"><a class="reference internal" href="../features/phases/objective.html">Objective</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../features/phases/timeseries.html">Timeseries Outputs</a></li>
 
+<li class="toctree-l2"><a class="reference internal" href="../features/phases/calc_expressions.html">Calculation Expressions</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../features/trajectories/trajectories.html">Organizing Phases into Trajectories</a></li>
@@ -878,6 +879,11 @@ title="Print to PDF"
    <li class="toc-h2 nav-item toc-entry">
     <a class="reference internal nav-link" href="#add-timeseries">
      add_timeseries
+    </a>
+   </li>
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#add-calc-expr">
+     add_calc_expr
     </a>
    </li>
    <li class="toc-h2 nav-item toc-entry">
@@ -2014,6 +2020,36 @@ are to be provided.</p>
 
 </div></blockquote>
 </section>
+<section id="add-calc-expr">
+<h2>add_calc_expr<a class="headerlink" href="#add-calc-expr" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">Phase.</span></span><span class="sig-name descname"><span class="pre">add_calc_expr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_timeseries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dymos/phase/phase.html#Phase.add_calc_expr"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Adds an expression to be computed immediately after the user-given ODE.</p>
+<p>Internally, dymos will wrap the user-given ODE in a group along with
+an ExecComp that evalutes the expressions given.</p>
+<p>Unlike standard OpenMDAO ExecComp expressions, those specified here
+may use the ODE-relative path of variables (if they are not promoted
+to the top of the ODE).</p>
+<p>This function may be called more than one time with the same expression. In that case, any
+new info from kwargs will be updated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>expr</strong><span class="classifier">str</span></dt><dd><p>The expression to be computed.</p>
+</dd>
+<dt><strong>add_timeseries</strong><span class="classifier">bool</span></dt><dd><p>If True, add the output of the expression to the timeseries.</p>
+</dd>
+<dt><strong>**kwargs</strong><span class="classifier">dict</span></dt><dd><p>Any arguments to be forwarded to the ExecComp when the expression in added.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</div></blockquote>
+</section>
 <section id="add-timeseries-output">
 <h2>add_timeseries_output<a class="headerlink" href="#add-timeseries-output" title="Permalink to this heading">#</a></h2>
 <blockquote>
@@ -2506,6 +2542,11 @@ the first axis (0).</p>
    <li class="toc-h2 nav-item toc-entry">
     <a class="reference internal nav-link" href="#add-timeseries">
      add_timeseries
+    </a>
+   </li>
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#add-calc-expr">
+     add_calc_expr
     </a>
    </li>
    <li class="toc-h2 nav-item toc-entry">

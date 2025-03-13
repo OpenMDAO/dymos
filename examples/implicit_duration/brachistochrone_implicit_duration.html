@@ -563,6 +563,7 @@ const thebe_selector_output = ".output, .cell_output"
 <li class="toctree-l2"><a class="reference internal" href="../../features/phases/objective.html">Objective</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../features/phases/timeseries.html">Timeseries Outputs</a></li>
 
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/calc_expressions.html">Calculation Expressions</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../features/trajectories/trajectories.html">Organizing Phases into Trajectories</a></li>
@@ -978,8 +979,8 @@ NL: Newton Converged
 <p>We can utilize the <code class="docutils literal notranslate"><span class="pre">set_implicit_duration</span></code> method on <code class="docutils literal notranslate"><span class="pre">Phase</span></code> to turn <code class="docutils literal notranslate"><span class="pre">t_duration</span></code> into an implicit output and provide it with a residual.</p>
 <p>In our case, we set <code class="docutils literal notranslate"><span class="pre">phase.set_duration_balance('x',</span> <span class="pre">10.0)</span></code></p>
 <p>This specifies that we want <code class="docutils literal notranslate"><span class="pre">t_duration</span></code> to be associated with the following residual:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-b52be56f-9e83-4e16-b2f0-77543bfcc352">
-<span class="eqno">(96)<a class="headerlink" href="#equation-b52be56f-9e83-4e16-b2f0-77543bfcc352" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-b8285131-8df9-47a0-ba9b-2d8bcc95a14b">
+<span class="eqno">(96)<a class="headerlink" href="#equation-b8285131-8df9-47a0-ba9b-2d8bcc95a14b" title="Permalink to this equation">#</a></span>\[\begin{align}
   \mathcal{R}(t_d) = x - 10 = 0
 \end{align}\]</div>
 <p>Note that we limit the angle <span class="math notranslate nohighlight">\(\theta\)</span> to be between 0 and 180, the bead must move to the right and we can just terminate the propagation when x=10.</p>
@@ -1094,8 +1095,8 @@ We can use this information to pose the brachistochrone as a boundary value prob
 That means that <code class="docutils literal notranslate"><span class="pre">theta_rate</span></code> is a parameter as far as dymos is concerned.
 We then make <code class="docutils literal notranslate"><span class="pre">theta</span></code> a state variable whose rate is provided by the <code class="docutils literal notranslate"><span class="pre">theta_rate</span></code> parameter.
 We’ll set the initial value of <code class="docutils literal notranslate"><span class="pre">theta</span></code> to zero degrees, since we know that is approximately correct for this problem.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-80c65336-5e68-43e5-baf4-7d921f66e6d3">
-<span class="eqno">(97)<a class="headerlink" href="#equation-80c65336-5e68-43e5-baf4-7d921f66e6d3" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-a2c48d29-c030-4e73-a3ab-e33e7bd8f9e9">
+<span class="eqno">(97)<a class="headerlink" href="#equation-a2c48d29-c030-4e73-a3ab-e33e7bd8f9e9" title="Permalink to this equation">#</a></span>\[\begin{align}
   \mathcal{R}(\dot{\theta}) &amp;= y_f - 5
 \end{align}\]</div>
 <p>Dymos currently doesn’t support making parameters implicit outputs, so we’re going to do this the manual OpenMDAO way.</p>

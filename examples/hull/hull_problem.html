@@ -563,6 +563,7 @@ const thebe_selector_output = ".output, .cell_output"
 <li class="toctree-l2"><a class="reference internal" href="../../features/phases/objective.html">Objective</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../features/phases/timeseries.html">Timeseries Outputs</a></li>
 
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/calc_expressions.html">Calculation Expressions</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../features/trajectories/trajectories.html">Organizing Phases into Trajectories</a></li>
@@ -828,27 +829,27 @@ title="Print to PDF"
 <p>This system has one state variables, the position (<span class="math notranslate nohighlight">\(x\)</span>) of the sliding block.</p>
 <p>This system has a single control variable (<span class="math notranslate nohighlight">\(u\)</span>), the velocity of the block.</p>
 <p>The dynamics of the system are governed by</p>
-<div class="amsmath math notranslate nohighlight" id="equation-0811ffbc-7f9a-42c2-8bc0-24f355da9c06">
-<span class="eqno">(48)<a class="headerlink" href="#equation-0811ffbc-7f9a-42c2-8bc0-24f355da9c06" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-18ff6af0-f1e7-444b-9bfe-2d12a7efe636">
+<span class="eqno">(48)<a class="headerlink" href="#equation-18ff6af0-f1e7-444b-9bfe-2d12a7efe636" title="Permalink to this equation">#</a></span>\[\begin{align}
   \dot{x} &amp;= u
 \end{align}\]</div>
 </section>
 <section id="problem-definition">
 <h2>Problem Definition<a class="headerlink" href="#problem-definition" title="Permalink to this heading">#</a></h2>
 <p>We seek to minimize the control effort required and minimize the displacement from the origin.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-f6f0f1de-3ad5-4d60-a20f-f48099d665f5">
-<span class="eqno">(49)<a class="headerlink" href="#equation-f6f0f1de-3ad5-4d60-a20f-f48099d665f5" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-b52862ae-41c0-429c-be03-eab22c3b4a01">
+<span class="eqno">(49)<a class="headerlink" href="#equation-b52862ae-41c0-429c-be03-eab22c3b4a01" title="Permalink to this equation">#</a></span>\[\begin{align}
     \mathrm{Minimize} \, J &amp;= 2.5x_f^2 \, + \, 0.5 \int_0^1 u^2 dt
 \end{align}\]</div>
 <p>Subject to the initial conditions</p>
-<div class="amsmath math notranslate nohighlight" id="equation-127dbd11-e780-4717-b465-168f9cd971f2">
-<span class="eqno">(50)<a class="headerlink" href="#equation-127dbd11-e780-4717-b465-168f9cd971f2" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-a09d0063-a9a1-4c05-bbf3-1b0480ac00ca">
+<span class="eqno">(50)<a class="headerlink" href="#equation-a09d0063-a9a1-4c05-bbf3-1b0480ac00ca" title="Permalink to this equation">#</a></span>\[\begin{align}
     t_0 &amp;= 0.0 \\
     x_0 &amp;= 1.5
 \end{align}\]</div>
 <p>and the terminal constraints</p>
-<div class="amsmath math notranslate nohighlight" id="equation-9374133a-bfe2-4486-a864-64e6adc068f8">
-<span class="eqno">(51)<a class="headerlink" href="#equation-9374133a-bfe2-4486-a864-64e6adc068f8" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-98361d56-3f9c-4933-8243-42b4756dc944">
+<span class="eqno">(51)<a class="headerlink" href="#equation-98361d56-3f9c-4933-8243-42b4756dc944" title="Permalink to this equation">#</a></span>\[\begin{align}
     t_f &amp;= 10.0
 \end{align}\]</div>
 </section>
@@ -857,8 +858,8 @@ title="Print to PDF"
 <p>In classic optimal control, the objective is often broken into the terminal component (the Mayer term) and the integral component (the Lagrange term).
 Dymos does not distinguish between the two.
 In this case, since the objective <span class="math notranslate nohighlight">\(J\)</span> consists of both a terminal cost and an integrated cost (Bolza form), we add a term to the ODE to account for the integrated quantity</p>
-<div class="amsmath math notranslate nohighlight" id="equation-71c163bd-01c9-402e-8a3d-fb6c5a44bd00">
-<span class="eqno">(52)<a class="headerlink" href="#equation-71c163bd-01c9-402e-8a3d-fb6c5a44bd00" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-8db0fbf6-1f5a-4192-b914-f4df450b9cbb">
+<span class="eqno">(52)<a class="headerlink" href="#equation-8db0fbf6-1f5a-4192-b914-f4df450b9cbb" title="Permalink to this equation">#</a></span>\[\begin{align}
   \dot{x_L} &amp;= L \\
   L &amp;= 0.5 u^2
 \end{align}\]</div>
@@ -991,7 +992,10 @@ The rate source and units for the states are obtained from the tags in the ODE c
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;openmdao.core.problem.Problem at 0x7f4e0037cbd0&gt;
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:2985: UnitsWarning:&#39;traj.phases.phase0&#39; &lt;class Phase&gt;: Input &#39;traj.phases.phase0.collocation_constraint.f_computed:x&#39; with units of &#39;1.0/s&#39; is connected to output &#39;traj.phases.phase0.control_comp.control_values:u&#39; which has no units.
+</pre></div>
+</div>
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;openmdao.core.problem.Problem at 0x7f7244e7bb10&gt;
 </pre></div>
 </div>
 </div>
@@ -1037,10 +1041,10 @@ Total colors vs. total size: 7 vs 216  (96.76% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem&#39; was computed 3 times.
-Time to compute sparsity:   0.2083 sec
-Time to compute coloring:   0.1719 sec
-Memory to compute coloring:   0.3750 MB
-Coloring created on: 2025-03-11 20:32:30
+Time to compute sparsity:   0.2335 sec
+Time to compute coloring:   0.1728 sec
+Memory to compute coloring:   0.0000 MB
+Coloring created on: 2025-03-13 20:07:07
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1049,18 +1053,18 @@ Coloring created on: 2025-03-11 20:32:30
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    3.1216
-       User Objective Time :       0.0799
-       User Sensitivity Time :     0.8824
-       Interface Time :            0.5365
-       Opt Solver Time:            1.6227
+    Total Time:                    3.1089
+       User Objective Time :       0.0578
+       User Sensitivity Time :     0.8971
+       Interface Time :            0.5362
+       Opt Solver Time:            1.6179
     Calls to Objective Function :      66
     Calls to Sens Function :           65
 
 
    Objectives
-      Index  Name                                                     Value
-          0  traj.phase0.timeseries.timeseries_exec_comp.J     1.102952E-01
+      Index  Name                             Value
+          0  traj.phase0.rhs_all.J     1.102952E-01
 
    Variables (c - continuous, i - integer, d - discrete)
       Index  Name                        Type      Lower Bound            Value      Upper Bound     Status
@@ -1494,11 +1498,11 @@ Coloring created on: 2025-03-11 20:32:30
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 67
-  runtime     : 3.5758E+00 s
+  runtime     : 3.5841E+00 s
   model_evals : 67
-  model_time  : 4.9765E-02 s
+  model_time  : 3.9351E-02 s
   deriv_evals : 65
-  deriv_time  : 3.3371E-01 s
+  deriv_time  : 3.7574E-01 s
   exit_status : SUCCESS
 </pre></div>
 </div>
