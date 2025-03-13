@@ -5,7 +5,6 @@ import numpy as np
 import openmdao.api as om
 from openmdao.utils.om_warnings import warn_deprecation
 
-from ..common.timeseries_output_comp import TimeseriesOutputComp
 from .explicit_shooting_continuity_comp import ExplicitShootingContinuityComp
 from ..transcription_base import TranscriptionBase
 from ..grid_data import BirkhoffGrid, GaussLobattoGrid, RadauGrid, UniformGrid, ChebyshevGaussLobattoGrid
@@ -14,7 +13,9 @@ from ...utils.misc import get_rate_units, CoerceDesvar
 from ...utils.indexing import get_src_indices_by_row
 from ...utils.introspection import get_promoted_vars, get_source_metadata, get_targets, _get_targets_metadata
 from ...utils.constants import INF_BOUND
-from ..common import TimeComp, TimeseriesOutputGroup, ControlInterpComp, ParameterComp
+
+from ...utils.ode_utils import _make_ode_system
+from ..common import TimeComp, TimeseriesOutputComp, ControlInterpComp, ParameterComp
 
 
 class ExplicitShooting(TranscriptionBase):
@@ -310,10 +311,17 @@ class ExplicitShooting(TranscriptionBase):
                                    ode_init_kwargs=phase.options['ode_init_kwargs'],
                                    standalone_mode=False,
                                    reports=self.options['subprob_reports'],
-                                   control_interp=self.options['control_interp'])
+                                   control_interp=self.options['control_interp'],
+                                   calc_exprs=phase._calc_exprs)
         phase.add_subsystem('integrator', integ)
-        phase.add_subsystem('ode', phase.options['ode_class'](num_nodes=self._output_grid_data.num_nodes,
-                                                              **phase.options['ode_init_kwargs']))
+
+        ode = _make_ode_system(ode_class=phase.options['ode_class'],
+                               num_nodes=self._output_grid_data.num_nodes,
+                               calc_exprs=phase._calc_exprs,
+                               ode_init_kwargs=phase.options['ode_init_kwargs'],
+                               parameter_options=phase.parameter_options)
+
+        phase.add_subsystem('ode', ode)
 
     def configure_ode(self, phase):
         """
@@ -525,18 +533,11 @@ class ExplicitShooting(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         for name, options in phase._timeseries.items():
-            has_expr = False
-            for _, output_options in options['outputs'].items():
-                if output_options['is_expr']:
-                    has_expr = True
-                    break
-
             timeseries_comp = TimeseriesOutputComp(input_grid_data=self._output_grid_data,
                                                    output_grid_data=self._output_grid_data,
                                                    output_subset=options['subset'],
                                                    time_units=phase.time_options['units'])
-            timeseries_group = TimeseriesOutputGroup(has_expr=has_expr, timeseries_output_comp=timeseries_comp)
-            phase.add_subsystem(name, subsys=timeseries_group)
+            phase.add_subsystem(name, subsys=timeseries_comp)
 
             phase.connect('dt_dstau', f'{name}.dt_dstau', flat_src_indices=True)
 

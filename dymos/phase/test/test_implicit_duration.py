@@ -78,6 +78,9 @@ class TestImplicitDuration(unittest.TestCase):
         p.driver = om.ScipyOptimizeDriver(optimizer='SLSQP')
         p.driver.declare_coloring(tol=1.0E-12)
 
+        phase.nonlinear_solver = om.NewtonSolver(solve_subsystems=True)
+        phase.linear_solver = om.DirectSolver()
+
         p.setup()
 
         phase.set_time_val(initial=0, duration=2)
@@ -105,6 +108,9 @@ class TestImplicitDuration(unittest.TestCase):
         phase.linear_solver = om.DirectSolver()
 
         phase.set_simulate_options(rtol=1.0E-9, atol=1.0E-9)
+
+        phase.nonlinear_solver = om.NewtonSolver(solve_subsystems=True)
+        phase.linear_solver = om.DirectSolver()
 
         p.driver = om.ScipyOptimizeDriver(optimizer='SLSQP')
         p.driver.declare_coloring(tol=1.0E-12)

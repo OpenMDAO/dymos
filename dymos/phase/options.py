@@ -633,10 +633,6 @@ class ConstraintOptionsDictionary(om.OptionsDictionary):
                      desc='If True, the given indices will be treated as indices into a C-order flattened array based '
                           'on the shaped of the constrained variable at a point in time.')
 
-        self.declare(name='is_expr', types=bool, default=False,
-                     desc='If True, the given constraint is an expression that must be evaluated rather than a'
-                          ' single variable.')
-
 
 class TimeseriesOutputOptionsDictionary(om.OptionsDictionary):
     """
@@ -679,12 +675,6 @@ class TimeseriesOutputOptionsDictionary(om.OptionsDictionary):
 
         self.declare(name='is_rate', default=False, allow_none=False,
                      desc='If True this is a rate.')
-
-        self.declare(name='is_expr', default=False, allow_none=False,
-                     desc='If true the requested timeseries is a mathematical expression')
-
-        self.declare(name='expr_kwargs', default={}, allow_none=False,
-                     desc='Options to be passed to the timeseries expression comp when adding the expression.')
 
 
 class PhaseTimeseriesOptionsDictionary(om.OptionsDictionary):

@@ -47,6 +47,15 @@ class GuidedBrachistochroneODE(om.JaxExplicitComponent):
         # TODO: Temporary pending bug fix in JaxExplicitComp
         self.declare_coloring(method='jax')
 
+    # because our compute primal output depends on static variables, in this case
+    # and self.options['num_nodes'], we must define a get_self_statics method. This method must
+    # return a tuple of all static variables. Their order in the tuple doesn't matter.  If your
+    # component happens to have discrete inputs, do NOT return them here. Discrete inputs are passed
+    # into the compute_primal function individually, after the continuous variables.
+    def get_self_statics(self):
+        # return value must be hashable
+        return self.options['num_nodes'],
+
     def compute_primal(self, v, g, time_phase, theta_rate):
         theta = time_phase * theta_rate
 

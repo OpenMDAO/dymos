@@ -3,7 +3,7 @@ import numpy as np
 import openmdao.api as om
 
 from ..transcription_base import TranscriptionBase
-from ..common import TimeComp, TimeseriesOutputGroup, TimeseriesOutputComp, ControlInterpComp
+from ..common import TimeComp, TimeseriesOutputComp, ControlInterpComp
 from .multiple_shooting_iter_group import MultipleShootingIterGroup
 
 from ..grid_data import GaussLobattoGrid, ChebyshevGaussLobattoGrid
@@ -391,12 +391,6 @@ class PicardShooting(TranscriptionBase):
         gd = self.grid_data
 
         for name, options in phase._timeseries.items():
-            has_expr = False
-            for _, output_options in options['outputs'].items():
-                if output_options['is_expr']:
-                    has_expr = True
-                    break
-
             if options['transcription'] is None:
                 ogd = None
             else:
@@ -406,8 +400,7 @@ class PicardShooting(TranscriptionBase):
                                                    output_grid_data=ogd,
                                                    output_subset=options['subset'],
                                                    time_units=phase.time_options['units'])
-            timeseries_group = TimeseriesOutputGroup(has_expr=has_expr, timeseries_output_comp=timeseries_comp)
-            phase.add_subsystem(name, subsys=timeseries_group)
+            phase.add_subsystem(name, subsys=timeseries_comp)
 
             phase.connect('dt_dstau', f'{name}.dt_dstau', flat_src_indices=True)
 

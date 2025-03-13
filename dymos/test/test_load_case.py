@@ -153,13 +153,13 @@ class TestLoadCase(unittest.TestCase):
         outputs = dict([(o[0], o[1]) for o in case.list_outputs(units=True, shape=True,
                                                                 out_stream=None)])
 
-        time_val = outputs['phase0.timeseries.timeseries_comp.time']['val']
-        theta_val = outputs['phase0.timeseries.timeseries_comp.theta']['val']
+        time_val = outputs['phase0.timeseries.time']['val']
+        theta_val = outputs['phase0.timeseries.theta']['val']
 
         time_val_uniq, idx = np.unique(time_val, return_index=True)
         theta_val_uniq = theta_val[idx]
 
-        assert_near_equal(q['phase0.timeseries.timeseries_comp.theta'],
+        assert_near_equal(q['phase0.timeseries.theta'],
                           q.model.phase0.interp(xs=time_val_uniq, ys=theta_val_uniq, nodes='all'),
                           tolerance=1.0E-3)
 

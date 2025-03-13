@@ -38,7 +38,6 @@ class LintJupyterOutputsTestCase(unittest.TestCase):
     def test_output(self):
 
         for file in _get_files():
-            print(file)
             with self.subTest(file):
                 with open(file) as f:
                     json_data = json.load(f)

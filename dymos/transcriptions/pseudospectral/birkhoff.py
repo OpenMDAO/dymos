@@ -3,7 +3,7 @@ import numpy as np
 import openmdao.api as om
 
 from ..transcription_base import TranscriptionBase
-from ..common import TimeComp, TimeseriesOutputGroup, TimeseriesOutputComp
+from ..common import TimeComp, TimeseriesOutputComp
 from .components import BirkhoffIterGroup, BirkhoffBoundaryGroup
 
 from ..grid_data import BirkhoffGrid
@@ -211,23 +211,22 @@ class Birkhoff(TranscriptionBase):
         grid_data = self.grid_data
 
         ode_init_kwargs = phase.options['ode_init_kwargs']
-        ibcs = phase._initial_boundary_constraints
-        fbcs = phase._final_boundary_constraints
 
         phase.add_subsystem('ode_iter_group',
                             subsys=BirkhoffIterGroup(grid_data=grid_data, state_options=phase.state_options,
                                                      time_options=phase.time_options,
+                                                     parameter_options=phase.parameter_options,
                                                      ode_class=ODEClass,
-                                                     ode_init_kwargs=ode_init_kwargs),
+                                                     ode_init_kwargs=ode_init_kwargs,
+                                                     calc_exprs=phase._calc_exprs),
                             promotes=['*'])
 
         phase.add_subsystem('boundary_vals',
                             subsys=BirkhoffBoundaryGroup(grid_data=grid_data,
                                                          ode_class=ODEClass,
                                                          ode_init_kwargs=ode_init_kwargs,
-                                                         initial_boundary_constraints=ibcs,
-                                                         final_boundary_constraints=fbcs,
-                                                         objectives=phase._objectives),
+                                                         calc_exprs=phase._calc_exprs,
+                                                         parameter_options=phase.parameter_options),
                             promotes_inputs=['initial_states:*', 'final_states:*'])
 
     def configure_ode(self, phase):
@@ -315,7 +314,7 @@ class Birkhoff(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         for timeseries_name, timeseries_options in phase._timeseries.items():
-            timeseries_comp = phase._get_subsystem(f'{timeseries_name}.timeseries_comp')
+            timeseries_comp = phase._get_subsystem(timeseries_name)
             ts_inputs_to_promote = []
             for input_name, src, src_idxs in timeseries_comp._configure_io(timeseries_options):
                 # If the src was added, promote it if it was a state,
@@ -341,12 +340,6 @@ class Birkhoff(TranscriptionBase):
         gd = self.grid_data
 
         for name, options in phase._timeseries.items():
-            has_expr = False
-            for _, output_options in options['outputs'].items():
-                if output_options['is_expr']:
-                    has_expr = True
-                    break
-
             if options['transcription'] is None:
                 ogd = None
             else:
@@ -356,8 +349,7 @@ class Birkhoff(TranscriptionBase):
                                                    output_grid_data=ogd,
                                                    output_subset=options['subset'],
                                                    time_units=phase.time_options['units'])
-            timeseries_group = TimeseriesOutputGroup(has_expr=has_expr, timeseries_output_comp=timeseries_comp)
-            phase.add_subsystem(name, subsys=timeseries_group)
+            phase.add_subsystem(name, subsys=timeseries_comp)
 
             phase.connect('dt_dstau', f'{name}.dt_dstau', flat_src_indices=True)
 
@@ -387,7 +379,7 @@ class Birkhoff(TranscriptionBase):
         con_name = constraint_kwargs.pop('constraint_name')
 
         # Determine the path to the variable which we will be constraining
-        var = con_name if options['is_expr'] else options['name']
+        var = options['name']
         var_type = phase.classify_var(var)
 
         # These are the flat indices at a single point in time used
@@ -434,7 +426,6 @@ class Birkhoff(TranscriptionBase):
         con_path = constraint_kwargs.pop('constraint_path')
         constraint_kwargs.pop('shape')
         constraint_kwargs['flat_indices'] = True
-        constraint_kwargs.pop('is_expr')
 
         return con_path, constraint_kwargs
 
