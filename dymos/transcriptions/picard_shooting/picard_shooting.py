@@ -317,7 +317,7 @@ class PicardShooting(TranscriptionBase):
                 src_idxs = None
 
             if rate_source_type not in ('state', 'ode'):
-                phase.connect(rate_src_path, f'f_computed:{name}', src_indices=src_idxs)
+                phase.connect(rate_src_path, f'picard_update_comp.f_computed:{name}', src_indices=src_idxs)
 
     def setup_solvers(self, phase):
         """

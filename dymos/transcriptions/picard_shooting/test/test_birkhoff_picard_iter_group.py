@@ -19,108 +19,6 @@ from dymos.transcriptions.grid_data import BirkhoffGrid, GaussLobattoGrid
 BirkhoffPicardIterGroup = GroupWrapperConfig(BirkhoffPicardIterGroup, [PhaseStub()])
 
 
-class LorenzAttractorODE(om.JaxExplicitComponent):
-    """
-    The ODE for the Lorenz attractor.
-    """
-
-    def initialize(self):
-        """
-        All Dymos ODE systems are required to have an option "num_nodes",
-        which is the number of points at which the ODE is simultaneously evaluated.
-
-        This will be set by the Phase during setup once the transcription details are known.
-        """
-        self.options.declare('num_nodes', types=(int,))
-
-    def setup(self):
-        """
-        In setup, we add inputs and outputs.
-
-        The first dimension is assumed to pertain to the index of the node.
-
-        An input that's a scalar at each node should have a shape of
-        (num_nodes, 1) or just (num_nodes,).
-
-        For vectors or matrices, it's just the shape of the matrix at each
-        node prepended with num_nodes.
-
-        We provide units for the scalars, but OpenMDAO doesn't do unit conversion on an index-by-index basis,
-        so we just assume that no unit conversion should be done for the S matrix and K vector.
-        """
-        nn = self.options['num_nodes']
-
-        # ODE inputs
-        self.add_input('x', shape=(nn,))
-        self.add_input('y', shape=(nn,))
-        self.add_input('z', shape=(nn,))
-        self.add_input('s', shape=(1,))
-        self.add_input('r', shape=(1,))
-        self.add_input('b', shape=(1,))
-
-        # State rates
-        self.add_output('x_dot', shape=(nn,), units='1/s', tags=['dymos.state_rate_source:x'])
-        self.add_output('y_dot', shape=(nn,), units='1/s', tags=['dymos.state_rate_source:y'])
-        self.add_output('z_dot', shape=(nn,), units='1/s', tags=['dymos.state_rate_source:z'])
-
-    # because our compute primal output depends on static variables, in this case
-    # and self.options['num_nodes'], we must define a get_self_statics method. This method must
-    # return a tuple of all static variables. Their order in the tuple doesn't matter.  If your
-    # component happens to have discrete inputs, do NOT return them here. Discrete inputs are passed
-    # into the compute_primal function individually, after the continuous variables.
-    def get_self_statics(self):
-        # return value must be hashable
-        return self.options['num_nodes'],
-
-    def setup_partials(self):
-        nn = self.options['num_nodes']
-        ar = np.arange(nn, dtype=int)
-        self.declare_partials('x_dot', 'x', rows=ar, cols=ar)
-        self.declare_partials('x_dot', 'y', rows=ar, cols=ar)
-        self.declare_partials('x_dot', 's')
-
-        self.declare_partials('y_dot', 'x', rows=ar, cols=ar)
-        self.declare_partials('y_dot', 'y', rows=ar, cols=ar)
-        self.declare_partials('y_dot', 'z', rows=ar, cols=ar)
-        self.declare_partials('y_dot', 'r')
-
-        self.declare_partials('z_dot', 'x', rows=ar, cols=ar)
-        self.declare_partials('z_dot', 'y', rows=ar, cols=ar)
-        self.declare_partials('z_dot', 'z', rows=ar, cols=ar)
-        self.declare_partials('z_dot', 'b')
-
-    def compute_primal(self, x, y, z, s=10, r=28, b=2.667):
-        """
-        Parameters
-        ----------
-        x : array-like
-            The x state.
-        y : array-like
-            The y state.
-        z : array-like
-            The z state.
-        s : float
-            The Lorenz s parameter.
-        r : float
-            The Lorenz r parameter.
-        b : float
-            The Lorenz b parameter.
-
-        Returns
-        -------
-        x_dot : array-like
-            The time-derivative of the x state.
-        y_dot : array-like
-            The time-derivative of the y state.
-        z_dot : array-like
-            The time-derivative of the z state.
-        """
-        x_dot = s * (y - x)
-        y_dot = r * x - y - x*z
-        z_dot = x * y - b * z
-        return x_dot, y_dot, z_dot
-
-
 @use_tempdirs
 class TestBirkhoffPicardIterGroup(unittest.TestCase):
 
@@ -201,6 +99,108 @@ class TestBirkhoffPicardIterGroup(unittest.TestCase):
     @unittest.skip('This test is a demonstation of the inability of Birkhoff-Picard '
                    'iteration to solve highly nonlinear systems.')
     def test_birkhoff_solve_segments_lorenz(self):
+
+        class LorenzAttractorODE(om.JaxExplicitComponent):
+            """
+            The ODE for the Lorenz attractor.
+            """
+
+            def initialize(self):
+                """
+                All Dymos ODE systems are required to have an option "num_nodes",
+                which is the number of points at which the ODE is simultaneously evaluated.
+
+                This will be set by the Phase during setup once the transcription details are known.
+                """
+                self.options.declare('num_nodes', types=(int,))
+
+            def setup(self):
+                """
+                In setup, we add inputs and outputs.
+
+                The first dimension is assumed to pertain to the index of the node.
+
+                An input that's a scalar at each node should have a shape of
+                (num_nodes, 1) or just (num_nodes,).
+
+                For vectors or matrices, it's just the shape of the matrix at each
+                node prepended with num_nodes.
+
+                We provide units for the scalars, but OpenMDAO doesn't do unit conversion on an index-by-index basis,
+                so we just assume that no unit conversion should be done for the S matrix and K vector.
+                """
+                nn = self.options['num_nodes']
+
+                # ODE inputs
+                self.add_input('x', shape=(nn,))
+                self.add_input('y', shape=(nn,))
+                self.add_input('z', shape=(nn,))
+                self.add_input('s', shape=(1,))
+                self.add_input('r', shape=(1,))
+                self.add_input('b', shape=(1,))
+
+                # State rates
+                self.add_output('x_dot', shape=(nn,), units='1/s', tags=['dymos.state_rate_source:x'])
+                self.add_output('y_dot', shape=(nn,), units='1/s', tags=['dymos.state_rate_source:y'])
+                self.add_output('z_dot', shape=(nn,), units='1/s', tags=['dymos.state_rate_source:z'])
+
+            # because our compute primal output depends on static variables, in this case
+            # and self.options['num_nodes'], we must define a get_self_statics method. This method must
+            # return a tuple of all static variables. Their order in the tuple doesn't matter.  If your
+            # component happens to have discrete inputs, do NOT return them here. Discrete inputs are passed
+            # into the compute_primal function individually, after the continuous variables.
+            def get_self_statics(self):
+                # return value must be hashable
+                return self.options['num_nodes'],
+
+            def setup_partials(self):
+                nn = self.options['num_nodes']
+                ar = np.arange(nn, dtype=int)
+                self.declare_partials('x_dot', 'x', rows=ar, cols=ar)
+                self.declare_partials('x_dot', 'y', rows=ar, cols=ar)
+                self.declare_partials('x_dot', 's')
+
+                self.declare_partials('y_dot', 'x', rows=ar, cols=ar)
+                self.declare_partials('y_dot', 'y', rows=ar, cols=ar)
+                self.declare_partials('y_dot', 'z', rows=ar, cols=ar)
+                self.declare_partials('y_dot', 'r')
+
+                self.declare_partials('z_dot', 'x', rows=ar, cols=ar)
+                self.declare_partials('z_dot', 'y', rows=ar, cols=ar)
+                self.declare_partials('z_dot', 'z', rows=ar, cols=ar)
+                self.declare_partials('z_dot', 'b')
+
+            def compute_primal(self, x, y, z, s=10, r=28, b=2.667):
+                """
+                Parameters
+                ----------
+                x : array-like
+                    The x state.
+                y : array-like
+                    The y state.
+                z : array-like
+                    The z state.
+                s : float
+                    The Lorenz s parameter.
+                r : float
+                    The Lorenz r parameter.
+                b : float
+                    The Lorenz b parameter.
+
+                Returns
+                -------
+                x_dot : array-like
+                    The time-derivative of the x state.
+                y_dot : array-like
+                    The time-derivative of the y state.
+                z_dot : array-like
+                    The time-derivative of the z state.
+                """
+                x_dot = s * (y - x)
+                y_dot = r * x - y - x*z
+                z_dot = x * y - b * z
+                return x_dot, y_dot, z_dot
+
         for direction in ['forward']:
             for grid_type in ['lgl']:
                 with self.subTest(msg=grid_type):
