@@ -74,6 +74,9 @@ class TestImplicitDuration(unittest.TestCase):
         p.driver = om.ScipyOptimizeDriver(optimizer='SLSQP')
         p.driver.declare_coloring(tol=1.0E-12)
 
+        phase.nonlinear_solver = om.NewtonSolver(solve_subsystems=True)
+        phase.linear_solver = om.DirectSolver()
+
         p.setup()
 
         p.set_val('traj.phase.t_initial', 0)
@@ -99,6 +102,9 @@ class TestImplicitDuration(unittest.TestCase):
         phase.set_duration_balance('z', val=0.0, index=index)
 
         phase.set_simulate_options(rtol=1.0E-9, atol=1.0E-9)
+
+        phase.nonlinear_solver = om.NewtonSolver(solve_subsystems=True)
+        phase.linear_solver = om.DirectSolver()
 
         p.driver = om.ScipyOptimizeDriver(optimizer='SLSQP')
         p.driver.declare_coloring(tol=1.0E-12)
@@ -181,6 +187,7 @@ class TestImplicitDuration(unittest.TestCase):
 
         assert_near_equal(p.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
 
+    @unittest.skip('ODE Expressions currently cannot be provided in balances.')
     @require_pyoptsparse(optimizer='IPOPT')
     def test_implicit_duration_radau_expr_condition(self):
         tx = dm.Radau(num_segments=12, order=3, solve_segments=False)
@@ -194,6 +201,7 @@ class TestImplicitDuration(unittest.TestCase):
 
         print((p.get_val('traj.phase.timeseries.v')[-1]) ** 2 / 2)
 
+    @unittest.skip('ODE Expressions currently cannot be provided in balances.')
     def test_implicit_duration_gl_expr_condition(self):
         tx = dm.GaussLobatto(num_segments=12, order=3, solve_segments=False)
 

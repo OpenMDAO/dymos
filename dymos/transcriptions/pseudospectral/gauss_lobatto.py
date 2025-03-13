@@ -8,6 +8,7 @@ from ..common import GaussLobattoContinuityComp
 from ...utils.misc import get_rate_units
 from ...utils.introspection import get_promoted_vars, get_targets, get_source_metadata
 from ...utils.indexing import get_src_indices_by_row
+from ...utils.ode_utils import _make_ode_system
 from ..grid_data import GridData, make_subset_map
 
 
@@ -186,9 +187,16 @@ class GaussLobatto(PseudospectralBase):
         grid_data = self.grid_data
         ode_class = phase.options['ode_class']
 
-        kwargs = phase.options['ode_init_kwargs']
-        rhs_disc = ode_class(num_nodes=grid_data.subset_num_nodes['state_disc'], **kwargs)
-        rhs_col = ode_class(num_nodes=grid_data.subset_num_nodes['col'], **kwargs)
+        rhs_disc = _make_ode_system(ode_class=ode_class,
+                                    num_nodes=grid_data.subset_num_nodes['state_disc'],
+                                    ode_init_kwargs=phase.options['ode_init_kwargs'],
+                                    calc_exprs=phase._calc_exprs,
+                                    parameter_options=phase.parameter_options)
+        rhs_col = _make_ode_system(ode_class=ode_class,
+                                   num_nodes=grid_data.subset_num_nodes['col'],
+                                   ode_init_kwargs=phase.options['ode_init_kwargs'],
+                                   calc_exprs=phase._calc_exprs,
+                                   parameter_options=phase.parameter_options)
 
         phase.add_subsystem('rhs_disc', rhs_disc)
 
@@ -297,7 +305,7 @@ class GaussLobatto(PseudospectralBase):
 
         for timeseries_name, timeseries_options in phase._timeseries.items():
             for ts_output_name, ts_output in timeseries_options['outputs'].items():
-                name = ts_output['name'] if not ts_output['is_expr'] else ts_output_name
+                name = ts_output['name']
                 var_type = phase.classify_var(name)
                 if var_type == 'ode':
                     units = ts_output['units']
