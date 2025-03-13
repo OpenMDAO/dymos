@@ -54,7 +54,7 @@ parts:
     - file: features/phases/constraints
     - file: features/phases/objective
     - file: features/phases/timeseries
-    - file: features/phases/calculator_expressions
+    - file: features/phases/calc_expressions
   - file: features/trajectories/trajectories
   - file: features/exploiting_sparsity
   - file: features/plotting
