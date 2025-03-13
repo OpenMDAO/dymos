@@ -49,16 +49,20 @@ class PicardShooting(TranscriptionBase):
                              'This value may be overridden by setting the solve_segments option of states')
 
         self.options.declare('ode_nonlinear_solver', default=om.NonlinearBlockGS(maxiter=100, use_aitken=True, iprint=0),
-                             desc='Nonlinear solver used to resolve Picard iteration on each segment.')
+                             desc='Nonlinear solver used to resolve Picard iteration on each segment.',
+                             recordable=False)
 
         self.options.declare('ode_linear_solver', default=om.DirectSolver(),
-                             desc='Linear solver used to linearize the Picard iteration subsystem on each segment.')
+                             desc='Linear solver used to linearize the Picard iteration subsystem on each segment.',
+                             recordable=False)
 
         self.options.declare('ms_nonlinear_solver', default=om.NonlinearBlockGS(maxiter=100, use_aitken=True, iprint=0),
-                             desc='Nonlinear solver used to resolve Picard iteration differences between segments.')
+                             desc='Nonlinear solver used to resolve Picard iteration differences between segments.',
+                             recordable=False)
 
         self.options.declare('ms_linear_solver', default=om.DirectSolver(),
-                             desc='Linear solver used to linearize the Picard iteration subsystem between segments.')
+                             desc='Linear solver used to linearize the Picard iteration subsystem between segments.',
+                             recordable=False)
 
     def init_grid(self):
         """

@@ -36,13 +36,13 @@ class MultipleShootingIterGroup(om.Group):
         self.options.declare('ode_init_kwargs', types=dict, default={},
                              desc='Keyword arguments provided when initializing the ODE System')
         self.options.declare('ode_nonlinear_solver', default=om.NonlinearBlockGS(maxiter=100, use_aitken=True, iprint=0),
-                             desc='Nonlinear solver used to resolve Picard iteration.')
+                             desc='Nonlinear solver used to resolve Picard iteration.', recordable=False)
         self.options.declare('ode_linear_solver', default=om.DirectSolver(),
-                             desc='Linear solver used to linearize the picard iteration subsystem.')
+                             desc='Linear solver used to linearize the picard iteration subsystem.', recordable=False)
         self.options.declare('ms_nonlinear_solver', default=om.NonlinearBlockGS(maxiter=100, use_aitken=True, iprint=0),
-                             desc='Nonlinear solver used to resolve Picard iteration.')
+                             desc='Nonlinear solver used to resolve Picard iteration.', recordable=False)
         self.options.declare('ms_linear_solver', default=om.DirectSolver(),
-                             desc='Linear solver used to linearize the picard iteration subsystem.')
+                             desc='Linear solver used to linearize the picard iteration subsystem.', recordable=False)
 
     def setup(self):
         """
