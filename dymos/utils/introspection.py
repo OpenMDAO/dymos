@@ -942,7 +942,7 @@ def _configure_constraint_introspection(phase):
 
         for con in constraints:
             # Determine the path to the variable which we will be constraining
-            var = con['constraint_name'] if con['is_expr'] else con['name']
+            var = con['name']
             var_type = phase.classify_var(var)
 
             if var != con['constraint_name'] is not None and var_type != 'ode':
