@@ -717,8 +717,8 @@ class ODEIntegrationComp(om.ExplicitComponent):
             state_initial_val = inputs[self._state_input_names[state_name]]
             x0[self.state_idxs[state_name]] = state_initial_val.ravel()
 
-        theta[0] = t_initial = inputs['t_initial']
-        theta[1] = t_duration = inputs['t_duration']
+        theta[0] = t_initial = inputs['t_initial'].ravel()[0]
+        theta[1] = t_duration = inputs['t_duration'].ravel()[0]
 
         for param_name in self.parameter_options:
             param_val = inputs[self._param_input_names[param_name]]
