@@ -33,6 +33,9 @@ class TestBrachExecCompODE(unittest.TestCase):
         elif transcription == 'birkhoff':
             t = dm.Birkhoff(num_nodes=transcription_order+1,
                             grid_type='cgl')
+        elif transcription.startswith('picard'):
+            grid_type = transcription.split('-')[-1]
+            t = dm.PicardShooting(nodes_per_seg=5, num_segments=8, grid_type=grid_type)
 
         def ode(num_nodes):
             return om.ExecComp(['vdot = g * cos(theta)',
@@ -140,6 +143,10 @@ class TestBrachExecCompODE(unittest.TestCase):
 
     def test_ex_brachistochrone_birkhoff_uncompressed(self):
         p = self._make_problem(transcription='birkhoff', transcription_order=10)
+        self.run_asserts(p)
+
+    def test_ex_brachistochrone_picard_shooting(self):
+        p = self._make_problem(transcription='picard-cgl', run_driver=True)
         self.run_asserts(p)
 
 

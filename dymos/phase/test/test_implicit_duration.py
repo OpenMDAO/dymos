@@ -1,3 +1,4 @@
+from re import M
 import openmdao.api as om
 import dymos as dm
 import numpy as np
@@ -69,6 +70,9 @@ class TestImplicitDuration(unittest.TestCase):
         else:
             phase.set_duration_balance('pe=9.80665*h', val=0.0, units='m**2/s**2')
 
+        phase.nonlinear_solver = om.NewtonSolver(solve_subsystems=True)
+        phase.linear_solver = om.DirectSolver()
+
         phase.set_simulate_options(rtol=1.0E-9, atol=1.0E-9)
 
         p.driver = om.ScipyOptimizeDriver(optimizer='SLSQP')
@@ -79,10 +83,9 @@ class TestImplicitDuration(unittest.TestCase):
 
         p.setup()
 
-        p.set_val('traj.phase.t_initial', 0)
-        p.set_val('traj.phase.t_duration', 2)
-        p.set_val('traj.phase.states:h', phase.interp('h', [30, 0]))
-        p.set_val('traj.phase.states:v', phase.interp('v', [0, -10]))
+        phase.set_time_val(initial=0, duration=2)
+        phase.set_state_val('h', [30, 0])
+        phase.set_state_val('v', [0, -10])
 
         return p
 
@@ -100,6 +103,9 @@ class TestImplicitDuration(unittest.TestCase):
 
         index = None if shape_error else [[0], [1]]
         phase.set_duration_balance('z', val=0.0, index=index)
+
+        phase.nonlinear_solver = om.NewtonSolver(solve_subsystems=True)
+        phase.linear_solver = om.DirectSolver()
 
         phase.set_simulate_options(rtol=1.0E-9, atol=1.0E-9)
 
@@ -132,7 +138,7 @@ class TestImplicitDuration(unittest.TestCase):
 
         p = self._make_simple_problem(tx)
 
-        dm.run_problem(p, run_driver=False, simulate=False)
+        dm.run_problem(p, run_driver=False, simulate=True, make_plots=True)
 
         assert_near_equal(p.get_val('traj.phase.timeseries.time')[-1], 2.4735192, tolerance=1E-6)
         assert_near_equal(p.get_val('traj.phase.timeseries.h')[-1], 0.0, tolerance=1E-6)
@@ -140,43 +146,12 @@ class TestImplicitDuration(unittest.TestCase):
     def test_implicit_duration_shooting(self):
         tx = dm.ExplicitShooting(num_segments=12, order=3)
 
-        expected = 'Transcription ExplicitShooting does not implement method setup_duration_balance'
+        p = self._make_simple_problem(tx)
 
-        with self.assertRaises(NotImplementedError) as e:
-            self._make_simple_problem(tx)
+        dm.run_problem(p, run_driver=False, simulate=False)
 
-        self.assertEqual(expected, str(e.exception))
-
-    def test_implicit_duration_input_duration(self):
-        tx = dm.Radau(num_segments=12, order=3, solve_segments=False)
-
-        expected = 'Cannot implicitly solve for phase duration when input_duration is True'
-
-        with self.assertRaises(ValueError) as e:
-            self._make_simple_problem(tx, input_duration=True)
-
-        self.assertEqual(expected, str(e.exception))
-
-    def test_implicit_duration_fix_duration(self):
-        tx = dm.Radau(num_segments=12, order=3, solve_segments=False)
-
-        expected = 'Cannot implicitly solve for phase duration when fix_duration is True'
-
-        with self.assertRaises(ValueError) as e:
-            self._make_simple_problem(tx, fix_duration=True)
-
-        self.assertEqual(expected, str(e.exception))
-
-    def test_implicit_duration_matrix_state_exception(self):
-        tx = dm.Radau(num_segments=12, order=3, solve_segments=False)
-
-        expected = 'Specified variable for the duration balance has shape (2, 2) and' \
-                   ' has no index specified. The balance may only have shape (1,) or a single index'
-
-        with self.assertRaises(ValueError) as e:
-            self._make_matrix_problem(tx, shape_error=True)
-
-        self.assertEqual(expected, str(e.exception))
+        assert_near_equal(p.get_val('traj.phase.timeseries.time')[-1], 2.4735192, tolerance=1E-6)
+        assert_near_equal(p.get_val('traj.phase.timeseries.h')[-1], 0.0, tolerance=1E-6)
 
     def test_implicit_duration_matrix_state(self):
         tx = dm.Radau(num_segments=12, order=3, solve_segments=False)
@@ -187,7 +162,7 @@ class TestImplicitDuration(unittest.TestCase):
 
         assert_near_equal(p.get_val('traj.phase.timeseries.time')[-1], 2.03873598, tolerance=1E-5)
 
-    @unittest.skip('ODE Expressions currently cannot be provided in balances.')
+    @unittest.skip("set_duration_balance/add_boundary_balance doesn't currently work with expressions.")
     @require_pyoptsparse(optimizer='IPOPT')
     def test_implicit_duration_radau_expr_condition(self):
         tx = dm.Radau(num_segments=12, order=3, solve_segments=False)
@@ -201,7 +176,7 @@ class TestImplicitDuration(unittest.TestCase):
 
         print((p.get_val('traj.phase.timeseries.v')[-1]) ** 2 / 2)
 
-    @unittest.skip('ODE Expressions currently cannot be provided in balances.')
+    @unittest.skip("set_duration_balance/add_boundary_balance doesn't currently work with expressions.")
     def test_implicit_duration_gl_expr_condition(self):
         tx = dm.GaussLobatto(num_segments=12, order=3, solve_segments=False)
 

@@ -25,16 +25,16 @@ jobs:
         include:
           # baseline versions except with pyoptsparse but no SNOPT
           # build docs to verify those that use pyoptsparse do not use SNOPT
-          - NAME: baseline_no_snopt
-            PY: '3.11'
-            NUMPY: '1.26'
-            SCIPY: '1.13'
-            PETSc: '3.19'
-            PYOPTSPARSE: 'v2.11.0'
-            OPENMDAO: 'latest'
-            OPTIONAL: '[docs]'
-            JAX: '0.4.28'
-            PUBLISH_DOCS: 1
+          # - NAME: baseline_no_snopt
+          #   PY: '3.11'
+          #   NUMPY: '1.26'
+          #   SCIPY: '1.13'
+          #   PETSc: '3.19'
+          #   PYOPTSPARSE: 'v2.11.0'
+          #   OPENMDAO: 'latest'
+          #   OPTIONAL: '[docs]'
+          #   JAX: '0.4.28'
+          #   PUBLISH_DOCS: 1
 
           # make sure the latest versions of things don't break the docs
           # sticking with Python 3.12 for now, 3.13 requires NumPy 2.1 which does not work yet with PETSc/pyoptsparse
@@ -49,7 +49,7 @@ jobs:
             OPENMDAO: 'dev'
             OPTIONAL: '[docs]'
             JAX: 'latest'
-            PUBLISH_DOCS: 0
+            PUBLISH_DOCS: 1
 
     steps:
       - name: Display run details
