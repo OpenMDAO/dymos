@@ -78,6 +78,36 @@ def reshape_val(val, shape, num_input_nodes):
     return shaped_val
 
 
+def _format_phase_constraint_alias(phase, con_name, con_type, indices=None):
+    """
+    Get an alias for a constraint of the given type on the given path in the given phase.
+
+    Parameters
+    ----------
+    phase : Phase
+        The dymos phase to which the constraint belongs.
+    con_name : str
+        The name or path of the constraint.
+    con_type : str
+        One of 'initial', 'final', or 'path'.
+    indices : tuple or None
+        The indices of the constraint variable to be constrained. These indices
+        ignore the num_nodes dimension in path constraints.
+
+    Returns
+    -------
+    str
+        The alias of the constraint.
+    """
+    str_idxs = '' if indices is None else f'[{indices}]'
+    if f'.phases.{phase.name}' in phase.pathname:
+        phase_path = phase.pathname.replace(f'.phases.{phase.name}', f'.{phase.name}')
+    else:
+        phase_path = phase.pathname
+    # return f'{phase_path}->{con_type}->{con_name}{str_idxs}'
+    return f'{phase_path}.{con_name}[{con_type}]{str_idxs}'
+
+
 class CoerceDesvar(object):
     """
     Check the desvar options for the appropriate shape and resize accordingly with options.

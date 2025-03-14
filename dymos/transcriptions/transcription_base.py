@@ -9,7 +9,7 @@ from ..utils.constants import INF_BOUND
 from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_states_introspection, get_promoted_vars, \
     configure_states_discovery, _configure_boundary_balance_introspection
-from ..utils.misc import _unspecified
+from ..utils.misc import _unspecified, _format_phase_constraint_alias
 
 
 class TranscriptionBase(object):
@@ -508,7 +508,6 @@ class TranscriptionBase(object):
         num_nodes = self._get_num_timeseries_nodes()
 
         constraint_kwargs = {key: options for key, options in options.items()}
-        con_name = constraint_kwargs.pop('constraint_name')
 
         # Determine the path to the variable which we will be constraining
         var = options['name']
@@ -555,15 +554,13 @@ class TranscriptionBase(object):
 
                 constraint_kwargs['indices'] = idxs_not_in_initial + intermediate_idxs + idxs_not_in_final
 
-        alias_map = {'path': 'path_constraint',
-                     'initial': 'initial_boundary_constraint',
-                     'final': 'final_boundary_constraint'}
-
-        str_idxs = '' if options['indices'] is None else f'{options["indices"]}'
-
-        constraint_kwargs['alias'] = f'{phase.pathname}->{alias_map[constraint_type]}->{con_name}{str_idxs}'
-        constraint_kwargs.pop('name')
         con_path = constraint_kwargs.pop('constraint_path')
+        con_name = constraint_kwargs.pop('constraint_name')
+
+        constraint_kwargs['alias'] = _format_phase_constraint_alias(phase, con_name,
+                                                                    constraint_type,
+                                                                    options['indices'])
+        constraint_kwargs.pop('name')
         constraint_kwargs.pop('shape')
         constraint_kwargs['flat_indices'] = True
 

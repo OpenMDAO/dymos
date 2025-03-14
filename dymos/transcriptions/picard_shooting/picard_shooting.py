@@ -9,6 +9,7 @@ from .multiple_shooting_iter_group import MultipleShootingIterGroup
 from ..grid_data import GaussLobattoGrid, ChebyshevGaussLobattoGrid
 from dymos.utils.introspection import get_promoted_vars, get_source_metadata, get_rate_units
 from dymos.utils.indexing import get_constraint_flat_idxs, get_src_indices_by_row
+from dymos.utils.misc import _format_phase_constraint_alias
 
 
 class PicardShooting(TranscriptionBase):
@@ -347,13 +348,6 @@ class PicardShooting(TranscriptionBase):
             and whether a solver is required.
         """
         pass
-        # ode_iter_group = phase._get_subsystem('ode_iter_group')
-        # req_solvers = {'implicit outputs': ode_iter_group._implicit_outputs}
-
-        # if requires_solvers is not None:
-        #     req_solvers.update(requires_solvers)
-
-        # super().configure_solvers(phase, requires_solvers=req_solvers)
 
     def configure_timeseries_outputs(self, phase):
         """
@@ -365,7 +359,7 @@ class PicardShooting(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         for timeseries_name, timeseries_options in phase._timeseries.items():
-            timeseries_comp = phase._get_subsystem(f'{timeseries_name}.timeseries_comp')
+            timeseries_comp = phase._get_subsystem(timeseries_name)
             ts_inputs_to_promote = []
             for input_name, src, src_idxs in timeseries_comp._configure_io(timeseries_options):
                 # If the src was added, promote it if it was a state,
@@ -465,14 +459,16 @@ class PicardShooting(TranscriptionBase):
 
                 constraint_kwargs['indices'] = path_idxs
 
-        str_idxs = '' if options['indices'] is None else f'{options["indices"]}'
-
         con_path = constraint_kwargs.pop('constraint_path')
-        constraint_kwargs['alias'] = f'{phase.pathname}.{con_path}[{constraint_type}]{str_idxs}'
+        con_name = constraint_kwargs.pop('constraint_name')
+
+        constraint_kwargs['alias'] = _format_phase_constraint_alias(phase, con_name,
+                                                                    constraint_type,
+                                                                    options['indices'])
         constraint_kwargs.pop('name')
         constraint_kwargs.pop('shape')
+        constraint_kwargs.pop('constraint_name')
         constraint_kwargs['flat_indices'] = True
-        constraint_kwargs.pop('is_expr')
 
         return con_path, constraint_kwargs
 
