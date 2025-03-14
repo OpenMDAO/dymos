@@ -9,7 +9,7 @@ import dymos
 from openmdao.utils.assert_utils import assert_check_partials, assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs
 
-from dymos.utils.misc import GroupWrapperConfig
+from dymos.utils.misc import GroupWrapperConfig, om_version
 from dymos.utils.testing_utils import PhaseStub, SimpleODE
 from dymos.transcriptions.picard_shooting.birkhoff_picard_iter_group import BirkhoffPicardIterGroup
 from dymos.phase.options import StateOptionsDictionary, TimeOptionsDictionary
@@ -20,6 +20,7 @@ BirkhoffPicardIterGroup = GroupWrapperConfig(BirkhoffPicardIterGroup, [PhaseStub
 
 
 @use_tempdirs
+@unittest.skipIf(om_version()[0] <= (3, 37, 0), 'Requires OpenMDAO version later than 3.37.0')
 class TestBirkhoffPicardIterGroup(unittest.TestCase):
 
     def test_birkhoff_picard_solve_segments(self):
