@@ -422,7 +422,6 @@ class Birkhoff(TranscriptionBase):
                                                                     options['indices'])
         constraint_kwargs.pop('name')
         constraint_kwargs.pop('shape')
-        constraint_kwargs.pop('constraint_name')
         constraint_kwargs['flat_indices'] = True
 
         return con_path, constraint_kwargs
