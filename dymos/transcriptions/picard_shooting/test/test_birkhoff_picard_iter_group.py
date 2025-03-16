@@ -20,7 +20,7 @@ BirkhoffPicardIterGroup = GroupWrapperConfig(BirkhoffPicardIterGroup, [PhaseStub
 
 
 @use_tempdirs
-@unittest.skipIf(om_version()[0] <= (3, 37, 0), 'Requires OpenMDAO version later than 3.37.0')
+@unittest.skipIf(om_version()[0] < (3, 37, 0), 'Requires OpenMDAO version later than 3.37.0')
 class TestBirkhoffPicardIterGroup(unittest.TestCase):
 
     def test_birkhoff_picard_solve_segments(self):

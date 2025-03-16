@@ -134,20 +134,15 @@ class PicardShooting(TranscriptionBase):
 
                 if shape == (1,):
                     src_idxs = None
-                    # endpoint_src_idxs = None
                     flat_src_idxs = None
                     src_shape = None
                 else:
                     src_idxs = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-                    # endpoint_src_idxs = np.zeros(2, dtype=int)
                     flat_src_idxs = True
                     src_shape = (1,)
 
                 phase.promotes('ode_all', inputs=[(t, name)], src_indices=src_idxs,
                                flat_src_indices=flat_src_idxs, src_shape=src_shape)
-
-                # phase.promotes('boundary_vals', inputs=[(t, name)], src_indices=endpoint_src_idxs,
-                #                flat_src_indices=flat_src_idxs, src_shape=src_shape)
             if targets:
                 phase.set_input_defaults(name=name,
                                          val=np.ones((1,)),
@@ -219,22 +214,14 @@ class PicardShooting(TranscriptionBase):
         for name, options in phase.control_options.items():
             if options['targets']:
                 phase.connect(f'control_values:{name}', [f'ode_all.{t}' for t in options['targets']])
-                # phase.connect(f'control_values:{name}', [f'boundary_vals.{t}' for t in options['targets']],
-                #               src_indices=om.slicer[[0, -1], ...])
 
             if options['rate_targets']:
                 phase.connect(f'control_rates:{name}_rate',
                               [f'ode_all.{t}' for t in options['rate_targets']])
-                # phase.connect(f'control_rates:{name}_rate',
-                #               [f'boundary_vals.{t}' for t in options['rate_targets']],
-                #               src_indices=om.slicer[[0, -1], ...])
 
             if options['rate2_targets']:
                 phase.connect(f'control_rates:{name}_rate2',
                               [f'ode_all.{t}' for t in options['rate2_targets']])
-                # phase.connect(f'control_rates:{name}_rate2',
-                #               [f'boundary_vals.{t}' for t in options['rate2_targets']],
-                #               src_indices=om.slicer[[0, -1], ...])
 
     def setup_ode(self, phase):
         """
@@ -269,15 +256,6 @@ class PicardShooting(TranscriptionBase):
                                                              ms_linear_solver=ms_linear_solver),
                             promotes_inputs=['*'], promotes_outputs=['*'])
 
-        # phase.add_subsystem('boundary_vals',
-        #                     subsys=BoundaryODEGroup(grid_data=grid_data,
-        #                                             ode_class=ODEClass,
-        #                                             ode_init_kwargs=ode_init_kwargs,
-        #                                             initial_boundary_constraints=ibcs,
-        #                                             final_boundary_constraints=fbcs,
-        #                                             objectives=phase._objectives),
-        #                     promotes_inputs=['initial_states:*', 'final_states:*'])
-
     def configure_ode(self, phase):
         """
         Create connections to the introspected states.
@@ -287,9 +265,7 @@ class PicardShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        # phase._get_subsystem('boundary_vals').configure_io(phase)
         phase._get_subsystem('ode_iter_group').configure_io(phase)
-
         phase.connect('dt_dstau', 'picard_update_comp.dt_dstau')
 
     def setup_defects(self, phase):
@@ -805,7 +781,6 @@ class PicardShooting(TranscriptionBase):
                         endpoint_src_idxs = endpoint_src_idxs.ravel()
 
                 connection_info.append((f'ode_all.{tgt}', (src_idxs,)))
-                # connection_info.append((f'boundary_vals.{tgt}', (endpoint_src_idxs,)))
 
         return connection_info
 
