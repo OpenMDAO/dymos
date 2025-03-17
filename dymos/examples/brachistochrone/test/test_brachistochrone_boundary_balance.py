@@ -91,7 +91,10 @@ class TestBrachistochroneBoundaryBalance(unittest.TestCase):
         phase.add_parameter('g', units='m/s**2')
         phase.add_parameter('theta_rate', units='deg/s')
 
+        phase.add_calc_expr('v2 = v * v')
+
         phase.add_timeseries_output('theta', units='deg')
+        phase.add_timeseries_output('v2', units='m**2/s**2')
 
         phase.add_boundary_balance(param='t_duration', name='x', tgt_val=10.0, loc='final', lower=0.1, upper=5.0)
         phase.add_boundary_balance(param='theta_rate', name='y', tgt_val=5.0, loc='final', lower=0.1, upper=100.0, res_ref=1.0)
@@ -133,6 +136,8 @@ class TestBrachistochroneBoundaryBalance(unittest.TestCase):
 
         thetaf = p.get_val('traj0.phase0.timeseries.theta')[-1]
 
+        v2_f = p.get_val('traj0.phase0.timeseries.v2')[-1]
+
         assert_almost_equal(t_initial, 0.0)
         assert_almost_equal(x0, 0.0)
         assert_almost_equal(y0, 10.0)
@@ -142,6 +147,7 @@ class TestBrachistochroneBoundaryBalance(unittest.TestCase):
         assert_almost_equal(xf, 10.0, decimal=3)
         assert_almost_equal(yf, 5.0, decimal=3)
         assert_almost_equal(vf, 9.902, decimal=3)
+        assert_almost_equal(v2_f, vf**2, decimal=3)
         assert_almost_equal(g, 9.80665, decimal=3)
 
         assert_almost_equal(thetaf, 100.12, decimal=0)

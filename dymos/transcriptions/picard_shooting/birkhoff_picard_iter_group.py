@@ -4,6 +4,7 @@ from .birkhoff_picard_update_comp import PicardUpdateComp
 from .states_comp import StatesComp
 
 from ..grid_data import GridData
+from ...utils.ode_utils import _make_ode_system
 
 
 class BirkhoffPicardIterGroup(om.Group):
@@ -36,6 +37,10 @@ class BirkhoffPicardIterGroup(om.Group):
                              recordable=False)
         self.options.declare('ode_init_kwargs', types=dict, default={},
                              desc='Keyword arguments provided when initializing the ODE System')
+        self.options.declare('calc_exprs', types=dict, default={},
+                             desc='phase calculation expressions.')
+        self.options.declare('parameter_options', types=dict, default={},
+                             desc='phase parameter options')
 
     def setup(self):
         """
@@ -45,13 +50,17 @@ class BirkhoffPicardIterGroup(om.Group):
         nn = gd.subset_num_nodes['all']
         state_options = self.options['state_options']
         time_units = self.options['time_units']
-        ode_class = self.options['ode_class']
-        ode_init_kwargs = self.options['ode_init_kwargs']
 
         self.add_subsystem('states_comp',
                            subsys=StatesComp(grid_data=gd, state_options=state_options))
 
-        self.add_subsystem('ode_all', subsys=ode_class(num_nodes=nn, **ode_init_kwargs))
+        ode = _make_ode_system(ode_class=self.options['ode_class'],
+                               num_nodes=nn,
+                               calc_exprs=self.options['calc_exprs'],
+                               ode_init_kwargs=self.options['ode_init_kwargs'],
+                               parameter_options=self.options['parameter_options'])
+
+        self.add_subsystem('ode_all', subsys=ode)
 
         self.add_subsystem('picard_update_comp',
                            subsys=PicardUpdateComp(grid_data=gd,

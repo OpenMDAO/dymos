@@ -241,8 +241,8 @@ class PicardShooting(TranscriptionBase):
         ms_linear_solver = self.options['ms_linear_solver']
 
         ode_init_kwargs = phase.options['ode_init_kwargs']
-        # ibcs = phase._initial_boundary_constraints
-        # fbcs = phase._final_boundary_constraints
+        calc_exprs = phase._calc_exprs
+        parameter_options = phase.parameter_options
 
         phase.add_subsystem('ode_iter_group',
                             subsys=MultipleShootingIterGroup(grid_data=grid_data,
@@ -253,7 +253,9 @@ class PicardShooting(TranscriptionBase):
                                                              ode_nonlinear_solver=ode_nonlinear_solver,
                                                              ode_linear_solver=ode_linear_solver,
                                                              ms_nonlinear_solver=ms_nonlinear_solver,
-                                                             ms_linear_solver=ms_linear_solver),
+                                                             ms_linear_solver=ms_linear_solver,
+                                                             calc_exprs=calc_exprs,
+                                                             parameter_options=parameter_options),
                             promotes_inputs=['*'], promotes_outputs=['*'])
 
     def configure_ode(self, phase):

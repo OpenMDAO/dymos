@@ -43,6 +43,10 @@ class MultipleShootingIterGroup(om.Group):
                              desc='Nonlinear solver used to resolve Picard iteration.', recordable=False)
         self.options.declare('ms_linear_solver', default=om.DirectSolver(),
                              desc='Linear solver used to linearize the picard iteration subsystem.', recordable=False)
+        self.options.declare('calc_exprs', types=dict, default={},
+                             desc='phase calculation expressions.')
+        self.options.declare('parameter_options', types=dict, default={},
+                             desc='phase parameter options')
 
     def setup(self):
         """
@@ -53,13 +57,17 @@ class MultipleShootingIterGroup(om.Group):
         time_units = self.options['time_units']
         ode_class = self.options['ode_class']
         ode_init_kwargs = self.options['ode_init_kwargs']
+        calc_exprs = self.options['calc_exprs']
+        parameter_options = self.options['parameter_options']
 
         seg_prop_group = self.add_subsystem('segment_prop_group',
                                             subsys=BirkhoffPicardIterGroup(grid_data=gd,
                                                                            state_options=state_options,
                                                                            time_units=time_units,
                                                                            ode_class=ode_class,
-                                                                           ode_init_kwargs=ode_init_kwargs),
+                                                                           ode_init_kwargs=ode_init_kwargs,
+                                                                           calc_exprs=calc_exprs,
+                                                                           parameter_options=parameter_options),
                                             promotes_inputs=['*'], promotes_outputs=['*'])
 
         seg_prop_group.nonlinear_solver = self.options['ode_nonlinear_solver']
