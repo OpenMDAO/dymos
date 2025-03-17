@@ -369,7 +369,7 @@ class TranscriptionBase(object):
             var_type = phase.classify_var(name)
             if var_type == 'ode':
                 if name not in phase._timeseries['timeseries']['outputs']:
-                    self.add_timeseries_output(name, output_name=output_name, units=bal_kwargs.get('eq_units', _unspecified))
+                    phase.add_timeseries_output(name, output_name=output_name, units=bal_kwargs.get('eq_units', _unspecified))
             if var_type == 'state' and name.startswith('initial_states:') or name.startswith('final_states:'):
                 phase.promotes('boundary_balance_comp', inputs=[output_name])
             else:
