@@ -1,5 +1,6 @@
 # Define image with OpenMDAO and Dymos
 
+
 FROM arm64v8/ubuntu:noble
 
 SHELL ["/bin/bash", "-c"]
@@ -47,7 +48,12 @@ RUN source $HOME/miniforge3/etc/profile.d/conda.sh ;\
     # Install OpenMDAO
     #
     git clone https://github.com/OpenMDAO/OpenMDAO.git ;\
-    python -m pip install -e 'OpenMDAO[all]'
+    python -m pip install -e 'OpenMDAO[all]' ;\
+    #
+    # Install Dymos
+    #
+    git clone https://github.com/OpenMDAO/dymos.git ;\
+    python -m pip install -e 'dymos[all]'
 
 # Modify .bashrc
 RUN echo "## Always activate mdaowork environment on startup ##" >> ~/.bashrc ;\
