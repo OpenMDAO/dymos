@@ -1,14 +1,15 @@
 # Define image with OpenMDAO and Dymos
 
-FROM ubuntu:24.04
+
+FROM arm64v8/ubuntu:noble
 
 SHELL ["/bin/bash", "-c"]
 
 # Install updates
 RUN apt-get update -y && apt-get -y install sudo vim curl wget git g++ gfortran make cmake graphviz libblas-dev liblapack-dev
 
-RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb ;\
-    apt-get install -y ./google-chrome-stable_current_amd64.deb
+# install a browser
+RUN apt-get update -y && apt-get install firefox --fix-missing -y
 
 # Create user
 ENV USER=omdao
@@ -38,7 +39,8 @@ RUN source $HOME/miniforge3/etc/profile.d/conda.sh ;\
     conda install mpi4py openmpi petsc4py=3.20 pyoptsparse -q -y ;\
     python -m pip install pyparsing psutil objgraph plotly pyxdsm pydot ;\
     #
-    # Install pyoptsparse
+    # Install build_pyoptsparse
+    # (this will allow the user additional options for installing pyoptsparse, beyond the conda install above)
     #
     python -m pip install git+https://github.com/openmdao/build_pyoptsparse ;\
     # build_pyoptsparse -v ;\
