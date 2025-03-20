@@ -853,7 +853,7 @@ def _configure_boundary_balance_introspection(phase):
 
     for param_name, options in phase.boundary_balance_options.items():
         resid_name = options['name']
-        resid_units = options.get('eq_units', None)
+        resid_units = options.get('eq_units', _unspecified)
         resid_shape = options.get('shape', None)
 
         # Determine the path to the variable which we will be constraining
@@ -895,30 +895,31 @@ def _configure_boundary_balance_introspection(phase):
             else:
                 options['upper'] = param_bounds[1]
 
-        if resid_type in ['t', 't_phase']:
-            options['eq_units'] = time_units
-        elif resid_type == 'state':
-            if resid_name.startswith('initial_states:') or resid_name.startswith('final_states:'):
-                state_name = ':'.join(resid_name.split(':')[1:])
+        if resid_units is _unspecified:
+            if resid_type in ['t', 't_phase']:
+                options['eq_units'] = time_units
+            elif resid_type == 'state':
+                if resid_name.startswith('initial_states:') or resid_name.startswith('final_states:'):
+                    state_name = ':'.join(resid_name.split(':')[1:])
+                else:
+                    state_name = resid_name
+                options['eq_units'] = phase.state_options[state_name]['units']
+            elif resid_type == 'parameter':
+                options['eq_units'] = phase.parameter[resid_name]['units']
+            elif resid_type in ['input_control', 'indep_control']:
+                options['eq_units'] = phase.control_options[resid_name]['units']
+            elif resid_type == 'control_rate':
+                control_units = phase.state_options[resid_name]['units']
+                options['eq_units'] = get_rate_units(control_units, time_units, deriv=1)
+            elif resid_type == 'control_rate2':
+                options['eq_units'] = get_rate_units(control_units, time_units, deriv=2)
+            elif resid_type == 'ode':
+                # Failed to find variable, assume it is in the ODE. This requires introspection.
+                ode = phase.options['transcription']._get_ode(phase)
+                meta = get_source_metadata(ode, src=resid_name, user_units=resid_units, user_shape=resid_shape)
+                options['eq_units'] = meta['units']
             else:
-                state_name = resid_name
-            options['eq_units'] = phase.state_options[state_name]['units']
-        elif resid_type == 'parameter':
-            options['eq_units'] = phase.parameter[resid_name]['units']
-        elif resid_type in ['input_control', 'indep_control']:
-            options['eq_units'] = phase.control_options[resid_name]['units']
-        elif resid_type == 'control_rate':
-            control_units = phase.state_options[resid_name]['units']
-            options['eq_units'] = get_rate_units(control_units, time_units, deriv=1)
-        elif resid_type == 'control_rate2':
-            options['eq_units'] = get_rate_units(control_units, time_units, deriv=2)
-        elif resid_type == 'ode':
-            # Failed to find variable, assume it is in the ODE. This requires introspection.
-            ode = phase.options['transcription']._get_ode(phase)
-            meta = get_source_metadata(ode, src=resid_name, user_units=resid_units, user_shape=resid_shape)
-            options['eq_units'] = meta['units']
-        else:
-            raise ValueError(f'{phase.msginfo}: Unable to find boundary balance name {resid_name}')
+                raise ValueError(f'{phase.msginfo}: Unable to find boundary balance name {resid_name}')
 
 
 def _configure_constraint_introspection(phase):

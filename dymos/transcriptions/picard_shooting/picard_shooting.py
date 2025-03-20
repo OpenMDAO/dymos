@@ -772,15 +772,11 @@ class PicardShooting(TranscriptionBase):
             for tgt in options['targets']:
                 if tgt in options['static_targets']:
                     src_idxs = np.squeeze(get_src_indices_by_row([0], options['shape']), axis=0)
-                    endpoint_src_idxs = om.slicer[:, ...]
                 else:
                     src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
                     src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-                    endpoint_src_idxs_raw = np.zeros(2, dtype=int)
-                    endpoint_src_idxs = get_src_indices_by_row(endpoint_src_idxs_raw, options['shape'])
                     if options['shape'] == (1,):
                         src_idxs = src_idxs.ravel()
-                        endpoint_src_idxs = endpoint_src_idxs.ravel()
 
                 connection_info.append((f'ode_all.{tgt}', (src_idxs,)))
 
