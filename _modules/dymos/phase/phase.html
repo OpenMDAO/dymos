@@ -539,7 +539,7 @@ const thebe_selector_output = ".output, .cell_output"
 
 <li class="toctree-l2"><a class="reference internal" href="../../../examples/cart_pole/cart_pole.html">Cart-Pole Optimal Control</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../examples/brachistochrone/brachistochrone_tandem_phases.html">Brachistochrone with tandem phases</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../examples/implicit_duration/brachistochrone_implicit_duration.html">Implicit Duration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/implicit_duration/brachistochrone_implicit_duration.html">Boundary Balance</a></li>
 </ul>
 </li>
 </ul>
@@ -723,7 +723,7 @@ title="Open an issue"
     <span class="n">TimeseriesOutputOptionsDictionary</span><span class="p">,</span> <span class="n">PhaseTimeseriesOptionsDictionary</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">..transcriptions.transcription_base</span><span class="w"> </span><span class="kn">import</span> <span class="n">TranscriptionBase</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">..transcriptions.grid_data</span><span class="w"> </span><span class="kn">import</span> <span class="n">GaussLobattoGrid</span><span class="p">,</span> <span class="n">RadauGrid</span><span class="p">,</span> <span class="n">UniformGrid</span><span class="p">,</span> <span class="n">BirkhoffGrid</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..transcriptions.grid_data</span><span class="w"> </span><span class="kn">import</span> <span class="n">ChebyshevGaussLobattoGrid</span><span class="p">,</span> <span class="n">GaussLobattoGrid</span><span class="p">,</span> <span class="n">RadauGrid</span><span class="p">,</span> <span class="n">UniformGrid</span><span class="p">,</span> <span class="n">BirkhoffGrid</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..transcriptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">ExplicitShooting</span><span class="p">,</span> <span class="n">GaussLobatto</span><span class="p">,</span> <span class="n">Radau</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..utils.indexing</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_constraint_flat_idxs</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..utils.introspection</span><span class="w"> </span><span class="kn">import</span> <span class="n">configure_time_introspection</span><span class="p">,</span> <span class="n">_configure_constraint_introspection</span><span class="p">,</span> \
@@ -899,6 +899,8 @@ title="Open an issue"
                              <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Options for each parameter in this phase.&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">declare</span><span class="p">(</span><span class="s1">&#39;control_options&#39;</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">{},</span>
                              <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Options for each control in this phase.&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">declare</span><span class="p">(</span><span class="s1">&#39;boundary_balance_options&#39;</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">{},</span>
+                             <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Options specifying boundary conditions to be satisfied with a solver.&#39;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">time_options</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -928,6 +930,10 @@ title="Open an issue"
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">control_options</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;control_options&#39;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">boundary_balance_options</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;boundary_balance_options&#39;</span><span class="p">]</span>
 
 <div class="viewcode-block" id="Phase.add_state"><a class="viewcode-back" href="../../../api/phase_api.html#dymos.Phase.add_state">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
                   <span class="n">rate_source</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
@@ -2789,6 +2795,49 @@ title="Open an issue"
             <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameter_options</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;units&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_val</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;parameters:</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">val</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">)</span></div>
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_boundary_balance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">tgt_val</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;final&#39;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Turn param into an implicit output in the phase when using shooting methods.</span>
+
+<span class="sd">        This capability requires the variable specified by `name` to be dependent upon the given `param` name, and</span>
+<span class="sd">        thus won&#39;t work with purely implicit transcriptions.</span>
+<span class="sd">        The transcription must be one of ExplicitShooting, PicardShooting, Analytic, or Pseudospectral with `solve_segments=True`.</span>
+
+<span class="sd">        Param will be output by a BalanceComp at the end of the phase. with a residual defined by `name - val` at either</span>
+<span class="sd">        the initial or final point in the phase (specified by &#39;loc&#39;).</span>
+
+<span class="sd">        Param is the name of the implicit variable within the phase. Typically one of &#39;t_initial&#39;, &#39;t_duration&#39;,</span>
+<span class="sd">        &#39;initial_states:{state_name}&#39;, &#39;final_states:{state_name}&#39;, or &#39;parameters:{param_name}&#39;.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        param : str</span>
+<span class="sd">            The dymos phase variable whose value is being set to satisfy the residual.</span>
+<span class="sd">        name : str</span>
+<span class="sd">            The state or time-dependent phase output that provides the residual value for param.</span>
+<span class="sd">        tgt_val : float or array-like, optional</span>
+<span class="sd">            The target value for `name`. Default is 0.0.</span>
+<span class="sd">        loc : str, optional</span>
+<span class="sd">            Whether the value given by name is being evaluated at the &#39;initial&#39; or &#39;final&#39;</span>
+<span class="sd">            point in the phase. Default is &#39;final&#39;.</span>
+<span class="sd">        index : int or slice, optional</span>
+<span class="sd">            If the variable given by name is an array at each point in time, C-order index into</span>
+<span class="sd">            that variable at the intiial or final time. Default is 0.</span>
+<span class="sd">        **kwargs : dict</span>
+<span class="sd">            Additional keyword arguments forwarded to the `add_balance` call of an OpenMDAO</span>
+<span class="sd">            BalanceComp used to define the residual.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">bbos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundary_balance_options</span>
+        <span class="k">if</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">bbos</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">bbos</span><span class="p">[</span><span class="n">param</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+            <span class="n">tgt_val</span> <span class="o">=</span> <span class="n">bbos</span><span class="p">[</span><span class="n">param</span><span class="p">][</span><span class="s1">&#39;tgt_val&#39;</span><span class="p">]</span>
+            <span class="n">loc</span> <span class="o">=</span> <span class="n">bbos</span><span class="p">[</span><span class="n">param</span><span class="p">][</span><span class="s1">&#39;loc&#39;</span><span class="p">]</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Phase variable </span><span class="si">{</span><span class="n">param</span><span class="si">}</span><span class="s1"> is already an implicit output for a boundary balance.</span><span class="se">\n</span><span class="s1">&#39;</span>
+                             <span class="sa">f</span><span class="s1">&#39;R(</span><span class="si">{</span><span class="n">param</span><span class="si">}</span><span class="s1">) = </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">[</span><span class="si">{</span><span class="n">loc</span><span class="si">}</span><span class="s1">] - </span><span class="si">{</span><span class="n">tgt_val</span><span class="si">}</span><span class="s1"> = 0&#39;</span><span class="p">)</span>
+
+        <span class="n">bbos</span><span class="p">[</span><span class="n">param</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;param&#39;</span><span class="p">:</span> <span class="n">param</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span> <span class="s1">&#39;tgt_val&#39;</span><span class="p">:</span> <span class="n">tgt_val</span><span class="p">,</span> <span class="s1">&#39;loc&#39;</span><span class="p">:</span> <span class="n">loc</span><span class="p">,</span> <span class="s1">&#39;index&#39;</span><span class="p">:</span> <span class="n">index</span><span class="p">}</span>
+        <span class="n">bbos</span><span class="p">[</span><span class="n">param</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+
     <span class="k">def</span><span class="w"> </span><span class="nf">set_duration_balance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mult_val</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Adds a condition for the duration of the phase. This is satisfied using a nonlinear solver.</span>
@@ -2805,43 +2854,19 @@ title="Open an issue"
 <span class="sd">            If variable is an array at each point in time, this indicates which index is to be</span>
 <span class="sd">            used as the objective, assuming C-ordered flattening.</span>
 <span class="sd">        units : str, optional</span>
-<span class="sd">            The units of the objective function.  If None, use the units associated with the target.</span>
-<span class="sd">            If provided, must be compatible with the target units.</span>
+<span class="sd">            The units of the duration residual.</span>
 <span class="sd">        mult_val : float, optional</span>
 <span class="sd">            Default value for the LHS multiplier.</span>
 <span class="sd">        normalize : bool, optional</span>
 <span class="sd">            Specifies whether the resulting residual should be normalized by a quadratic</span>
 <span class="sd">            function of the RHS.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_options</span><span class="p">[</span><span class="s1">&#39;fix_duration&#39;</span><span class="p">]:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Cannot implicitly solve for phase duration when fix_duration is True&#39;</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_options</span><span class="p">[</span><span class="s1">&#39;input_duration&#39;</span><span class="p">]:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Cannot implicitly solve for phase duration when input_duration is True&#39;</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;transcription&#39;</span><span class="p">],</span> <span class="n">ExplicitShooting</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Transcription ExplicitShooting does not implement method setup_duration_balance&#39;</span><span class="p">)</span>
-
-        <span class="n">options</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
-                   <span class="s1">&#39;val&#39;</span><span class="p">:</span> <span class="n">val</span><span class="p">,</span>
-                   <span class="s1">&#39;index&#39;</span><span class="p">:</span> <span class="n">index</span><span class="p">,</span>
-                   <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="n">units</span><span class="p">,</span>
-                   <span class="s1">&#39;mult_val&#39;</span><span class="p">:</span> <span class="n">mult_val</span><span class="p">,</span>
-                   <span class="s1">&#39;normalize&#39;</span><span class="p">:</span> <span class="n">normalize</span><span class="p">}</span>
-
-        <span class="k">if</span> <span class="s1">&#39;=&#39;</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
-            <span class="n">balance_name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">add_calc_expr</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">balance_name</span> <span class="o">=</span> <span class="n">name</span>
-
-        <span class="n">options</span><span class="p">[</span><span class="s1">&#39;balance_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">balance_name</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">time_options</span><span class="p">[</span><span class="s1">&#39;t_duration_balance_options&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">options</span>
-
-        <span class="n">var_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">classify_var</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">var_type</span> <span class="o">==</span> <span class="s1">&#39;ode&#39;</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">balance_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timeseries</span><span class="p">[</span><span class="s1">&#39;timeseries&#39;</span><span class="p">][</span><span class="s1">&#39;outputs&#39;</span><span class="p">]:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">add_timeseries_output</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">output_name</span><span class="o">=</span><span class="n">balance_name</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">)</span>
+        <span class="n">issue_warning</span><span class="p">(</span><span class="s2">&quot;phase.set_duration_balance is deprecated. &quot;</span>
+                      <span class="s2">&quot;In the futurec use phase.add_boundary_balance(&#39;t_duration&#39;, ...&quot;</span><span class="p">,</span>
+                      <span class="n">category</span><span class="o">=</span><span class="n">om</span><span class="o">.</span><span class="n">OMDeprecationWarning</span><span class="p">)</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">index</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">index</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_boundary_balance</span><span class="p">(</span><span class="s1">&#39;t_duration&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">tgt_val</span><span class="o">=</span><span class="n">val</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;final&#39;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">idx</span><span class="p">,</span>
+                                  <span class="n">eq_units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">mult_val</span><span class="o">=</span><span class="n">mult_val</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="n">normalize</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">classify_var</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -2917,7 +2942,7 @@ title="Open an issue"
 
         <span class="n">transcription</span><span class="o">.</span><span class="n">setup_timeseries_outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
-        <span class="n">transcription</span><span class="o">.</span><span class="n">setup_duration_balance</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">transcription</span><span class="o">.</span><span class="n">setup_boundary_balance</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
         <span class="n">transcription</span><span class="o">.</span><span class="n">setup_defects</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="n">transcription</span><span class="o">.</span><span class="n">setup_solvers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
@@ -2958,6 +2983,7 @@ title="Open an issue"
         <span class="n">_configure_constraint_introspection</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
         <span class="n">transcription</span><span class="o">.</span><span class="n">configure_boundary_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">transcription</span><span class="o">.</span><span class="n">configure_boundary_balance</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
         <span class="n">transcription</span><span class="o">.</span><span class="n">configure_path_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
@@ -2970,8 +2996,6 @@ title="Open an issue"
                 <span class="kn">from</span><span class="w"> </span><span class="nn">val_err</span>
 
         <span class="n">transcription</span><span class="o">.</span><span class="n">configure_timeseries_outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-
-        <span class="n">transcription</span><span class="o">.</span><span class="n">configure_duration_balance</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
         <span class="n">transcription</span><span class="o">.</span><span class="n">configure_solvers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
@@ -3243,8 +3267,8 @@ title="Open an issue"
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">self_tx</span><span class="p">,</span> <span class="n">Radau</span><span class="p">):</span>
             <span class="n">grid</span> <span class="o">=</span> <span class="n">RadauGrid</span><span class="p">(</span><span class="n">num_segments</span><span class="o">=</span><span class="n">num_seg</span><span class="p">,</span> <span class="n">nodes_per_seg</span><span class="o">=</span><span class="n">seg_order</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">segment_ends</span><span class="o">=</span><span class="n">seg_ends</span><span class="p">,</span>
                              <span class="n">compressed</span><span class="o">=</span><span class="n">compressed</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">self_tx</span><span class="o">.</span><span class="n">grid_data</span><span class="p">,</span> <span class="n">GaussLobattoGrid</span><span class="p">)</span> <span class="ow">or</span> \
-                <span class="nb">isinstance</span><span class="p">(</span><span class="n">self_tx</span><span class="o">.</span><span class="n">grid_data</span><span class="p">,</span> <span class="n">RadauGrid</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">self_tx</span><span class="o">.</span><span class="n">grid_data</span><span class="p">,</span> <span class="n">BirkhoffGrid</span><span class="p">):</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">self_tx</span><span class="o">.</span><span class="n">grid_data</span><span class="p">,</span> <span class="p">(</span><span class="n">GaussLobattoGrid</span><span class="p">,</span> <span class="n">RadauGrid</span><span class="p">,</span>
+                                            <span class="n">BirkhoffGrid</span><span class="p">,</span> <span class="n">ChebyshevGaussLobattoGrid</span><span class="p">)):</span>
             <span class="n">grid</span> <span class="o">=</span> <span class="n">self_tx</span><span class="o">.</span><span class="n">grid_data</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Unexpected grid class for </span><span class="si">{</span><span class="n">self_tx</span><span class="o">.</span><span class="n">grid_data</span><span class="si">}</span><span class="s1">. Only phases with GaussLobatto &#39;</span>

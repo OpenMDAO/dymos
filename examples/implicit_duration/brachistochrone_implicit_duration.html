@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>Implicit Duration &#8212; Dymos</title>
+    <title>Boundary Balance &#8212; Dymos</title>
   
   
   
@@ -548,7 +548,7 @@ const thebe_selector_output = ".output, .cell_output"
 
 <li class="toctree-l2"><a class="reference internal" href="../cart_pole/cart_pole.html">Cart-Pole Optimal Control</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../brachistochrone/brachistochrone_tandem_phases.html">Brachistochrone with tandem phases</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">Implicit Duration</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Boundary Balance</a></li>
 </ul>
 </li>
 </ul>
@@ -766,7 +766,7 @@ title="Print to PDF"
             
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Implicit Duration</h1>
+    <h1>Boundary Balance</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -805,29 +805,27 @@ title="Print to PDF"
 
             <article class="bd-article" role="main">
               
-  <section class="tex2jax_ignore mathjax_ignore" id="implicit-duration">
-<h1>Implicit Duration<a class="headerlink" href="#implicit-duration" title="Permalink to this heading">#</a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="boundary-balance">
+<h1>Boundary Balance<a class="headerlink" href="#boundary-balance" title="Permalink to this heading">#</a></h1>
 <p>In some cases, using dymos without the need for an optimizer is desirable.
 Sometimes in the absense of a control, you may just want to propagate the problem.
 Solve segments allows us to do this for a specified amount of time, but if the duration of the phase is itself an implicit output, then we need dymos to understand the residual to associate with the phase duration.</p>
-<p>The requirement for this procedure to work is that the dynamics have to be obeyed at each iteration.
-A time-stepping transcription (<code class="docutils literal notranslate"><span class="pre">ExplicitShooting</span></code>) or a pseudospectral transcription with <code class="docutils literal notranslate"><span class="pre">solve_segments=True</span></code> is required.</p>
-<p>One important note: In the pseudospectral transcriptions, using <code class="docutils literal notranslate"><span class="pre">solve_segments</span></code> with option <code class="docutils literal notranslate"><span class="pre">compressed=False</span></code>, results in a “multiple shooting” approach, whereby the state discontinuitites between segments are treated as constraints to be nulled out by the optimizer. This approach should therefore only be used with “single shooting” approaches (<code class="docutils literal notranslate"><span class="pre">compressed=True</span></code> in the case of the pseudospectral transcriptions)</p>
+<p>This feature requires that some output of the system is directly coupled to one of the phase parameters, such as t_duration.
+In a collocation phase where an optimizer satisfies the defect equations, changing the duration of the phase does not directly
+impact the final conditions of the system.
+The transcription needs to be such that invoking run_model is enough to generate outputs that change with the desired parameters.
+The transcription must be one of <code class="docutils literal notranslate"><span class="pre">ExplicitShooting</span></code>, <code class="docutils literal notranslate"><span class="pre">PicardShooting</span></code>, or a pseudospectral transcription with <code class="docutils literal notranslate"><span class="pre">solve_segments=True</span></code>.</p>
 <section id="solving-the-brachistochrone-without-an-optimizer">
 <h2>Solving the brachistochrone without an optimizer.<a class="headerlink" href="#solving-the-brachistochrone-without-an-optimizer" title="Permalink to this heading">#</a></h2>
-<p>Consider the brachistochrone problem. Below we implement the brachistochrone equations of motion using OpenMDAO’s <code class="docutils literal notranslate"><span class="pre">JaxExplicitComponent</span></code> so that we can use automatic differentiation to provide the partials.</p>
-<p>The implicit solution to the brachistochrone is very robust, but what if we wanted to simplify it?
-For instance, we leave the duration of the bead’s trajectory as a design variable that we want to minimize, but we also require the enforcement of the final position of the brachistochrone to some (x, y) coordinate pair.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">openmdao.api</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">om</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">dymos</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dm</span>
 
 
-<span class="k">class</span><span class="w"> </span><span class="nc">BrachistochroneODE</span><span class="p">(</span><span class="n">om</span><span class="o">.</span><span class="n">JaxExplicitComponent</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BrachistochroneODE</span><span class="p">(</span><span class="n">om</span><span class="o">.</span><span class="n">ExplicitComponent</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    The brachistochrone EOM assuming </span>
+<span class="sd">    The brachistochrone EOM assuming</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -839,8 +837,7 @@ For instance, we leave the duration of the bead’s trajectory as a design varia
         <span class="c1"># static parameters</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;speed of the bead on the wire&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nn</span><span class="p">,),</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m/s&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;theta&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;angle between wire tangent and the nadir&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nn</span><span class="p">,),</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;rad&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;gravitational acceleration&#39;</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dymos.static_target&#39;</span><span class="p">],</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m/s**2&#39;</span><span class="p">,</span>
-                       <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nn</span><span class="p">,))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;gravitational acceleration&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dymos.static_target&#39;</span><span class="p">],</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m/s**2&#39;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="s1">&#39;xdot&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;velocity component in x&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nn</span><span class="p">,),</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m/s&#39;</span><span class="p">,</span>
                         <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dymos.state_rate_source:x&#39;</span><span class="p">,</span> <span class="s1">&#39;dymos.state_units:m&#39;</span><span class="p">])</span>
@@ -851,28 +848,17 @@ For instance, we leave the duration of the bead’s trajectory as a design varia
         <span class="bp">self</span><span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="s1">&#39;vdot&#39;</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;acceleration magnitude&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nn</span><span class="p">,),</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m/s**2&#39;</span><span class="p">,</span>
                         <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dymos.state_rate_source:v&#39;</span><span class="p">,</span> <span class="s1">&#39;dymos.state_units:m/s&#39;</span><span class="p">])</span>
 
-        <span class="c1"># Setup partials</span>
-        <span class="n">ar</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nn</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">declare_coloring</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;cs&#39;</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;vdot&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">ar</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">ar</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;vdot&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;theta&#39;</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">ar</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">ar</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;vdot&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">):</span>
+        <span class="n">v</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">g</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;xdot&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">ar</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">ar</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;xdot&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;theta&#39;</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">ar</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">ar</span><span class="p">)</span>
+        <span class="n">sin_theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+        <span class="n">cos_theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;ydot&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">ar</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">ar</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;ydot&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;theta&#39;</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">ar</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">ar</span><span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">compute_primal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">g</span><span class="p">):</span>
-        <span class="n">sin_theta</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
-        <span class="n">cos_theta</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
-
-        <span class="n">vdot</span> <span class="o">=</span> <span class="n">g</span> <span class="o">*</span> <span class="n">cos_theta</span>
-        <span class="n">xdot</span> <span class="o">=</span> <span class="n">v</span> <span class="o">*</span> <span class="n">sin_theta</span>
-        <span class="n">ydot</span> <span class="o">=</span> <span class="o">-</span><span class="n">v</span> <span class="o">*</span> <span class="n">cos_theta</span>
-
-        <span class="k">return</span> <span class="n">xdot</span><span class="p">,</span> <span class="n">ydot</span><span class="p">,</span> <span class="n">vdot</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;vdot&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">g</span> <span class="o">*</span> <span class="n">cos_theta</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;xdot&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span> <span class="o">*</span> <span class="n">sin_theta</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;ydot&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">v</span> <span class="o">*</span> <span class="n">cos_theta</span>
 </pre></div>
 </div>
 </div>
@@ -883,18 +869,25 @@ For instance, we leave the duration of the bead’s trajectory as a design varia
 <p>In the following example, we set <code class="docutils literal notranslate"><span class="pre">solve_segments='forward'</span></code> such that all of the collocation defects associate with the Radau transcription are satisfied by a Newton solver rather than the optimizer.
 This is the first step to solving the problem without an optimizer.
 This ensures that the equations of motion are satisfied to the extent possible assuming the transcription grid.</p>
+<p>In pseudospectral phases, solve_segments is an optional setting that can be applied to all states in the phase via the <code class="docutils literal notranslate"><span class="pre">solve_segments</span></code> option on the pseudospectral transcriptions, or to individual states.</p>
+<p>In phases that use PicardShooting, <code class="docutils literal notranslate"><span class="pre">solve_segments</span></code> must be <code class="docutils literal notranslate"><span class="pre">'forward'</span></code> or <code class="docutils literal notranslate"><span class="pre">'backward'</span></code>. The default direction of the solve is <code class="docutils literal notranslate"><span class="pre">'forward'</span></code>, but individual states may override this.</p>
+<p>You can experiment with using different transcriptions below by choosing which value of <code class="docutils literal notranslate"><span class="pre">TX</span></code> you want to use. Note that because the initial states of the brachistochrone are fixed, <code class="docutils literal notranslate"><span class="pre">solve_segments='forward'</span></code> should be used.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define the OpenMDAO problem</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># TX = dm.PicardShooting(num_segments=5, nodes_per_seg=4, solve_segments=&#39;forward&#39;)</span>
+<span class="n">TX</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">Radau</span><span class="p">(</span><span class="n">num_segments</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">solve_segments</span><span class="o">=</span><span class="s1">&#39;forward&#39;</span><span class="p">,</span> <span class="n">compressed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># TX = dm.ExplicitShooting(num_segments=10, order=3)</span>
+
+<span class="c1"># Define the OpenMDAO problem</span>
 <span class="n">p</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">om</span><span class="o">.</span><span class="n">Group</span><span class="p">())</span>
 
 <span class="c1"># Define a Trajectory object</span>
 <span class="n">traj</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">Trajectory</span><span class="p">()</span>
 <span class="n">p</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">add_subsystem</span><span class="p">(</span><span class="s1">&#39;traj&#39;</span><span class="p">,</span> <span class="n">subsys</span><span class="o">=</span><span class="n">traj</span><span class="p">)</span>
 
-<span class="c1"># Define a Dymos Phase object with Radau Transcription</span>
+<span class="c1"># Define a Dymos Phase</span>
 <span class="n">phase</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">Phase</span><span class="p">(</span><span class="n">ode_class</span><span class="o">=</span><span class="n">BrachistochroneODE</span><span class="p">,</span>
-                 <span class="n">transcription</span><span class="o">=</span><span class="n">dm</span><span class="o">.</span><span class="n">Radau</span><span class="p">(</span><span class="n">num_segments</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">solve_segments</span><span class="o">=</span><span class="s1">&#39;forward&#39;</span><span class="p">))</span>
+                 <span class="n">transcription</span><span class="o">=</span><span class="n">TX</span><span class="p">)</span>
 <span class="n">traj</span><span class="o">.</span><span class="n">add_phase</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;phase0&#39;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="n">phase</span><span class="p">)</span>
 
 <span class="c1"># Set the time options</span>
@@ -922,7 +915,7 @@ This ensures that the equations of motion are satisfied to the extent possible a
 <span class="c1"># Doing so can significant speed up the execution of dymos.</span>
 <span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">declare_coloring</span><span class="p">()</span>
 
-<span class="n">phase</span><span class="o">.</span><span class="n">nonlinear_solver</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">NewtonSolver</span><span class="p">(</span><span class="n">maxiter</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">solve_subsystems</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stall_limit</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">iprint</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">nonlinear_solver</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">NewtonSolver</span><span class="p">(</span><span class="n">maxiter</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">solve_subsystems</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stall_limit</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">iprint</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 <span class="n">phase</span><span class="o">.</span><span class="n">linear_solver</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">DirectSolver</span><span class="p">()</span>
 
 <span class="c1"># Setup the problem</span>
@@ -944,10 +937,20 @@ This ensures that the equations of motion are satisfied to the extent possible a
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>==================
 traj.phases.phase0
 ==================
-NL: Newton 0 ; 52.4703333 1
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>NL: Newton 1 ; 2.6989989e-12 5.14385698e-14
+NL: Newton 0 ; 37.4386489 1
+
+Coloring for &#39;traj.phases.phase0.rhs_all&#39; (class BrachistochroneODE)
+
+Jacobian shape: (120, 81)  (2.47% nonzero)
+FWD solves: 2   REV solves: 0
+Total colors vs. total size: 2 vs 81  (97.53% improvement)
+
+Sparsity computed using tolerance: 1e-25.
+Dense partial jacobian for BrachistochroneODE &#39;traj.phases.phase0.rhs_all&#39; was computed 3 times.
+Time to compute sparsity:   0.0076 sec
+Time to compute coloring:   0.0078 sec
+Memory to compute coloring:   0.1250 MB
+NL: Newton 1 ; 3.98269488e-12 1.06379236e-13
 NL: Newton Converged
 </pre></div>
 </div>
@@ -970,38 +973,41 @@ NL: Newton Converged
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/0de5bda3ca4856c8e3ea572ff48c879779b47b154c07713e03752e080a1c2407.png" src="../../_images/0de5bda3ca4856c8e3ea572ff48c879779b47b154c07713e03752e080a1c2407.png" />
+<img alt="../../_images/7cf02cde81da7f5cba9e6ec69e1e36d966a21a6ab5f0fa5f7e1206cdc7f3fb9e.png" src="../../_images/7cf02cde81da7f5cba9e6ec69e1e36d966a21a6ab5f0fa5f7e1206cdc7f3fb9e.png" />
 </div>
 </div>
 </section>
 <section id="stopping-the-propagation-at-the-desired-time">
 <h2>Stopping the propagation at the desired time.<a class="headerlink" href="#stopping-the-propagation-at-the-desired-time" title="Permalink to this heading">#</a></h2>
-<p>We can utilize the <code class="docutils literal notranslate"><span class="pre">set_implicit_duration</span></code> method on <code class="docutils literal notranslate"><span class="pre">Phase</span></code> to turn <code class="docutils literal notranslate"><span class="pre">t_duration</span></code> into an implicit output and provide it with a residual.</p>
-<p>In our case, we set <code class="docutils literal notranslate"><span class="pre">phase.set_duration_balance('x',</span> <span class="pre">10.0)</span></code></p>
+<p>We can utilize the <code class="docutils literal notranslate"><span class="pre">add_boundary_balance</span></code> method on <code class="docutils literal notranslate"><span class="pre">Phase</span></code> to turn <code class="docutils literal notranslate"><span class="pre">t_duration</span></code> into an implicit output and provide it with a residual.</p>
+<p>In our case, we set <code class="docutils literal notranslate"><span class="pre">phase.add_boundary_balance(param='t_duration',</span> <span class="pre">name='x',</span> <span class="pre">tgt_val=10.0)</span></code></p>
 <p>This specifies that we want <code class="docutils literal notranslate"><span class="pre">t_duration</span></code> to be associated with the following residual:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-9f813802-9f1c-41ea-972a-d4da735500c4">
-<span class="eqno">(96)<a class="headerlink" href="#equation-9f813802-9f1c-41ea-972a-d4da735500c4" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-ae53b63a-a042-48d6-98eb-f7d4d0b94ee1">
+<span class="eqno">(96)<a class="headerlink" href="#equation-ae53b63a-a042-48d6-98eb-f7d4d0b94ee1" title="Permalink to this equation">#</a></span>\[\begin{align}
   \mathcal{R}(t_d) = x - 10 = 0
 \end{align}\]</div>
 <p>Note that we limit the angle <span class="math notranslate nohighlight">\(\theta\)</span> to be between 0 and 180, the bead must move to the right and we can just terminate the propagation when x=10.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define the OpenMDAO problem</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#TX = dm.PicardShooting(num_segments=5, nodes_per_seg=4, solve_segments=&#39;forward&#39;)</span>
+<span class="n">TX</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">Radau</span><span class="p">(</span><span class="n">num_segments</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">solve_segments</span><span class="o">=</span><span class="s1">&#39;forward&#39;</span><span class="p">,</span> <span class="n">compressed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># TX = dm.ExplicitShooting(num_segments=10, order=3)</span>
+
+<span class="c1"># Define the OpenMDAO problem</span>
 <span class="n">p</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">om</span><span class="o">.</span><span class="n">Group</span><span class="p">())</span>
 
 <span class="c1"># Define a Trajectory object</span>
 <span class="n">traj</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">Trajectory</span><span class="p">()</span>
 <span class="n">p</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">add_subsystem</span><span class="p">(</span><span class="s1">&#39;traj&#39;</span><span class="p">,</span> <span class="n">subsys</span><span class="o">=</span><span class="n">traj</span><span class="p">)</span>
 
-<span class="c1"># Define a Dymos Phase object with Radau Transcription</span>
+<span class="c1"># Define a Dymos Phase</span>
 <span class="n">phase</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">Phase</span><span class="p">(</span><span class="n">ode_class</span><span class="o">=</span><span class="n">BrachistochroneODE</span><span class="p">,</span>
-                 <span class="n">transcription</span><span class="o">=</span><span class="n">dm</span><span class="o">.</span><span class="n">Radau</span><span class="p">(</span><span class="n">num_segments</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">solve_segments</span><span class="o">=</span><span class="s1">&#39;forward&#39;</span><span class="p">,</span> <span class="n">compressed</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+                 <span class="n">transcription</span><span class="o">=</span><span class="n">TX</span><span class="p">)</span>
 <span class="n">traj</span><span class="o">.</span><span class="n">add_phase</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;phase0&#39;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="n">phase</span><span class="p">)</span>
 
 <span class="c1"># Set the time options</span>
-<span class="n">phase</span><span class="o">.</span><span class="n">set_time_options</span><span class="p">(</span><span class="n">fix_initial</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                       <span class="n">duration_bounds</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">))</span>
-<span class="n">phase</span><span class="o">.</span><span class="n">set_duration_balance</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">)</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">set_time_options</span><span class="p">(</span><span class="n">fix_initial</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_boundary_balance</span><span class="p">(</span><span class="n">param</span><span class="o">=</span><span class="s1">&#39;t_duration&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">tgt_val</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>
 
 <span class="c1"># Set the state options</span>
 <span class="n">phase</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">rate_source</span><span class="o">=</span><span class="s1">&#39;xdot&#39;</span><span class="p">,</span>
@@ -1047,9 +1053,19 @@ NL: Newton Converged
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>==================
 traj.phases.phase0
 ==================
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>NL: Newton Converged in 4 iterations
+
+Coloring for &#39;traj.phases.phase0.rhs_all&#39; (class BrachistochroneODE)
+
+Jacobian shape: (120, 81)  (2.47% nonzero)
+FWD solves: 2   REV solves: 0
+Total colors vs. total size: 2 vs 81  (97.53% improvement)
+
+Sparsity computed using tolerance: 1e-25.
+Dense partial jacobian for BrachistochroneODE &#39;traj.phases.phase0.rhs_all&#39; was computed 3 times.
+Time to compute sparsity:   0.0075 sec
+Time to compute coloring:   0.0077 sec
+Memory to compute coloring:   0.0000 MB
+NL: Newton Converged in 4 iterations
 </pre></div>
 </div>
 </div>
@@ -1071,17 +1087,15 @@ traj.phases.phase0
 
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;final time&#39;</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;final y&#39;</span><span class="p">,</span> <span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;final theta&#39;</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">theta</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;final theta&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">theta</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/e7a0119c610e444e417b7560a4a4ead610aa003ef46368472c71fad5e5962704.png" src="../../_images/e7a0119c610e444e417b7560a4a4ead610aa003ef46368472c71fad5e5962704.png" />
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>final time [1.77967375]
-final y [3.59263414]
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>final theta [90.]
+<img alt="../../_images/4fdb1613e39899d14ad9e89bd2ec6982cc2538f017259349d9ac0e532d626fe2.png" src="../../_images/4fdb1613e39899d14ad9e89bd2ec6982cc2538f017259349d9ac0e532d626fe2.png" />
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>final time [1.7796735]
+final y [3.59263225]
+final theta [90.]
 </pre></div>
 </div>
 </div>
@@ -1095,28 +1109,31 @@ We can use this information to pose the brachistochrone as a boundary value prob
 That means that <code class="docutils literal notranslate"><span class="pre">theta_rate</span></code> is a parameter as far as dymos is concerned.
 We then make <code class="docutils literal notranslate"><span class="pre">theta</span></code> a state variable whose rate is provided by the <code class="docutils literal notranslate"><span class="pre">theta_rate</span></code> parameter.
 We’ll set the initial value of <code class="docutils literal notranslate"><span class="pre">theta</span></code> to zero degrees, since we know that is approximately correct for this problem.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-860ae54e-c7dc-4eba-b971-51307695d429">
-<span class="eqno">(97)<a class="headerlink" href="#equation-860ae54e-c7dc-4eba-b971-51307695d429" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-ff910d25-4c36-4d5a-8d25-6c47e2ea0e89">
+<span class="eqno">(97)<a class="headerlink" href="#equation-ff910d25-4c36-4d5a-8d25-6c47e2ea0e89" title="Permalink to this equation">#</a></span>\[\begin{align}
   \mathcal{R}(\dot{\theta}) &amp;= y_f - 5
 \end{align}\]</div>
 <p>Dymos currently doesn’t support making parameters implicit outputs, so we’re going to do this the manual OpenMDAO way.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define the OpenMDAO problem</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># TX = dm.PicardShooting(num_segments=5, nodes_per_seg=4, solve_segments=&#39;forward&#39;)</span>
+<span class="n">TX</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">Radau</span><span class="p">(</span><span class="n">num_segments</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">solve_segments</span><span class="o">=</span><span class="s1">&#39;forward&#39;</span><span class="p">,</span> <span class="n">compressed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># TX = dm.ExplicitShooting(num_segments=10, order=3)</span>
+
+<span class="c1"># Define the OpenMDAO problem</span>
 <span class="n">p</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">om</span><span class="o">.</span><span class="n">Group</span><span class="p">())</span>
 
 <span class="c1"># Define a Trajectory object</span>
 <span class="n">traj</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">Trajectory</span><span class="p">()</span>
 <span class="n">p</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">add_subsystem</span><span class="p">(</span><span class="s1">&#39;traj&#39;</span><span class="p">,</span> <span class="n">subsys</span><span class="o">=</span><span class="n">traj</span><span class="p">)</span>
 
-<span class="c1"># Define a Dymos Phase object with Radau Transcription</span>
+<span class="c1"># Define a Dymos Phase</span>
 <span class="n">phase</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">Phase</span><span class="p">(</span><span class="n">ode_class</span><span class="o">=</span><span class="n">BrachistochroneODE</span><span class="p">,</span>
-                 <span class="n">transcription</span><span class="o">=</span><span class="n">dm</span><span class="o">.</span><span class="n">Radau</span><span class="p">(</span><span class="n">num_segments</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">solve_segments</span><span class="o">=</span><span class="s1">&#39;forward&#39;</span><span class="p">,</span> <span class="n">compressed</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+                 <span class="n">transcription</span><span class="o">=</span><span class="n">TX</span><span class="p">)</span>
 <span class="n">traj</span><span class="o">.</span><span class="n">add_phase</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;phase0&#39;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="n">phase</span><span class="p">)</span>
 
 <span class="c1"># Set the time options</span>
 <span class="n">phase</span><span class="o">.</span><span class="n">set_time_options</span><span class="p">(</span><span class="n">fix_initial</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">phase</span><span class="o">.</span><span class="n">set_duration_balance</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">)</span>
 
 <span class="c1"># Set the state options</span>
 <span class="n">phase</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">rate_source</span><span class="o">=</span><span class="s1">&#39;xdot&#39;</span><span class="p">,</span>
@@ -1146,11 +1163,9 @@ We’ll set the initial value of <code class="docutils literal notranslate"><spa
 <span class="n">phase</span><span class="o">.</span><span class="n">nonlinear_solver</span><span class="o">.</span><span class="n">linesearch</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="n">phase</span><span class="o">.</span><span class="n">linear_solver</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">DirectSolver</span><span class="p">()</span>
 
-<span class="n">theta_rate_balance</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">add_subsystem</span><span class="p">(</span><span class="s1">&#39;theta_rate_balance&#39;</span><span class="p">,</span> <span class="n">om</span><span class="o">.</span><span class="n">BalanceComp</span><span class="p">())</span>
-
-<span class="n">theta_rate_balance</span><span class="o">.</span><span class="n">add_balance</span><span class="p">(</span><span class="s1">&#39;theta_rate&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;rad/s&#39;</span><span class="p">,</span> <span class="n">eq_units</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="n">lhs_name</span><span class="o">=</span><span class="s1">&#39;y_final&#39;</span><span class="p">,</span> <span class="n">rhs_val</span><span class="o">=</span><span class="mf">5.0</span><span class="p">)</span>
-<span class="n">p</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;theta_rate_balance.theta_rate&#39;</span><span class="p">,</span> <span class="s1">&#39;traj.phase0.parameters:theta_rate&#39;</span><span class="p">)</span>
-<span class="n">p</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.y&#39;</span><span class="p">,</span> <span class="s1">&#39;theta_rate_balance.y_final&#39;</span><span class="p">,</span> <span class="n">src_indices</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+<span class="c1"># Define balance residuals to be converged by varying t_duration and theta_rate.</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_boundary_balance</span><span class="p">(</span><span class="s1">&#39;t_duration&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">tgt_val</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;final&#39;</span><span class="p">,</span> <span class="n">eq_units</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">)</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_boundary_balance</span><span class="p">(</span><span class="s1">&#39;theta_rate&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">tgt_val</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;final&#39;</span><span class="p">,</span> <span class="n">eq_units</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">)</span>
 
 <span class="c1"># Now we need a solver to converge the loop around the entire problem.</span>
 <span class="n">p</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">nonlinear_solver</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">NewtonSolver</span><span class="p">(</span><span class="n">maxiter</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">solve_subsystems</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stall_limit</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
@@ -1169,10 +1184,25 @@ We’ll set the initial value of <code class="docutils literal notranslate"><spa
 <span class="n">phase</span><span class="o">.</span><span class="n">set_parameter_val</span><span class="p">(</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">9.80665</span><span class="p">)</span>
 
 <span class="c1"># Note that we set theta_rate at the balance comp, which is then passed into the phase as a parameter.</span>
-<span class="n">p</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">set_val</span><span class="p">(</span><span class="s1">&#39;theta_rate_balance.theta_rate&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;rad/s&#39;</span><span class="p">)</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">set_parameter_val</span><span class="p">(</span><span class="s1">&#39;theta_rate&#39;</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;rad/s&#39;</span><span class="p">)</span>
 
 <span class="c1"># Run the driver to solve the problem</span>
 <span class="n">p</span><span class="o">.</span><span class="n">run_model</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Coloring for &#39;traj.phases.phase0.rhs_all&#39; (class BrachistochroneODE)
+
+Jacobian shape: (120, 81)  (2.47% nonzero)
+FWD solves: 2   REV solves: 0
+Total colors vs. total size: 2 vs 81  (97.53% improvement)
+
+Sparsity computed using tolerance: 1e-25.
+Dense partial jacobian for BrachistochroneODE &#39;traj.phases.phase0.rhs_all&#39; was computed 3 times.
+Time to compute sparsity:   0.0076 sec
+Time to compute coloring:   0.0078 sec
+Memory to compute coloring:   0.0000 MB
 </pre></div>
 </div>
 </div>
@@ -1194,7 +1224,7 @@ We’ll set the initial value of <code class="docutils literal notranslate"><spa
 
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;final time&#39;</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;final y&#39;</span><span class="p">,</span> <span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;final theta&#39;</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">theta</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;final theta&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">theta</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
 </pre></div>
 </div>
 </div>
@@ -1207,11 +1237,11 @@ final theta [100.50736083]
 </div>
 </div>
 </div>
-<p>Using a combination of solve_segments, implicit phase duration, and an outer loop to make a phase parameter an implicit output, we’ve managed to solve a two point boundary value problem without the need of an optimizer. Since we’re solving the segments in an inner loop here, each converged phase provides a physically valid traejctory, though it may not satisfy our desired final conditions unless the solvers are converged at all levels.</p>
+<p>Using a combination of solve_segments and boundary balances, we’ve managed to solve the brachistochrone problem without the need of an optimizer.</p>
 <p>Note that solving problems in this way can be filled with pitfalls.
 Here we have a formulation of the brachistochrone that is robust to a variety of values for the parameter <code class="docutils literal notranslate"><span class="pre">theta_rate</span></code>.
 An alternative formulation is to keep the ratio <span class="math notranslate nohighlight">\(\frac{\sin{\theta}}{v}\)</span> constant. However, using the inverse sine in that formulation can easily result in domain issues which makes convergence difficult.</p>
-<p>Even in this case, setting the <code class="docutils literal notranslate"><span class="pre">solve_subsystems</span></code> option on the outermost Newton solver to <code class="docutils literal notranslate"><span class="pre">False</span></code> seems to be too challenging and the solver fails to converge.</p>
+<p>Unlike <code class="docutils literal notranslate"><span class="pre">solve_segments</span></code> options in pseudospectral phases, the PicardShooting method uses multiple levels of solvers. The inner-most solver converges the state history in each segment. Outside of that a “multiple shooting” solver ensures state continuity between segments within a phase. Finally, the entire phase uses a NewtonSolver to find the value of any “boundary balance” outputs by driving their associated residuals to zero. In some situations</p>
 </section>
 </section>
 

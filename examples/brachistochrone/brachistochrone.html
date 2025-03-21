@@ -548,7 +548,7 @@ const thebe_selector_output = ".output, .cell_output"
 
 <li class="toctree-l2"><a class="reference internal" href="../cart_pole/cart_pole.html">Cart-Pole Optimal Control</a></li>
 <li class="toctree-l2"><a class="reference internal" href="brachistochrone_tandem_phases.html">Brachistochrone with tandem phases</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../implicit_duration/brachistochrone_implicit_duration.html">Implicit Duration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../implicit_duration/brachistochrone_implicit_duration.html">Boundary Balance</a></li>
 </ul>
 </li>
 </ul>
@@ -868,8 +868,8 @@ without friction along the wire moves from point A to point B in minimum time.</
 <section id="system-dynamics">
 <h2>System dynamics<a class="headerlink" href="#system-dynamics" title="Permalink to this heading">#</a></h2>
 <p>From the free-body diagram above, the evolution of the state variables is given by the following ordinary differential equations (ODE).</p>
-<div class="amsmath math notranslate nohighlight" id="equation-add6ec13-cac8-4eaa-b626-a52c713cc2ee">
-<span class="eqno">(13)<a class="headerlink" href="#equation-add6ec13-cac8-4eaa-b626-a52c713cc2ee" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-82f60cb8-2772-41c8-b6ba-fe1dca6284c3">
+<span class="eqno">(13)<a class="headerlink" href="#equation-82f60cb8-2772-41c8-b6ba-fe1dca6284c3" title="Permalink to this equation">#</a></span>\[\begin{align}
     \frac{d x}{d t} &amp;= v \sin(\theta) \\
     \frac{d y}{d t} &amp;= -v \cos(\theta) \\
     \frac{d v}{d t} &amp;= g \cos(\theta)
@@ -887,8 +887,8 @@ without friction along the wire moves from point A to point B in minimum time.</
 <p>In this case, starting point <strong>A</strong> is given as <em>(0, 10)</em>.
 The point moving along the curve will begin there with zero initial velocity.</p>
 <p>The initial conditions are:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-3a0321b1-3069-4610-a0f8-2dbd47e090f3">
-<span class="eqno">(14)<a class="headerlink" href="#equation-3a0321b1-3069-4610-a0f8-2dbd47e090f3" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-a0b6df5d-1f7c-4cda-a914-96e7cfbeaa0e">
+<span class="eqno">(14)<a class="headerlink" href="#equation-a0b6df5d-1f7c-4cda-a914-96e7cfbeaa0e" title="Permalink to this equation">#</a></span>\[\begin{align}
     x_0 &amp;= 0 \\
     y_0 &amp;= 10 \\
     v_0 &amp;= 0
@@ -896,8 +896,8 @@ The point moving along the curve will begin there with zero initial velocity.</p
 <p>The end point <strong>B</strong> is given as <em>(10, 5)</em>.
 The point will end there, but the velocity at that point is not constrained.</p>
 <p>The final conditions are:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-aa74a311-75cc-448d-9f36-128e4d421a4d">
-<span class="eqno">(15)<a class="headerlink" href="#equation-aa74a311-75cc-448d-9f36-128e4d421a4d" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-56e81ca9-e3d8-4c59-a3b6-2782a7e87632">
+<span class="eqno">(15)<a class="headerlink" href="#equation-56e81ca9-e3d8-4c59-a3b6-2782a7e87632" title="Permalink to this equation">#</a></span>\[\begin{align}
     x_f &amp;= 10 \\
     y_f &amp;= 5 \\
     v_f &amp;= \mathrm{free}
@@ -1061,7 +1061,7 @@ Component: BrachistochroneODE &#39;ode&#39;
 +---------------+----------------+---------------+---------------+------------------------+------------+
 | &#39;of&#39; variable | &#39;wrt&#39; variable |      calc val |        fd val | (calc-fd) - (a + r*fd) | error desc |
 +===============+================+===============+===============+========================+============+
-| check         | g              |  0.000000e+00 |  0.000000e+00 |           0.000000e+00 |            |
+| check         | g              |  0.000000e+00 | -0.000000e+00 |           0.000000e+00 |            |
 +---------------+----------------+---------------+---------------+------------------------+------------+
 | check         | theta          |  0.000000e+00 |  0.000000e+00 |           0.000000e+00 |            |
 +---------------+----------------+---------------+---------------+------------------------+------------+
@@ -1071,7 +1071,7 @@ Component: BrachistochroneODE &#39;ode&#39;
 +---------------+----------------+---------------+---------------+------------------------+------------+
 | vdot          | theta          |  0.000000e+00 |  0.000000e+00 |           0.000000e+00 |            |
 +---------------+----------------+---------------+---------------+------------------------+------------+
-| vdot          | v              |  0.000000e+00 | -0.000000e+00 |           0.000000e+00 |            |
+| vdot          | v              |  0.000000e+00 |  0.000000e+00 |           0.000000e+00 |            |
 +---------------+----------------+---------------+---------------+------------------------+------------+
 | xdot          | g              |  0.000000e+00 |  0.000000e+00 |           0.000000e+00 |            |
 +---------------+----------------+---------------+---------------+------------------------+------------+
@@ -1079,7 +1079,7 @@ Component: BrachistochroneODE &#39;ode&#39;
 +---------------+----------------+---------------+---------------+------------------------+------------+
 | xdot          | v              |  0.000000e+00 |  0.000000e+00 |           0.000000e+00 |            |
 +---------------+----------------+---------------+---------------+------------------------+------------+
-| ydot          | g              |  0.000000e+00 |  0.000000e+00 |           0.000000e+00 |            |
+| ydot          | g              |  0.000000e+00 | -0.000000e+00 |           0.000000e+00 |            |
 +---------------+----------------+---------------+---------------+------------------------+------------+
 | ydot          | theta          |  0.000000e+00 |  0.000000e+00 |           0.000000e+00 |            |
 +---------------+----------------+---------------+---------------+------------------------+------------+
@@ -1171,10 +1171,10 @@ Total colors vs. total size: 8 vs 50  (84.00% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem2&#39; was computed 3 times.
-Time to compute sparsity:   0.0226 sec
-Time to compute coloring:   0.0440 sec
-Memory to compute coloring:   0.2500 MB
-Coloring created on: 2025-03-21 18:34:22
+Time to compute sparsity:   0.0219 sec
+Time to compute coloring:   0.0441 sec
+Memory to compute coloring:   0.1250 MB
+Coloring created on: 2025-03-21 19:54:20
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully    (Exit mode 0)
@@ -1212,7 +1212,7 @@ Optimization Complete
 Done simulating trajectory traj
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:1194: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:theta_rate, ode_eval.control_interp.control_rates:theta_rate2, ode_eval.control_interp.control_values:theta] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.12/site-packages/openmdao/core/group.py:1194: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:theta_rate, ode_eval.control_interp.control_rates:theta_rate2, ode_eval.control_interp.control_values:theta] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
 </pre></div>
 </div>
 <img alt="../../_images/1a36ac0b3cff9716a55dfd1108aacd5032c76d528c9fc828c6f462257e1b8752.png" src="../../_images/1a36ac0b3cff9716a55dfd1108aacd5032c76d528c9fc828c6f462257e1b8752.png" />
@@ -1315,7 +1315,7 @@ Key differences are shown when defining the transcription, specifying how to con
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>No coloring was computed successfully.
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/utils/coloring.py:448: DerivativesWarning:Coloring was deactivated.  Improvement of 0.0% was less than min allowed (5.0%).
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.12/site-packages/openmdao/utils/coloring.py:448: DerivativesWarning:Coloring was deactivated.  Improvement of 0.0% was less than min allowed (5.0%).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully    (Exit mode 0)
@@ -1330,7 +1330,7 @@ Optimization Complete
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[1.80185208]
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/visualization/opt_report/opt_report.py:619: UserWarning: Attempting to set identical low and high ylims makes transformation singular; automatically expanding.
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.12/site-packages/openmdao/visualization/opt_report/opt_report.py:619: UserWarning: Attempting to set identical low and high ylims makes transformation singular; automatically expanding.
   ax.set_ylim([ymin_plot, ymax_plot])
 </pre></div>
 </div>
