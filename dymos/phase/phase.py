@@ -21,7 +21,7 @@ from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
     TimeseriesOutputOptionsDictionary, PhaseTimeseriesOptionsDictionary
 
 from ..transcriptions.transcription_base import TranscriptionBase
-from ..transcriptions.grid_data import GaussLobattoGrid, RadauGrid, UniformGrid, BirkhoffGrid
+from ..transcriptions.grid_data import ChebyshevGaussLobattoGrid, GaussLobattoGrid, RadauGrid, UniformGrid, BirkhoffGrid
 from ..transcriptions import ExplicitShooting, GaussLobatto, Radau
 from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_time_introspection, _configure_constraint_introspection, \
@@ -197,6 +197,8 @@ class Phase(om.Group):
                              desc='Options for each parameter in this phase.')
         self.options.declare('control_options', types=dict, default={},
                              desc='Options for each control in this phase.')
+        self.options.declare('boundary_balance_options', types=dict, default={},
+                             desc='Options specifying boundary conditions to be satisfied with a solver.')
 
     @property
     def time_options(self):
@@ -226,6 +228,10 @@ class Phase(om.Group):
     @property
     def control_options(self):
         return self.options['control_options']
+
+    @property
+    def boundary_balance_options(self):
+        return self.options['boundary_balance_options']
 
     def add_state(self, name, units=_unspecified, shape=_unspecified,
                   rate_source=_unspecified, targets=_unspecified,
@@ -2087,6 +2093,49 @@ class Phase(om.Group):
             units = self.parameter_options[name]['units']
         self.set_val(f'parameters:{name}', val=val, units=units)
 
+    def add_boundary_balance(self, param, name, tgt_val=0.0, loc='final', index=0, **kwargs):
+        """
+        Turn param into an implicit output in the phase when using shooting methods.
+
+        This capability requires the variable specified by `name` to be dependent upon the given `param` name, and
+        thus won't work with purely implicit transcriptions.
+        The transcription must be one of ExplicitShooting, PicardShooting, Analytic, or Pseudospectral with `solve_segments=True`.
+
+        Param will be output by a BalanceComp at the end of the phase. with a residual defined by `name - val` at either
+        the initial or final point in the phase (specified by 'loc').
+
+        Param is the name of the implicit variable within the phase. Typically one of 't_initial', 't_duration',
+        'initial_states:{state_name}', 'final_states:{state_name}', or 'parameters:{param_name}'.
+
+        Parameters
+        ----------
+        param : str
+            The dymos phase variable whose value is being set to satisfy the residual.
+        name : str
+            The state or time-dependent phase output that provides the residual value for param.
+        tgt_val : float or array-like, optional
+            The target value for `name`. Default is 0.0.
+        loc : str, optional
+            Whether the value given by name is being evaluated at the 'initial' or 'final'
+            point in the phase. Default is 'final'.
+        index : int or slice, optional
+            If the variable given by name is an array at each point in time, C-order index into
+            that variable at the intiial or final time. Default is 0.
+        **kwargs : dict
+            Additional keyword arguments forwarded to the `add_balance` call of an OpenMDAO
+            BalanceComp used to define the residual.
+        """
+        bbos = self.boundary_balance_options
+        if param in bbos:
+            name = bbos[param]['name']
+            tgt_val = bbos[param]['tgt_val']
+            loc = bbos[param]['loc']
+            raise ValueError(f'Phase variable {param} is already an implicit output for a boundary balance.\n'
+                             f'R({param}) = {name}[{loc}] - {tgt_val} = 0')
+
+        bbos[param] = {'param': param, 'name': name, 'tgt_val': tgt_val, 'loc': loc, 'index': index}
+        bbos[param].update(kwargs)
+
     def set_duration_balance(self, name, val=0.0, index=None, units=None, mult_val=None, normalize=False):
         """
         Adds a condition for the duration of the phase. This is satisfied using a nonlinear solver.
@@ -2103,43 +2152,19 @@ class Phase(om.Group):
             If variable is an array at each point in time, this indicates which index is to be
             used as the objective, assuming C-ordered flattening.
         units : str, optional
-            The units of the objective function.  If None, use the units associated with the target.
-            If provided, must be compatible with the target units.
+            The units of the duration residual.
         mult_val : float, optional
             Default value for the LHS multiplier.
         normalize : bool, optional
             Specifies whether the resulting residual should be normalized by a quadratic
             function of the RHS.
         """
-        if self.time_options['fix_duration']:
-            raise ValueError('Cannot implicitly solve for phase duration when fix_duration is True')
-        elif self.time_options['input_duration']:
-            raise ValueError('Cannot implicitly solve for phase duration when input_duration is True')
-
-        if isinstance(self.options['transcription'], ExplicitShooting):
-            raise NotImplementedError('Transcription ExplicitShooting does not implement method setup_duration_balance')
-
-        options = {'name': name,
-                   'val': val,
-                   'index': index,
-                   'units': units,
-                   'mult_val': mult_val,
-                   'normalize': normalize}
-
-        if '=' in name:
-            balance_name = name.split('=')[0].strip()
-            self.add_calc_expr(name)
-        else:
-            balance_name = name
-
-        options['balance_name'] = balance_name
-
-        self.time_options['t_duration_balance_options'] = options
-
-        var_type = self.classify_var(name)
-        if var_type == 'ode':
-            if balance_name not in self._timeseries['timeseries']['outputs']:
-                self.add_timeseries_output(name, output_name=balance_name, units=units)
+        issue_warning("phase.set_duration_balance is deprecated. "
+                      "In the futurec use phase.add_boundary_balance('t_duration', ...",
+                      category=om.OMDeprecationWarning)
+        idx = 0 if index is None else index
+        self.add_boundary_balance('t_duration', name=name, tgt_val=val, loc='final', index=idx,
+                                  eq_units=units, mult_val=mult_val, normalize=normalize)
 
     def classify_var(self, var):
         """
@@ -2215,7 +2240,7 @@ class Phase(om.Group):
 
         transcription.setup_timeseries_outputs(self)
 
-        transcription.setup_duration_balance(self)
+        transcription.setup_boundary_balance(self)
 
         transcription.setup_defects(self)
         transcription.setup_solvers(self)
@@ -2256,6 +2281,7 @@ class Phase(om.Group):
         _configure_constraint_introspection(self)
 
         transcription.configure_boundary_constraints(self)
+        transcription.configure_boundary_balance(self)
 
         transcription.configure_path_constraints(self)
 
@@ -2268,8 +2294,6 @@ class Phase(om.Group):
                 from val_err
 
         transcription.configure_timeseries_outputs(self)
-
-        transcription.configure_duration_balance(self)
 
         transcription.configure_solvers(self)
 
@@ -2541,8 +2565,8 @@ class Phase(om.Group):
         elif isinstance(self_tx, Radau):
             grid = RadauGrid(num_segments=num_seg, nodes_per_seg=seg_order + 1, segment_ends=seg_ends,
                              compressed=compressed)
-        elif isinstance(self_tx.grid_data, GaussLobattoGrid) or \
-                isinstance(self_tx.grid_data, RadauGrid) or isinstance(self_tx.grid_data, BirkhoffGrid):
+        elif isinstance(self_tx.grid_data, (GaussLobattoGrid, RadauGrid,
+                                            BirkhoffGrid, ChebyshevGaussLobattoGrid)):
             grid = self_tx.grid_data
         else:
             raise RuntimeError(f'Unexpected grid class for {self_tx.grid_data}. Only phases with GaussLobatto '

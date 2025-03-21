@@ -303,6 +303,73 @@ class ControlInterpComp(om.ExplicitComponent):
 
                 # self.set_input_defaults(name=dvname, val=default_val, units=options['units'])
 
+    def _configure_desvars(self):
+        control_options = self.options['control_options']
+        gd = self.options['grid_data']
+
+        for name, options in control_options.items():
+            if options['control_type'] == 'polynomial':
+                num_input_nodes = options['order'] + 1
+                shape = options['shape']
+                # default_val = reshape_val(options['val'], shape, num_input_nodes)
+                if options['opt']:
+
+                    desvar_indices = np.arange(num_input_nodes, dtype=int)
+                    if options['fix_initial']:
+                        desvar_indices = desvar_indices[1:]
+                    if options['fix_final']:
+                        desvar_indices = desvar_indices[:-1]
+
+                    lb = -INF_BOUND if options['lower'] is None else options['lower']
+                    ub = INF_BOUND if options['upper'] is None else options['upper']
+
+                    self.add_design_var(f'controls:{name}',
+                                        lower=lb,
+                                        upper=ub,
+                                        ref=options['ref'],
+                                        ref0=options['ref0'],
+                                        adder=options['adder'],
+                                        scaler=options['scaler'],
+                                        indices=desvar_indices,
+                                        flat_indices=True)
+
+                # self.set_input_defaults(name=f'controls:{name}', val=default_val, units=options['units'])
+            else:
+                num_input_nodes = gd.subset_num_nodes['control_input']
+
+                dvname = f'controls:{name}'
+                shape = options['shape']
+                size = np.prod(shape)
+                if options['opt']:
+                    desvar_indices = get_desvar_indices(size, num_input_nodes,
+                                                        options['fix_initial'], options['fix_final'])
+
+                    if len(desvar_indices) > 0:
+                        coerce_desvar_option = CoerceDesvar(num_input_nodes, desvar_indices,
+                                                            options=options)
+
+                        lb = np.zeros_like(desvar_indices, dtype=float)
+                        lb[:] = -INF_BOUND if coerce_desvar_option('lower') is None else \
+                            coerce_desvar_option('lower')
+
+                        ub = np.zeros_like(desvar_indices, dtype=float)
+                        ub[:] = INF_BOUND if coerce_desvar_option('upper') is None else \
+                            coerce_desvar_option('upper')
+
+                        self.add_design_var(name=dvname,
+                                            lower=lb,
+                                            upper=ub,
+                                            scaler=coerce_desvar_option('scaler'),
+                                            adder=coerce_desvar_option('adder'),
+                                            ref0=coerce_desvar_option('ref0'),
+                                            ref=coerce_desvar_option('ref'),
+                                            indices=desvar_indices,
+                                            flat_indices=True)
+
+                # default_val = reshape_val(options['val'], shape, num_input_nodes)
+
+                # self.set_input_defaults(name=dvname, val=default_val, units=options['units'])
+
     def configure_io(self):
         """
         I/O creation is delayed until configure so we can determine shape and units for the states.

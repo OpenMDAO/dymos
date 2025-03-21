@@ -38,6 +38,8 @@ def gauss_lobatto_subsets_and_nodes(n, seg_idx, compressed=False):
         'all' Gives all node indices.
     np.array
         The location of all nodes on [-1, 1].
+    np.array
+        The weights of all nodes on [-1, 1].
 
     Notes
     -----
@@ -60,7 +62,61 @@ def gauss_lobatto_subsets_and_nodes(n, seg_idx, compressed=False):
         'solution': np.arange(n, dtype=int),
     }
 
-    return subsets, lgl(n)[0]
+    return subsets, *lgl(n)
+
+
+def chebyshev_gauss_lobatto_subsets_and_nodes(n, seg_idx, compressed=False):
+    """
+    Provides node information and the location of the nodes for n Legendre-Gauss-Lobatto nodes on the range [-1, 1].
+
+    Parameters
+    ----------
+    n : int
+        The total number of nodes in the Gauss-Lobatto segment.  Must be
+        an odd number.
+    seg_idx : int
+        The index of this segment within its phase.
+    compressed : bool
+        True if the subset requested is for a phase with compressed transcription.
+
+    Returns
+    -------
+    dict
+        A dictionary with the following keys:
+        'state_disc' Gives the indices of the state discretization nodes
+        'state_input' Gives the indices of the state input nodes
+        'control_disc' Gives the indices of the control discretization nodes
+        'control_input' Gives the indices of the control input nodes
+        'segment_ends' Gives the indices of the nodes at the start (even) and end (odd) of a segment
+        'col' Gives the indices of the collocation nodes.
+        'all' Gives all node indices.
+    np.array
+        The location of all nodes on [-1, 1].
+    np.array
+        The weights of all nodes on [-1, 1].
+
+    Notes
+    -----
+    Subset 'state_input' is the same as subset 'state_disc' if `compressed == False` or
+    `first_seg == True`.  The same is true of subsets 'control_input' and 'control_disc'.
+    """
+    if n < 2:
+        raise ValueError('The number of nodes must be larger than 1.')
+
+    subsets = {
+        'state_disc': np.arange(n, dtype=int),
+        'state_input': np.arange(n, dtype=int) if not compressed or seg_idx == 0
+        else np.arange(1, n, 2, dtype=int),
+        'control_disc': np.arange(n, dtype=int),
+        'control_input': np.arange(n, dtype=int) if not compressed or seg_idx == 0
+        else np.arange(1, n, dtype=int),
+        'segment_ends': np.array([0, n-1], dtype=int),
+        'col': np.arange(n, dtype=int),
+        'all': np.arange(n, dtype=int),
+        'solution': np.arange(n, dtype=int),
+    }
+
+    return subsets, *cgl(n)
 
 
 def radau_pseudospectral_subsets_and_nodes(n, seg_idx, compressed=False):
@@ -89,6 +145,8 @@ def radau_pseudospectral_subsets_and_nodes(n, seg_idx, compressed=False):
         'all' gives all node indices.
     np.array
         The location of all nodes on [-1, 1].
+    np.array
+        The weights of all nodes on [-1, 1].
 
     Notes
     -----
@@ -108,7 +166,7 @@ def radau_pseudospectral_subsets_and_nodes(n, seg_idx, compressed=False):
         'solution': np.arange(n + 1, dtype=int),
     }
 
-    return subsets, lgr(n, include_endpoint=True)[0]
+    return subsets, *lgr(n, include_endpoint=True)
 
 
 def birkhoff_subsets_and_nodes(n, grid, seg_idx, compressed=False):
@@ -139,6 +197,8 @@ def birkhoff_subsets_and_nodes(n, grid, seg_idx, compressed=False):
         'all' gives all node indices.
     np.array
         The location of all nodes on [-1, 1].
+    np.array
+        The weights of all nodes on [-1, 1].
 
     Notes
     -----
@@ -159,18 +219,18 @@ def birkhoff_subsets_and_nodes(n, grid, seg_idx, compressed=False):
     }
 
     if grid == 'lgl':
-        nodes = lgl(n)[0]
+        nodes, weights = lgl(n)
         subsets['all'] = np.arange(n, dtype=int)
     elif grid == 'lgr':
-        nodes = lgr(n, include_endpoint=False)[0]
+        nodes, weights = lgr(n, include_endpoint=False)
         subsets['all'] = np.arange(n, dtype=int)
     elif grid == 'cgl':
-        nodes = cgl(n)[0]
+        nodes, weights = cgl(n)
         subsets['all'] = np.arange(n, dtype=int)
     else:
         raise ValueError(f'Unrecognized grid. Acceptable values are one of {acceptable_grids}')
 
-    return subsets, nodes
+    return subsets, nodes, weights
 
 
 def uniform_subsets_and_nodes(n, *args, **kwargs):
@@ -216,7 +276,9 @@ def uniform_subsets_and_nodes(n, *args, **kwargs):
         'all': np.arange(n + 1, dtype=int),
         'solution': np.arange(n + 1, dtype=int),
     }
-    return subsets, np.linspace(-1, 1, n + 1)
+    weights = np.ones(n + 1)
+    weights[1:-1] = 2.0
+    return subsets, np.linspace(-1, 1, n + 1), weights
 
 
 def make_subset_map(from_subset_idxs, to_subset_idxs):
@@ -290,6 +352,8 @@ class GridData(object):
         The number of steps to take in each segment of the phase, for explicit phases.
     num_nodes : int
         The total number of nodes in the phase
+    node_weight : ndarray
+        The quadrature weight for each node on the interval [-1, 1].
     node_stau : ndarray
         The locations of each node in non-dimensional segment time (segment tau space).
     node_ptau : ndarray
@@ -343,6 +407,8 @@ class GridData(object):
 
         self.num_steps_per_segment = 0
 
+        self.node_weight = np.empty(0,)
+
         self.node_stau = np.empty(0,)
 
         self.node_ptau = np.empty(0,)
@@ -364,10 +430,12 @@ class GridData(object):
         self.input_maps = {'state_input_to_disc': np.empty(0, dtype=int),
                            'dynamic_control_input_to_disc': np.empty(0, dtype=int)}
 
-        if transcription.lower() in ['radau', 'radau-ps']:
+        if transcription.lower() in ['radau', 'radau-ps', 'lgr']:
             self.transcription = 'radau-ps'
         elif transcription.lower() in ['gausslobatto', 'gauss-lobatto', 'lgl']:
             self.transcription = 'gauss-lobatto'
+        elif transcription.lower() in ['chebyshev-gauss-lobatto', 'cgl']:
+            self.transcription = 'chebyshev-gauss-lobatto'
         elif transcription.lower() in ['birkhoff']:
             self.transcription = 'birkhoff'
         elif transcription.lower() in ['uniform']:
@@ -378,6 +446,8 @@ class GridData(object):
         # Define get_subsets and node points based on the transcription scheme
         if self.transcription == 'gauss-lobatto':
             get_subsets_and_nodes = gauss_lobatto_subsets_and_nodes
+        if self.transcription == 'chebyshev-gauss-lobatto':
+            get_subsets_and_nodes = chebyshev_gauss_lobatto_subsets_and_nodes
         elif self.transcription == 'radau-ps':
             get_subsets_and_nodes = radau_pseudospectral_subsets_and_nodes
         elif self.transcription == 'uniform':
@@ -403,9 +473,9 @@ class GridData(object):
         self.segment_indices[0, 0] = 0
         ind0 = 0  # index of the first node in the segment
         for iseg in range(num_segments):
-            subsets_i, nodes_i = get_subsets_and_nodes(self.transcription_order[iseg],
-                                                       seg_idx=iseg,
-                                                       compressed=compressed)
+            subsets_i, nodes_i, weights_i = get_subsets_and_nodes(self.transcription_order[iseg],
+                                                                  seg_idx=iseg,
+                                                                  compressed=compressed)
 
             if iseg == 0:
                 subset_ind0 = {name: 0 for name in subsets_i}
@@ -418,6 +488,9 @@ class GridData(object):
 
             # Append our nodes in segment tau space
             self.node_stau = np.concatenate((self.node_stau, nodes_i))
+
+            # Append our node weights
+            self.node_weight = np.concatenate((self.node_weight, weights_i))
 
             # Append our nodes in phase tau space
             v0 = segment_ends[iseg]
@@ -490,6 +563,9 @@ class GridData(object):
                 np.all(self.num_steps_per_segment == other.num_steps_per_segment)
         else:
             return False
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}(num_seg={self.num_segments}, order={self.transcription_order}) at <{id(self)}>'
 
     def is_aligned_with(self, other, tol=1.0E-12):
         """
@@ -673,7 +749,34 @@ class GaussLobattoGrid(GridData):
         to the appropriate indices.
     """
     def __init__(self, num_segments, nodes_per_seg, segment_ends=None, compressed=False):
+        self.grid_type = 'lgl'
         super().__init__(num_segments=num_segments, transcription='gauss-lobatto',
+                         transcription_order=np.asarray(nodes_per_seg, dtype=int),
+                         segment_ends=segment_ends, compressed=compressed)
+
+
+class ChebyshevGaussLobattoGrid(GridData):
+    """
+    A GridData object that provides the node information for a Gauss-Lobatto distribution.
+
+    Parameters
+    ----------
+    num_segments : int
+        The number of segments in the phase.
+    nodes_per_seg : int or iterable
+        The number of nodes in each segment. As an integer, it applies to each segment. If a sequence, its length
+        must be equal to num_segments.
+    segment_ends : Iterable[num_segments + 1] or None
+        The segments nodes on some arbitrary interval.
+        This will be normalized to the interval [-1, 1].
+    compressed : bool
+        If the transcription is compressed, then states and controls at shared
+        nodes of adjacent segments are only specified once, and then broadcast
+        to the appropriate indices.
+    """
+    def __init__(self, num_segments, nodes_per_seg, segment_ends=None, compressed=False):
+        self.grid_type = 'cgl'
+        super().__init__(num_segments=num_segments, transcription='chebyshev-gauss-lobatto',
                          transcription_order=np.asarray(nodes_per_seg, dtype=int),
                          segment_ends=segment_ends, compressed=compressed)
 
@@ -715,6 +818,7 @@ class RadauGrid(GridData):
         to the appropriate indices.
     """
     def __init__(self, num_segments, nodes_per_seg, segment_ends=None, compressed=False):
+        self.grid_type = 'lgr'
         super().__init__(num_segments=num_segments, transcription='radau-ps',
                          transcription_order=np.asarray(nodes_per_seg, dtype=int) - 1,
                          segment_ends=segment_ends, compressed=compressed)
@@ -740,6 +844,7 @@ class UniformGrid(GridData):
         to the appropriate indices.
     """
     def __init__(self, num_segments, nodes_per_seg, segment_ends=None, compressed=False):
+        self.grid_type = 'uniform'
         super().__init__(num_segments=num_segments, transcription='uniform',
                          transcription_order=np.asarray(nodes_per_seg) - 1,
                          segment_ends=segment_ends, compressed=compressed)

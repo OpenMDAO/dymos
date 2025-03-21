@@ -8,7 +8,8 @@ from .common import ControlInterpComp, ParameterComp
 from ..utils.constants import INF_BOUND
 from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_states_introspection, get_promoted_vars, \
-    configure_states_discovery
+    configure_states_discovery, _configure_boundary_balance_introspection
+from ..utils.misc import _unspecified, _format_phase_constraint_alias
 
 
 class TranscriptionBase(object):
@@ -22,7 +23,7 @@ class TranscriptionBase(object):
     """
     def __init__(self, **kwargs):
 
-        self._implicit_duration = False
+        self._implicit_params = False
         self.grid_data = None
 
         self.options = om.OptionsDictionary()
@@ -79,8 +80,8 @@ class TranscriptionBase(object):
         # Warn about invalid options
         phase.check_time_options()
 
-        if phase.time_options['t_duration_balance_options']:
-            self._implicit_duration = True
+        if phase.boundary_balance_options:
+            self._implicit_params = True
 
         phase.add_subsystem('param_comp', subsys=ParameterComp(time_options=time_options),
                             promotes_inputs=['*'], promotes_outputs=['*'])
@@ -305,30 +306,75 @@ class TranscriptionBase(object):
         """
         raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method setup_ode.')
 
-    def setup_duration_balance(self, phase):
+    def setup_boundary_balance(self, phase):
         """
-        Setup the implicit computation of the phase duration.
+        Setup the implicit computation of the phase boundary balance.
 
         Parameters
         ----------
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
+        if phase.boundary_balance_options:
+            boundary_balance_comp = om.BalanceComp()
+            phase.add_subsystem('boundary_balance_comp', boundary_balance_comp, promotes_outputs=['*'])
 
-        raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement'
-                                  f' method setup_duration_balance.')
-
-    def configure_duration_balance(self, phase):
+    def configure_boundary_balance(self, phase):
         """
-        Configure the implicit computation of the phase duration.
+        Configure the implicit computation of the phase boundary balance.
 
         Parameters
         ----------
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement'
-                                  f' method setup_duration_balance.')
+        param_balance_comp = phase._get_subsystem('boundary_balance_comp')
+
+        _configure_boundary_balance_introspection(phase)
+
+        for param, options in phase.boundary_balance_options.items():
+            name = options['name']
+            tgt_val = options['tgt_val']
+            loc = options['loc']
+            index = [options['index']] if np.isscalar(options['index']) else options['index']
+
+            # Get the indices to connect based on loc.
+            if loc == 'final':
+                src_idxs = om.slicer[(-1, *index)]
+            elif loc == 'initial':
+                src_idxs = om.slicer[(0, *index)]
+            else:
+                raise ValueError(f'{phase.msginfo}: Value of `loc` for boundary balance `{param}` '
+                                 'must be one of `initial` or `final`, but got `{loc}` instead.')
+
+            # Create the arguments for the balance comp.
+            bal_kwargs = {key: options for key, options in options.items()}
+            try:
+                output_name = bal_kwargs.pop('output_name')
+            except KeyError:
+                output_name = name.split('.')[-1]
+            bal_kwargs.pop('param')
+            bal_kwargs.pop('name')
+            bal_kwargs.pop('tgt_val')
+            bal_kwargs.pop('loc')
+            bal_kwargs.pop('index')
+            bal_kwargs['rhs_val'] = tgt_val
+            bal_kwargs['lhs_name'] = output_name
+
+            prom_param_name = f'parameters:{param}' if param in phase.parameter_options else param
+
+            # Now configure the balance.
+            param_balance_comp.add_balance(name=prom_param_name, **bal_kwargs)
+
+            var_type = phase.classify_var(name)
+            if var_type == 'ode':
+                if name not in phase._timeseries['timeseries']['outputs']:
+                    phase.add_timeseries_output(name, output_name=output_name, units=bal_kwargs.get('eq_units', _unspecified))
+            if var_type == 'state' and name.startswith('initial_states:') or name.startswith('final_states:'):
+                phase.promotes('boundary_balance_comp', inputs=[output_name])
+            else:
+                phase.connect(f'timeseries.{output_name}', f'boundary_balance_comp.{output_name}',
+                              src_indices=src_idxs)
 
     def setup_solvers(self, phase):
         """
@@ -356,7 +402,7 @@ class TranscriptionBase(object):
         if not phase.options['auto_solvers']:
             return
 
-        req_solvers = {'implicit duration': self._implicit_duration}
+        req_solvers = {'implicit parameters': self._implicit_params}
 
         if requires_solvers is not None:
             req_solvers.update(requires_solvers)
@@ -462,7 +508,6 @@ class TranscriptionBase(object):
         num_nodes = self._get_num_timeseries_nodes()
 
         constraint_kwargs = {key: options for key, options in options.items()}
-        con_name = constraint_kwargs.pop('constraint_name')
 
         # Determine the path to the variable which we will be constraining
         var = options['name']
@@ -509,15 +554,13 @@ class TranscriptionBase(object):
 
                 constraint_kwargs['indices'] = idxs_not_in_initial + intermediate_idxs + idxs_not_in_final
 
-        alias_map = {'path': 'path_constraint',
-                     'initial': 'initial_boundary_constraint',
-                     'final': 'final_boundary_constraint'}
-
-        str_idxs = '' if options['indices'] is None else f'{options["indices"]}'
-
-        constraint_kwargs['alias'] = f'{phase.pathname}->{alias_map[constraint_type]}->{con_name}{str_idxs}'
-        constraint_kwargs.pop('name')
         con_path = constraint_kwargs.pop('constraint_path')
+        con_name = constraint_kwargs.pop('constraint_name')
+
+        constraint_kwargs['alias'] = _format_phase_constraint_alias(phase, con_name,
+                                                                    constraint_type,
+                                                                    options['indices'])
+        constraint_kwargs.pop('name')
         constraint_kwargs.pop('shape')
         constraint_kwargs['flat_indices'] = True
 
@@ -628,6 +671,9 @@ class TranscriptionBase(object):
             The OpenMDAO system which serves as the ODE for the given Phase.
 
         """
+        ode = phase._get_subsystem(self._rhs_source)
+        if ode is None:
+            raise AttributeError(f'Phase ODE subsystem {self._rhs_source} not found.')
         return phase._get_subsystem(self._rhs_source)
 
     def get_parameter_connections(self, name, phase):

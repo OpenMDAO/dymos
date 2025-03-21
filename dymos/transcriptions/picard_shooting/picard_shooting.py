@@ -3,18 +3,18 @@ import numpy as np
 import openmdao.api as om
 
 from ..transcription_base import TranscriptionBase
-from ..common import TimeComp, TimeseriesOutputComp
-from .components import BirkhoffIterGroup, BirkhoffBoundaryGroup
+from ..common import TimeComp, TimeseriesOutputComp, ControlInterpComp
+from .multiple_shooting_iter_group import MultipleShootingIterGroup
 
-from ..grid_data import BirkhoffGrid
-from dymos.utils.misc import get_rate_units, _format_phase_constraint_alias
-from dymos.utils.introspection import get_promoted_vars, get_source_metadata
+from ..grid_data import GaussLobattoGrid, ChebyshevGaussLobattoGrid
+from dymos.utils.introspection import get_promoted_vars, get_source_metadata, get_rate_units
 from dymos.utils.indexing import get_constraint_flat_idxs, get_src_indices_by_row
+from dymos.utils.misc import _format_phase_constraint_alias
 
 
-class Birkhoff(TranscriptionBase):
+class PicardShooting(TranscriptionBase):
     """
-        Birkhoff Pseudospectral Transcription.
+        Picard Shooting transcription.
 
         Parameters
         ----------
@@ -23,43 +23,58 @@ class Birkhoff(TranscriptionBase):
 
         References
         ----------
-        I. M. Ross, "A Universeal Birkhoff Theory for Fast Trajectory Optimization"
-        https://arxiv.org/abs/2308.01400v2
+        TBD
         """
     def __init__(self, **kwargs):
-        super(Birkhoff, self).__init__(**kwargs)
-        self._rhs_source = 'ode_iter_group.ode_all'
+        super().__init__(**kwargs)
+        self._rhs_source = 'ode_iter_group.segment_prop_group.ode_all'
 
     def initialize(self):
         """
         Declare transcription options.
         """
-        self.options.declare('num_nodes', types=int, default=3,
-                             desc='The number of nodes in the grid')
+        self.options.declare('num_segments', types=int, default=1,
+                             desc='The number of segments in the grid.')
+
+        self.options.declare('nodes_per_seg', types=int, default=10,
+                             desc='The number of segments in the grid.')
 
         self.options.declare('grid_type', values=('cgl', 'lgl'), default='cgl',
                              desc='Specifies which type of grid is to be used. '
                                   'Options are Chebyshev-Gauss-Lobatto ("cgl") '
                                   'and Legendre-Gauss-Lobatto ("lgl")')
 
-        self.options.declare(name='solve_segments', default=False,
-                             values=(False, 'forward', 'backward'),
-                             desc='Applies \'solve_segments\' behavior to _all_ states in the Phase. '
-                                  'If \'forward\', collocation defects within each '
-                                  'segment are solved with a Newton solver by fixing the initial value in the '
-                                  'phase (if using compressed transcription) or segment (if not using '
-                                  'compressed transcription). This provides a forward shooting (or multiple shooting) '
-                                  'method.  If \'backward\', the final value in the phase or segment is fixed '
-                                  'and a solver finds the other ones to mimic reverse propagation. Set '
-                                  'to False (the default) to explicitly disable the use of a solver to '
-                                  'converge the state time history.')
+        self.options.declare(name='solve_segments', default='forward',
+                             values=('forward', 'backward'),
+                             desc='The default solve direction for states in this phase.'
+                             'This value may be overridden by setting the solve_segments option of states')
+
+        self.options.declare('ode_nonlinear_solver', default=om.NonlinearBlockGS(maxiter=100, use_aitken=True, iprint=0),
+                             desc='Nonlinear solver used to resolve Picard iteration on each segment.',
+                             recordable=False)
+
+        self.options.declare('ode_linear_solver', default=om.DirectSolver(),
+                             desc='Linear solver used to linearize the Picard iteration subsystem on each segment.',
+                             recordable=False)
+
+        self.options.declare('ms_nonlinear_solver', default=om.NonlinearBlockGS(maxiter=100, use_aitken=True, iprint=0),
+                             desc='Nonlinear solver used to resolve Picard iteration differences between segments.',
+                             recordable=False)
+
+        self.options.declare('ms_linear_solver', default=om.DirectSolver(),
+                             desc='Linear solver used to linearize the Picard iteration subsystem between segments.',
+                             recordable=False)
 
     def init_grid(self):
         """
         Setup the GridData object for the Transcription.
         """
-        self.grid_data = BirkhoffGrid(num_nodes=self.options['num_nodes'],
-                                      grid_type=self.options['grid_type'])
+        if self.options['grid_type'] == 'cgl':
+            grid_cls = ChebyshevGaussLobattoGrid
+        elif self.options['grid_type'] == 'lgl':
+            grid_cls = GaussLobattoGrid
+        self.grid_data = grid_cls(num_segments=self.options['num_segments'],
+                                  nodes_per_seg=self.options['nodes_per_seg'])
 
     def setup_time(self, phase):
         """
@@ -72,7 +87,7 @@ class Birkhoff(TranscriptionBase):
         """
         grid_data = self.grid_data
 
-        super(Birkhoff, self).setup_time(phase)
+        super().setup_time(phase)
 
         time_comp = TimeComp(num_nodes=grid_data.num_nodes, node_ptau=grid_data.node_ptau,
                              node_dptau_dstau=grid_data.node_dptau_dstau,
@@ -80,7 +95,9 @@ class Birkhoff(TranscriptionBase):
                              initial_val=phase.time_options['initial_val'],
                              duration_val=phase.time_options['duration_val'])
 
-        phase.add_subsystem('time', time_comp, promotes_inputs=['*'], promotes_outputs=['*'])
+        phase.add_subsystem('time', time_comp,
+                            promotes_inputs=[('t_initial', 't_initial_val'), ('t_duration', 't_duration_val')],
+                            promotes_outputs=['*'])
 
     def configure_time(self, phase):
         """
@@ -95,7 +112,7 @@ class Birkhoff(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        super(Birkhoff, self).configure_time(phase)
+        super().configure_time(phase)
         phase.time.configure_io()
         options = phase.time_options
         ode = phase._get_subsystem(self._rhs_source)
@@ -116,19 +133,15 @@ class Birkhoff(TranscriptionBase):
                 shape = ode_inputs[t]['shape']
 
                 if shape == (1,):
-                    src_idxs = endpoint_src_idxs = None
+                    src_idxs = None
                     flat_src_idxs = None
                     src_shape = None
                 else:
                     src_idxs = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-                    endpoint_src_idxs = np.zeros(2, dtype=int)
                     flat_src_idxs = True
                     src_shape = (1,)
 
                 phase.promotes('ode_all', inputs=[(t, name)], src_indices=src_idxs,
-                               flat_src_indices=flat_src_idxs, src_shape=src_shape)
-
-                phase.promotes('boundary_vals', inputs=[(t, name)], src_indices=endpoint_src_idxs,
                                flat_src_indices=flat_src_idxs, src_shape=src_shape)
             if targets:
                 phase.set_input_defaults(name=name,
@@ -151,13 +164,34 @@ class Birkhoff(TranscriptionBase):
         self.any_connected_opt_segs = False
         for options in phase.state_options.values():
             # Transcription solve_segments overrides state solve_segments if its not set
-            if options['solve_segments'] is None:
+            if options['solve_segments'] in (None, False):
                 options['solve_segments'] = self.options['solve_segments']
 
             if options['solve_segments']:
                 self.any_solved_segs = True
             elif options['input_initial']:
                 self.any_connected_opt_segs = True
+
+    def setup_controls(self, phase):
+        """
+        Setup the control group.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
+        phase._check_control_options()
+
+        if phase.control_options:
+            control_comp = ControlInterpComp(control_options=phase.control_options,
+                                             time_units=phase.time_options['units'],
+                                             grid_data=self.grid_data)
+
+            phase.add_subsystem('control_comp',
+                                subsys=control_comp)
+
+            phase.connect('t_duration_val', 'control_comp.t_duration')
 
     def configure_controls(self, phase):
         """
@@ -180,22 +214,14 @@ class Birkhoff(TranscriptionBase):
         for name, options in phase.control_options.items():
             if options['targets']:
                 phase.connect(f'control_values:{name}', [f'ode_all.{t}' for t in options['targets']])
-                phase.connect(f'control_values:{name}', [f'boundary_vals.{t}' for t in options['targets']],
-                              src_indices=om.slicer[[0, -1], ...])
 
             if options['rate_targets']:
                 phase.connect(f'control_rates:{name}_rate',
                               [f'ode_all.{t}' for t in options['rate_targets']])
-                phase.connect(f'control_rates:{name}_rate',
-                              [f'boundary_vals.{t}' for t in options['rate_targets']],
-                              src_indices=om.slicer[[0, -1], ...])
 
             if options['rate2_targets']:
                 phase.connect(f'control_rates:{name}_rate2',
                               [f'ode_all.{t}' for t in options['rate2_targets']])
-                phase.connect(f'control_rates:{name}_rate2',
-                              [f'boundary_vals.{t}' for t in options['rate2_targets']],
-                              src_indices=om.slicer[[0, -1], ...])
 
     def setup_ode(self, phase):
         """
@@ -209,25 +235,28 @@ class Birkhoff(TranscriptionBase):
 
         ODEClass = phase.options['ode_class']
         grid_data = self.grid_data
+        ode_nonlinear_solver = self.options['ode_nonlinear_solver']
+        ode_linear_solver = self.options['ode_linear_solver']
+        ms_nonlinear_solver = self.options['ms_nonlinear_solver']
+        ms_linear_solver = self.options['ms_linear_solver']
 
         ode_init_kwargs = phase.options['ode_init_kwargs']
+        calc_exprs = phase._calc_exprs
+        parameter_options = phase.parameter_options
 
         phase.add_subsystem('ode_iter_group',
-                            subsys=BirkhoffIterGroup(grid_data=grid_data, state_options=phase.state_options,
-                                                     time_options=phase.time_options,
-                                                     parameter_options=phase.parameter_options,
-                                                     ode_class=ODEClass,
-                                                     ode_init_kwargs=ode_init_kwargs,
-                                                     calc_exprs=phase._calc_exprs),
-                            promotes=['*'])
-
-        phase.add_subsystem('boundary_vals',
-                            subsys=BirkhoffBoundaryGroup(grid_data=grid_data,
-                                                         ode_class=ODEClass,
-                                                         ode_init_kwargs=ode_init_kwargs,
-                                                         calc_exprs=phase._calc_exprs,
-                                                         parameter_options=phase.parameter_options),
-                            promotes_inputs=['initial_states:*', 'final_states:*'])
+                            subsys=MultipleShootingIterGroup(grid_data=grid_data,
+                                                             state_options=phase.state_options,
+                                                             time_units=phase.time_options['units'],
+                                                             ode_class=ODEClass,
+                                                             ode_init_kwargs=ode_init_kwargs,
+                                                             ode_nonlinear_solver=ode_nonlinear_solver,
+                                                             ode_linear_solver=ode_linear_solver,
+                                                             ms_nonlinear_solver=ms_nonlinear_solver,
+                                                             ms_linear_solver=ms_linear_solver,
+                                                             calc_exprs=calc_exprs,
+                                                             parameter_options=parameter_options),
+                            promotes_inputs=['*'], promotes_outputs=['*'])
 
     def configure_ode(self, phase):
         """
@@ -238,8 +267,8 @@ class Birkhoff(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        phase._get_subsystem('boundary_vals').configure_io(phase)
         phase._get_subsystem('ode_iter_group').configure_io(phase)
+        phase.connect('dt_dstau', 'picard_update_comp.dt_dstau')
 
     def setup_defects(self, phase):
         """
@@ -271,7 +300,7 @@ class Birkhoff(TranscriptionBase):
                 src_idxs = None
 
             if rate_source_type not in ('state', 'ode'):
-                phase.connect(rate_src_path, f'f_computed:{name}', src_indices=src_idxs)
+                phase.connect(rate_src_path, f'picard_update_comp.f_computed:{name}', src_indices=src_idxs)
 
     def setup_solvers(self, phase):
         """
@@ -296,13 +325,7 @@ class Birkhoff(TranscriptionBase):
             A dictionary mapping a string descriptor of a reason why a solver is required,
             and whether a solver is required.
         """
-        ode_iter_group = phase._get_subsystem('ode_iter_group')
-        req_solvers = {'implicit outputs': ode_iter_group._implicit_outputs}
-
-        if requires_solvers is not None:
-            req_solvers.update(requires_solvers)
-
-        super().configure_solvers(phase, requires_solvers=req_solvers)
+        pass
 
     def configure_timeseries_outputs(self, phase):
         """
@@ -405,7 +428,7 @@ class Birkhoff(TranscriptionBase):
             if constraint_type == 'initial':
                 constraint_kwargs['indices'] = flat_idxs
             elif constraint_type == 'final':
-                constraint_kwargs['indices'] = size + flat_idxs
+                constraint_kwargs['indices'] = (num_nodes - 1) * size + flat_idxs
             else:
                 # Path
                 path_idxs = []
@@ -472,7 +495,7 @@ class Birkhoff(TranscriptionBase):
             shape = phase.state_options[var]['shape']
             units = phase.state_options[var]['units']
             linear = False
-            constraint_path = f'boundary_vals.{var}'
+            constraint_path = f'timeseries.{var}'
         elif var_type == 'indep_control':
             shape = phase.control_options[var]['shape']
             units = phase.control_options[var]['units']
@@ -523,7 +546,7 @@ class Birkhoff(TranscriptionBase):
             linear = False
         else:
             # Failed to find variable, assume it is in the ODE. This requires introspection.
-            constraint_path = f'boundary_vals.{var}'
+            constraint_path = f'timeseries.{var}'
             meta = get_source_metadata(ode_outputs, var, user_units=None, user_shape=None)
             shape = meta['shape']
             units = meta['units']
@@ -749,18 +772,13 @@ class Birkhoff(TranscriptionBase):
             for tgt in options['targets']:
                 if tgt in options['static_targets']:
                     src_idxs = np.squeeze(get_src_indices_by_row([0], options['shape']), axis=0)
-                    endpoint_src_idxs = om.slicer[:, ...]
                 else:
                     src_idxs_raw = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
                     src_idxs = get_src_indices_by_row(src_idxs_raw, options['shape'])
-                    endpoint_src_idxs_raw = np.zeros(2, dtype=int)
-                    endpoint_src_idxs = get_src_indices_by_row(endpoint_src_idxs_raw, options['shape'])
                     if options['shape'] == (1,):
                         src_idxs = src_idxs.ravel()
-                        endpoint_src_idxs = endpoint_src_idxs.ravel()
 
                 connection_info.append((f'ode_all.{tgt}', (src_idxs,)))
-                connection_info.append((f'boundary_vals.{tgt}', (endpoint_src_idxs,)))
 
         return connection_info
 
@@ -823,17 +841,31 @@ class Birkhoff(TranscriptionBase):
             Dict containing the values that need to be set in the phase
 
         """
+        seg_end_idxs = self.grid_data.subset_node_indices['segment_ends']
+        seg_initial_idxs = seg_end_idxs[::2]
+        seg_final_idxs = seg_end_idxs[1::2]
+
         input_data = {}
         if np.isscalar(vals):
             input_data[f'states:{name}'] = vals
             input_data[f'initial_states:{name}'] = vals
             input_data[f'final_states:{name}'] = vals
+
+            if phase.state_options[name]['solve_segments'] == 'forward':
+                input_data[f'picard_update_comp.seg_initial_states:{name}'] = vals
+            else:
+                input_data[f'picard_update_comp.seg_final_states:{name}'] = vals
         else:
             interp_vals = phase.interp(name, vals, time_vals,
-                                       nodes='state_input',
+                                       nodes='all',
                                        kind=interpolation_kind)
             input_data[f'states:{name}'] = interp_vals
-            input_data[f'initial_states:{name}'] = vals[0]
-            input_data[f'final_states:{name}'] = vals[-1]
+            input_data[f'initial_states:{name}'] = interp_vals[0, ...]
+            input_data[f'final_states:{name}'] = interp_vals[-1, ...]
+
+            if phase.state_options[name]['solve_segments'] == 'forward':
+                input_data[f'picard_update_comp.seg_initial_states:{name}'] = interp_vals[seg_initial_idxs, ...]
+            else:
+                input_data[f'picard_update_comp.seg_final_states:{name}'] = interp_vals[seg_final_idxs, ...]
 
         return input_data

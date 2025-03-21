@@ -255,6 +255,8 @@ def _make_ode_system(ode_class, num_nodes, ode_init_kwargs=None, calc_exprs=None
     calc_exprs : dict
         A dictionary keyed by exec comp expresions whose associated values
         are the metadata associated with the expression.
+    parameter_options : dict
+        The parameter options of the owning phase.
 
     Returns
     -------
