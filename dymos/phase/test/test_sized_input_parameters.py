@@ -63,11 +63,9 @@ class TestParameterConnections(unittest.TestCase):
 
         p.setup(check=True, force_alloc_complex=True)
 
-        p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 100.0
-
-        p['phase0.states:h'] = phase.interp('h', [20, 0])
-        p['phase0.states:v'] = phase.interp('v', [0, -5])
+        phase.set_time_val(initial=0.0, duration=100.0)
+        phase.set_state_val('h', [20, 0])
+        phase.set_state_val('v', [0, -5])
 
         p.run_model()
 
@@ -125,11 +123,9 @@ class TestParameterConnections(unittest.TestCase):
 
         p.setup(check=True, force_alloc_complex=True)
 
-        p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 100.0
-
-        p['phase0.states:h'] = phase.interp('h', [20, 0])
-        p['phase0.states:v'] = phase.interp('v', [0, -5])
+        phase.set_time_val(initial=0.0, duration=100.0)
+        phase.set_state_val('h', [20, 0])
+        phase.set_state_val('v', [0, -5])
 
         p.run_model()
 
@@ -186,11 +182,9 @@ class TestParameterConnections(unittest.TestCase):
 
         p.setup(check=True, force_alloc_complex=True)
 
-        p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 100.0
-
-        p['phase0.states:h'] = phase.interp('h', [20, 0])
-        p['phase0.states:v'] = phase.interp('v', [0, -5])
+        phase.set_time_val(initial=0.0, duration=100.0)
+        phase.set_state_val('h', [20, 0])
+        phase.set_state_val('v', [0, -5])
 
         p.run_model()
 
@@ -254,11 +248,9 @@ class TestParameterConnections(unittest.TestCase):
 
         p.setup(check=True, force_alloc_complex=True)
 
-        p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 100.0
-
-        p['phase0.states:h'] = phase.interp('h', [20, 0])
-        p['phase0.states:v'] = phase.interp('v', [0, -5])
+        phase.set_time_val(initial=0.0, duration=100.0)
+        phase.set_state_val('h', [20, 0])
+        phase.set_state_val('v', [0, -5])
 
         p.run_model()
 

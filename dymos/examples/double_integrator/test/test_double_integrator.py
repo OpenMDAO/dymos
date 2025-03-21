@@ -158,12 +158,12 @@ class TestDoubleIntegratorExample(unittest.TestCase):
 
         p.setup(check=True)
 
-        p['t0'] = 0.0
-        p['tp'] = 1.0
+        phase.set_state_val('x', (0, 0.25))
+        phase.set_state_val('v', (0, 0.25))
+        phase.set_state_val('u', (1.0, -1.0))
 
-        p['phase0.states:x'] = phase.interp('x', [0, 0.25])
-        p['phase0.states:v'] = phase.interp('v', [0, 0])
-        p['phase0.controls:u'] = phase.interp('u', [1, -1])
+        p.set_val('t0', 0.0)
+        p.set_val('tp', 1.0)
 
         p.run_driver()
 

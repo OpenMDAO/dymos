@@ -55,14 +55,12 @@ class TestTimeseriesOutput(unittest.TestCase):
         p.model.linear_solver = om.DirectSolver()
         p.setup(check=True)
 
-        p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 2.0
-
-        p['phase0.states:x'] = phase.interp('x', [0, 10])
-        p['phase0.states:y'] = phase.interp('y', [10, 5])
-        p['phase0.states:v'] = phase.interp('v', [0, 9.9])
-        p['phase0.controls:theta'] = phase.interp('theta', [5, 100])
-        p['phase0.parameters:g'] = 9.80665
+        phase.set_time_val(initial=0, duration=2.0)
+        phase.set_state_val('x', (0, 10))
+        phase.set_state_val('y', (10, 5))
+        phase.set_state_val('v', (0, 9.9))
+        phase.set_control_val('theta', (5, 100))
+        phase.set_parameter_val('g', 9.80665)
 
         p.run_driver()
 
@@ -147,14 +145,12 @@ class TestTimeseriesOutput(unittest.TestCase):
         p.model.linear_solver = om.DirectSolver()
         p.setup(check=True)
 
-        p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 2.0
-
-        p['phase0.states:x'] = phase.interp('x', [0, 10])
-        p['phase0.states:y'] = phase.interp('y', [10, 5])
-        p['phase0.states:v'] = phase.interp('v', [0, 9.9])
-        p['phase0.controls:theta'] = phase.interp('theta', [5, 100])
-        p['phase0.parameters:g'] = 9.80665
+        phase.set_time_val(initial=0, duration=2.0)
+        phase.set_state_val('x', (0, 10))
+        phase.set_state_val('y', (10, 5))
+        phase.set_state_val('v', (0, 9.9))
+        phase.set_control_val('theta', (5, 100))
+        phase.set_parameter_val('g', 9.80665)
 
         p.run_driver()
 
@@ -238,14 +234,12 @@ class TestTimeseriesOutput(unittest.TestCase):
 
         p.setup(force_alloc_complex=True)
 
-        p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 2.0
-
-        p['phase0.initial_states:x'] = 0
-        p['phase0.initial_states:y'] = 10
-        p['phase0.initial_states:v'] = 0
-        p['phase0.controls:theta'] = phase.interp('theta', [5, 100])
-        p['phase0.parameters:g'] = 9.80665
+        phase.set_time_val(initial=0, duration=2.0)
+        phase.set_state_val('x', (0, 10))
+        phase.set_state_val('y', (10, 5))
+        phase.set_state_val('v', (0, 9.9))
+        phase.set_control_val('theta', (5, 100))
+        phase.set_parameter_val('g', 9.80665)
 
         p.run_driver()
 
@@ -372,15 +366,13 @@ def min_time_climb(num_seg=3, transcription_class=dm.Radau, transcription_order=
 
     p.setup(check=True, force_alloc_complex=force_alloc_complex)
 
-    p['traj.phase0.t_initial'] = 0.0
-    p['traj.phase0.t_duration'] = 300.0
-
-    p['traj.phase0.states:r'] = phase.interp('r', [0.0, 111319.54])
-    p['traj.phase0.states:h'] = phase.interp('h', [100.0, 20000.0])
-    p['traj.phase0.states:v'] = phase.interp('v', [135.964, 283.159])
-    p['traj.phase0.states:gam'] = phase.interp('gam', [0.0, 0.0])
-    p['traj.phase0.states:m'] = phase.interp('m', [19030.468, 16841.431])
-    p['traj.phase0.controls:alpha'] = phase.interp('alpha', [0.0, 0.0])
+    phase.set_time_val(initial=0, duration=300)
+    phase.set_state_val('r', [0.0, 111319.54])
+    phase.set_state_val('h', [100.0, 20000.0])
+    phase.set_state_val('v', [135.964, 283.159])
+    phase.set_state_val('gam', [0.0, 0.0])
+    phase.set_state_val('m', [19030.468, 16841.431])
+    phase.set_control_val('alpha', [0.0, 0.0])
 
     return p
 
@@ -509,14 +501,12 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
 
         p.setup(check=True)
 
-        p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 2.0
-
-        p['phase0.states:x'] = phase.interp('x', [0, 10])
-        p['phase0.states:y'] = phase.interp('y', [10, 5])
-        p['phase0.states:v'] = phase.interp('v', [0, 9.9])
-        p['phase0.controls:theta'] = phase.interp('theta', [5, 100])
-        p['phase0.parameters:g'] = 9.80665
+        phase.set_time_val(initial=0, duration=2.0)
+        phase.set_state_val('x', (0, 10))
+        phase.set_state_val('y', (10, 5))
+        phase.set_state_val('v', (0, 9.9))
+        phase.set_control_val('theta', (5, 100))
+        phase.set_parameter_val('g', 9.80665)
 
         p.run_model()
 

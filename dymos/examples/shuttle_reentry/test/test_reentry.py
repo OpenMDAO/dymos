@@ -212,9 +212,12 @@ class TestReentry(unittest.TestCase):
         p.driver.declare_coloring(tol=1.0E-12)
         p.driver.options['optimizer'] = 'IPOPT'
         p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
-        p.driver.opt_settings['print_level'] = 0
+        p.driver.opt_settings['print_level'] = 5
         p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
         p.driver.opt_settings['mu_strategy'] = 'monotone'
+        p.driver.opt_settings['bound_mult_init_method'] = 'mu-based'
+        p.driver.opt_settings['mu_init'] = 0.01
+        p.driver.opt_settings['tol'] = 1.0E-4
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
         phase0 = traj.add_phase('phase0',
@@ -245,31 +248,18 @@ class TestReentry(unittest.TestCase):
         phase0.add_objective('theta', loc='final', ref=-0.01)
         phase0.add_path_constraint('q', lower=0, upper=70, ref=70)
 
-        p.setup(check=True, force_alloc_complex=True)
+        p.setup()
 
-        p.set_val('traj.phase0.states:h',
-                  phase0.interp('h', [260000, 80000]), units='ft')
-        p.set_val('traj.phase0.states:gamma',
-                  phase0.interp('gamma', [-1 * np.pi / 180, -5 * np.pi / 180]),
-                  units='rad')
-        p.set_val('traj.phase0.states:phi',
-                  phase0.interp('phi', [0, 75 * np.pi / 180]),
-                  units='rad')
-        p.set_val('traj.phase0.states:psi',
-                  phase0.interp('psi', [90 * np.pi / 180, 10 * np.pi / 180]),
-                  units='rad')
-        p.set_val('traj.phase0.states:theta',
-                  phase0.interp('theta', [0, 25 * np.pi / 180]),
-                  units='rad')
-        p.set_val('traj.phase0.states:v',
-                  phase0.interp('v', [25600, 2500]),
-                  units='ft/s')
-        p.set_val('traj.phase0.t_initial', 0, units='s')
-        p.set_val('traj.phase0.t_duration', 2000, units='s')
-        p.set_val('traj.phase0.controls:alpha',
-                  phase0.interp('alpha', [17.4, 17.4]), units='deg')
-        p.set_val('traj.phase0.controls:beta',
-                  phase0.interp('beta', [-20, 0]), units='deg')
+        phase0.set_state_val('h', [260000, 80000], units='ft')
+        phase0.set_state_val('gamma', [-1 * np.pi / 180, -5 * np.pi / 180], units='rad')
+        phase0.set_state_val('phi', [0, 75 * np.pi / 180], units='rad')
+        phase0.set_state_val('psi', [90 * np.pi / 180, 10 * np.pi / 180], units='rad')
+        phase0.set_state_val('theta', [0, 25 * np.pi / 180], units='rad')
+        phase0.set_state_val('v', [25600, 2500], units='ft/s')
+        phase0.set_time_val(initial=0, duration=2000, units='s')
+
+        phase0.set_control_val('alpha', [17.4, 17.4], units='deg')
+        phase0.set_control_val('beta', [-20.0, 0.0], units='deg')
 
         dm.run_problem(p, simulate=True)
 
