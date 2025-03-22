@@ -410,17 +410,11 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
 
         prob.setup()
 
-        prob['traj.phase0.t_initial'] = 0
-        prob['traj.phase0.t_duration'] = 1.0*3600
-
-        prob['traj.phase1.t_initial'] = 1.0*3600
-        prob['traj.phase1.t_duration'] = 1.0*3600
-
-        prob['traj.phase1_bfail.t_initial'] = 1.0*3600
-        prob['traj.phase1_bfail.t_duration'] = 1.0*3600
-
-        prob['traj.phase1_mfail.t_initial'] = 1.0*3600
-        prob['traj.phase1_mfail.t_duration'] = 1.0*3600
+        phase0.set_time_val(initial=0.0, duration=3600)
+        phase1.set_time_val(initial=3600.0, duration=3600.0)
+        phase1_bfail.set_time_val(initial=3600.0, duration=3600.0)
+        phase1_mfail.set_time_val(initial=3600.0, duration=3600.0)
+        phase0.set_state_val('state_of_charge', 1.0)
 
         prob.set_solver_print(level=0)
         dm.run_problem(prob, simulate=True, make_plots=False,

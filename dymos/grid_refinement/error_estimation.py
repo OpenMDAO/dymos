@@ -130,7 +130,8 @@ def eval_ode_on_grid(phase, transcription):
                                                      parameters=phase.parameter_options,
                                                      ode_class=phase.options['ode_class'],
                                                      ode_init_kwargs=phase.options[
-                                                         'ode_init_kwargs'])
+                                                         'ode_init_kwargs'],
+                                                     calc_exprs=phase._calc_exprs)
     p_refine.model.add_subsystem('grid_refinement_system', grid_refinement_system, promotes=['*'])
     p_refine.setup()
 
