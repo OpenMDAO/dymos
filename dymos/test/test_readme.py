@@ -26,7 +26,10 @@ class TestReadme(unittest.TestCase):
 
     def test_readme_code(self):
         readme_path = pathlib.Path(__file__).parent.parent.parent / 'readme.md'
-        script = extract_python_code(readme_path)
+        try:
+            script = extract_python_code(readme_path)
+        except FileNotFoundError:
+            self.skipTest('Test cannot be run from site-packages.')
 
         # Run the extracted Python file as a subprocess
         result = subprocess.run(["python", script], capture_output=True, text=True)
