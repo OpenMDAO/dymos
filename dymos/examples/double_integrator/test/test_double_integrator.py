@@ -128,7 +128,7 @@ class TestDoubleIntegratorExample(unittest.TestCase):
         """
         compressed = False
         p = om.Problem(model=om.Group())
-        p.driver = om.pyOptSparseDriver()
+        p.driver = om.pyOptSparseDriver(print_results=False)
         p.driver.declare_coloring()
 
         times_ivc = p.model.add_subsystem('times_ivc', om.IndepVarComp(),
@@ -158,12 +158,10 @@ class TestDoubleIntegratorExample(unittest.TestCase):
 
         p.setup(check=True)
 
-        phase.set_state_val('x', (0, 0.25))
-        phase.set_state_val('v', (0, 0.25))
-        phase.set_state_val('u', (1.0, -1.0))
-
-        p.set_val('t0', 0.0)
-        p.set_val('tp', 1.0)
+        phase.set_time_val(0, 1)
+        phase.set_state_val('x', [0, 0.25])
+        phase.set_state_val('v', [0, 0])
+        phase.set_control_val('u', [1, -1])
 
         p.run_driver()
 

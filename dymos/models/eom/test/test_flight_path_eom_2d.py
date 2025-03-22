@@ -47,17 +47,15 @@ class TestFlightPathEOM2D(unittest.TestCase):
                         fix_initial=True, fix_final=True,
                         scaler=0.001, defect_scaler=0.001)
 
-        phase.add_state('v', rate_source='v_dot', units='m/s',
+        phase.add_state('v', rate_source='v_dot', targets='v', units='m/s',
                         fix_initial=True, fix_final=False,
                         scaler=0.01, defect_scaler=0.01)
 
-        phase.add_state('gam', rate_source='gam_dot',units='rad',
+        phase.add_state('gam', rate_source='gam_dot', targets='gam', units='rad',
                         fix_final=False, scaler=1.0, defect_scaler=1.0)
 
-        phase.add_control('alpha', units='rad', opt=False)
-        phase.add_control('T', units='N', opt=False)
-        phase.add_control('L', units='N', opt=False)
-        phase.add_control('D', units='N', opt=False)
+        # Maximize final range by varying initial flight path angle
+        phase.add_objective('r', loc='final', scaler=-0.01)
 
     def test_cannonball_simulate(self):
         self.p.setup()
@@ -69,8 +67,8 @@ class TestFlightPathEOM2D(unittest.TestCase):
 
         phase = self.p.model.phase0
 
-        phase.set_time_val(initial=0, duration=t_duration)
-        phase.set_state_val('r', [0, 700.0])
+        phase.set_time_val(0, t_duration)
+        phase.set_state_val('r', [0, v0 * np.cos(gam0) * t_duration])
         phase.set_state_val('h', [0, 0])
         phase.set_state_val('v', [v0, v0])
         phase.set_state_val('gam', [gam0, -gam0])
@@ -98,7 +96,7 @@ class TestFlightPathEOM2D(unittest.TestCase):
 
         phase = self.p.model.phase0
 
-        phase.set_time_val(initial=0.0, duration=t_duration)
+        phase.set_time_val(0, t_duration)
         phase.set_state_val('r', [0, v0 * np.cos(gam0) * t_duration])
         phase.set_state_val('h', [0, 0])
         phase.set_state_val('v', [v0, v0])
@@ -128,19 +126,17 @@ class TestFlightPathEOM2D(unittest.TestCase):
 
         phase = self.p.model.phase0
 
-        phase.set_time_val(initial=0.0, duration=t_duration)
-        phase.set_state_val('r', [0, v0 * np.cos(gam0) * t_duration])
-        phase.set_state_val('h', [0, 0])
-        phase.set_state_val('v', [v0, v0])
-        phase.set_state_val('gam', [gam0, -gam0])
-        phase.set_control_val('alpha', [-5, 5])
-        phase.set_control_val('T', [-50, 50])
-        phase.set_control_val('L', [-500, 500])
-        phase.set_control_val('D', [-500, 500])
+        self.p['phase0.t_initial'] = 0.0
+        self.p['phase0.t_duration'] = t_duration
+
+        self.p['phase0.states:r'] = phase.interp('r', [0, v0 * np.cos(gam0) * t_duration])
+        self.p['phase0.states:h'] = phase.interp('h', [0, 0])
+        self.p['phase0.states:v'] = phase.interp('v', [v0, v0])
+        self.p['phase0.states:gam'] = phase.interp('gam', [gam0, -gam0])
 
         self.p.run_model()
 
-        cpd = self.p.check_partials(compact_print=False, method='cs', out_stream=None)
+        cpd = self.p.check_partials(compact_print=True, method='cs')
 
         assert_check_partials(cpd)
 
