@@ -151,12 +151,12 @@ traj.add_phase(name='phase0', phase=phase)
 phase.set_time_options(fix_initial=True,
                        duration_bounds=(0.5, 10.0))
 # Set the state options
-phase.add_state('x', rate_source='xdot',
-                fix_initial=True, fix_final=True)
-phase.add_state('y', rate_source='ydot',
-                fix_initial=True, fix_final=True)
-phase.add_state('v', rate_source='vdot',
-                fix_initial=True, fix_final=False)
+phase.set_state_options('x', rate_source='xdot',
+                        fix_initial=True, fix_final=True)
+phase.set_state_options('y', rate_source='ydot',
+                        fix_initial=True, fix_final=True)
+phase.set_state_options('v', rate_source='vdot',
+                        fix_initial=True, fix_final=False)
 # Define theta as a control.
 phase.add_control(name='theta', units='rad',
                   lower=0, upper=np.pi)
@@ -177,62 +177,24 @@ p.setup()
 
 # Now that the OpenMDAO problem is setup, we can guess the
 # values of time, states, and controls.
-p.set_val('traj.phase0.t_duration', 2.0)
+phase.set_time_val(initial=0.0, duration=2.0)
 
 # States and controls here use a linearly interpolated
 # initial guess along the trajectory.
-p.set_val('traj.phase0.states:x',
-          phase.interp('x', ys=[0, 10]),
-          units='m')
-p.set_val('traj.phase0.states:y',
-          phase.interp('y', ys=[10, 5]),
-          units='m')
-p.set_val('traj.phase0.states:v',
-          phase.interp('v', ys=[0, 5]),
-          units='m/s')
+phase.set_state_val('x', [0, 10], units='m')
+phase.set_state_val('y', [10, 5], units='m')
+phase.set_state_val('v', [0, 5], units='m/s')
+
 # constant initial guess for control
-p.set_val('traj.phase0.controls:theta', 90, units='deg')
+phase.set_control_val('theta', 90, units='deg')
 
 # Run the driver to solve the problem and generate default plots of
 # state and control values vs time
 dm.run_problem(p, make_plots=True, simulate=True)
-
-# Load the solution and simulation files.
-sol_case = om.CaseReader('dymos_solution.db').get_case('final')
-sim_case = om.CaseReader('dymos_simulation.db').get_case('final')
-
-# Plot the results
-fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(12, 4.5))
-
-axes[0].plot(sol_case.get_val('traj.phase0.timeseries.states:x'),
-             sol_case.get_val('traj.phase0.timeseries.states:y'),
-             'ro', label='solution')
-
-axes[0].plot(sim_case.get_val('traj.phase0.timeseries.states:x'),
-             sim_case.get_val('traj.phase0.timeseries.states:y'),
-             'b-', label='simulation')
-
-axes[0].set_xlabel('x (m)')
-axes[0].set_ylabel('y (m/s)')
-axes[0].legend()
-axes[0].grid()
-
-axes[1].plot(sol_case.get_val('traj.phase0.timeseries.time'),
-             sol_case.get_val('traj.phase0.timeseries.controls:theta',
-                              units='deg'),
-             'ro', label='solution')
-
-axes[1].plot(sim_case.get_val('traj.phase0.timeseries.time'),
-             sim_case.get_val('traj.phase0.timeseries.controls:theta',
-                              units='deg'),
-             'b-', label='simulation')
-
-axes[1].set_xlabel('time (s)')
-axes[1].set_ylabel(r'$\theta$ (deg)')
-axes[1].legend()
-axes[1].grid()
-
-plt.show()
 ```
+
+When using the `make_plots=True` option above, the output directory generated within
+the run directory will contain a file named `reports/traj_results_report.html` that
+should look similar to this:
 
 ![Brachistochrone Solution](brachistochroneSolution.png "Brachistochrone Solution")
