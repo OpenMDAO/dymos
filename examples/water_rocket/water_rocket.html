@@ -954,8 +954,8 @@ The design of a water rocket is somewhat constrained by the soda bottle used as 
 This means that the volume available for water and air is fixed, the initial launch pressure is limited by the bottle’s strength (since the pressure is directly related to the energy available for the rocket, it is easy to see that it should be as high as possible) and the nozzle throat area is also fixed.
 Given these manufacturing constraints, the design variables we are left with are the empty mass (it can be easily changed through adding ballast), the water volume at the launch, and the launch angle.
 With this considerations in mind, a natural formulation for the water rocket problem is</p>
-<div class="amsmath math notranslate nohighlight" id="equation-1bdfccab-8f80-4f60-956c-a47774d94eb7">
-<span class="eqno">(89)<a class="headerlink" href="#equation-1bdfccab-8f80-4f60-956c-a47774d94eb7" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-05095722-b1e4-4665-b722-640f035ef1e0">
+<span class="eqno">(89)<a class="headerlink" href="#equation-05095722-b1e4-4665-b722-640f035ef1e0" title="Permalink to this equation">#</a></span>\[\begin{align}
     \text{maximize}   &amp;\quad \text{range or height} \\
     \text{w.r.t.}     &amp;\quad \text{empty mass, initial water volume, launch angle, trajectory} \\
     \text{subject to} &amp;\quad \text{flight dynamics} \\
@@ -1501,8 +1501,8 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">_MassAdder</span></code> component calculates the rocket’s instantaneous mass by
 summing the water mass with the rockets empty mass, i.e.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-02d82b17-90dc-49c7-80aa-c303707b0300">
-<span class="eqno">(90)<a class="headerlink" href="#equation-02d82b17-90dc-49c7-80aa-c303707b0300" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-af10447a-491a-4d02-8775-959e1f65cc23">
+<span class="eqno">(90)<a class="headerlink" href="#equation-af10447a-491a-4d02-8775-959e1f65cc23" title="Permalink to this equation">#</a></span>\[\begin{align}
     m = m_\text{empty}+\rho_w V_w
 \end{align}\]</div>
 <div class="cell tag_remove-input docutils container">
@@ -2424,7 +2424,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <div class="cell_output docutils container">
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;&gt;:29: SyntaxWarning: invalid escape sequence &#39;\g&#39;
 &lt;&gt;:29: SyntaxWarning: invalid escape sequence &#39;\g&#39;
-/tmp/ipykernel_4076/850823774.py:29: SyntaxWarning: invalid escape sequence &#39;\g&#39;
+/tmp/ipykernel_4158/850823774.py:29: SyntaxWarning: invalid escape sequence &#39;\g&#39;
   axes.ravel()[i].set_ylabel(f&quot;{state} ({unit})&quot; if state != &#39;gam&#39; else f&#39;$\gamma$ ({unit})&#39;)
 </pre></div>
 </div>
@@ -2517,10 +2517,10 @@ Total colors vs. total size: 20 vs 613  (96.74% improvement)
 
 Sparsity computed using tolerance: 1e-12.
 Dense total jacobian for Problem &#39;problem&#39; was computed 3 times.
-Time to compute sparsity:   0.5013 sec
-Time to compute coloring:   0.8541 sec
-Memory to compute coloring:   2.1250 MB
-Coloring created on: 2025-03-21 20:01:56
+Time to compute sparsity:   0.4894 sec
+Time to compute coloring:   0.8589 sec
+Memory to compute coloring:   2.2500 MB
+Coloring created on: 2025-03-23 14:05:00
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>List of user-set options:
@@ -2882,8 +2882,9 @@ iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span> 109 -5.3387978e+01 8.07e-14 5.22e-07 -11.0 8.84e-13    -  1.00e+00 1.00e+00s 22
-
-Number of Iterations....: 109
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Number of Iterations....: 109
 
                                    (scaled)                 (unscaled)
 Objective...............:  -5.3387978408024978e+01   -5.3387978408024978e+01
@@ -2901,7 +2902,7 @@ Number of inequality constraint evaluations          = 0
 Number of equality constraint Jacobian evaluations   = 114
 Number of inequality constraint Jacobian evaluations = 0
 Number of Lagrangian Hessian evaluations             = 0
-Total seconds in IPOPT                               = 10.718
+Total seconds in IPOPT                               = 10.358
 
 EXIT: Solved To Acceptable Level.
 </pre></div>
@@ -3009,10 +3010,10 @@ Total colors vs. total size: 20 vs 613  (96.74% improvement)
 
 Sparsity computed using tolerance: 1e-12.
 Dense total jacobian for Problem &#39;problem6&#39; was computed 3 times.
-Time to compute sparsity:   0.4931 sec
-Time to compute coloring:   0.8764 sec
+Time to compute sparsity:   0.4780 sec
+Time to compute coloring:   0.8646 sec
 Memory to compute coloring:   0.0000 MB
-Coloring created on: 2025-03-21 20:02:12
+Coloring created on: 2025-03-23 14:05:16
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>List of user-set options:
@@ -3239,7 +3240,7 @@ Number of inequality constraint evaluations          = 0
 Number of equality constraint Jacobian evaluations   = 57
 Number of inequality constraint Jacobian evaluations = 0
 Number of Lagrangian Hessian evaluations             = 0
-Total seconds in IPOPT                               = 6.635
+Total seconds in IPOPT                               = 6.441
 
 EXIT: Solved To Acceptable Level.
 
@@ -3250,11 +3251,11 @@ Optimization Problem -- Optimization using pyOpt_sparse
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    6.6364
-       User Objective Time :       0.2672
-       User Sensitivity Time :     3.5440
-       Interface Time :            1.0403
-       Opt Solver Time:            1.7850
+    Total Time:                    6.4425
+       User Objective Time :       0.2608
+       User Sensitivity Time :     3.4099
+       Interface Time :            1.0291
+       Opt Solver Time:            1.7427
     Calls to Objective Function :      67
     Calls to Sens Function :           58
 

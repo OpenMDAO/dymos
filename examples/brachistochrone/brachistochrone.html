@@ -868,8 +868,8 @@ without friction along the wire moves from point A to point B in minimum time.</
 <section id="system-dynamics">
 <h2>System dynamics<a class="headerlink" href="#system-dynamics" title="Permalink to this heading">#</a></h2>
 <p>From the free-body diagram above, the evolution of the state variables is given by the following ordinary differential equations (ODE).</p>
-<div class="amsmath math notranslate nohighlight" id="equation-82f60cb8-2772-41c8-b6ba-fe1dca6284c3">
-<span class="eqno">(13)<a class="headerlink" href="#equation-82f60cb8-2772-41c8-b6ba-fe1dca6284c3" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-0f44a0c2-38d3-4a78-a49b-381c92a8274c">
+<span class="eqno">(13)<a class="headerlink" href="#equation-0f44a0c2-38d3-4a78-a49b-381c92a8274c" title="Permalink to this equation">#</a></span>\[\begin{align}
     \frac{d x}{d t} &amp;= v \sin(\theta) \\
     \frac{d y}{d t} &amp;= -v \cos(\theta) \\
     \frac{d v}{d t} &amp;= g \cos(\theta)
@@ -887,8 +887,8 @@ without friction along the wire moves from point A to point B in minimum time.</
 <p>In this case, starting point <strong>A</strong> is given as <em>(0, 10)</em>.
 The point moving along the curve will begin there with zero initial velocity.</p>
 <p>The initial conditions are:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-a0b6df5d-1f7c-4cda-a914-96e7cfbeaa0e">
-<span class="eqno">(14)<a class="headerlink" href="#equation-a0b6df5d-1f7c-4cda-a914-96e7cfbeaa0e" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-56f0ccce-7130-4fa3-b077-d5fe298d4cb4">
+<span class="eqno">(14)<a class="headerlink" href="#equation-56f0ccce-7130-4fa3-b077-d5fe298d4cb4" title="Permalink to this equation">#</a></span>\[\begin{align}
     x_0 &amp;= 0 \\
     y_0 &amp;= 10 \\
     v_0 &amp;= 0
@@ -896,8 +896,8 @@ The point moving along the curve will begin there with zero initial velocity.</p
 <p>The end point <strong>B</strong> is given as <em>(10, 5)</em>.
 The point will end there, but the velocity at that point is not constrained.</p>
 <p>The final conditions are:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-56e81ca9-e3d8-4c59-a3b6-2782a7e87632">
-<span class="eqno">(15)<a class="headerlink" href="#equation-56e81ca9-e3d8-4c59-a3b6-2782a7e87632" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-775e8340-0fa9-4e2d-bcb4-a4ce21e05c33">
+<span class="eqno">(15)<a class="headerlink" href="#equation-775e8340-0fa9-4e2d-bcb4-a4ce21e05c33" title="Permalink to this equation">#</a></span>\[\begin{align}
     x_f &amp;= 10 \\
     y_f &amp;= 5 \\
     v_f &amp;= \mathrm{free}
@@ -1061,7 +1061,7 @@ Component: BrachistochroneODE &#39;ode&#39;
 +---------------+----------------+---------------+---------------+------------------------+------------+
 | &#39;of&#39; variable | &#39;wrt&#39; variable |      calc val |        fd val | (calc-fd) - (a + r*fd) | error desc |
 +===============+================+===============+===============+========================+============+
-| check         | g              |  0.000000e+00 | -0.000000e+00 |           0.000000e+00 |            |
+| check         | g              |  0.000000e+00 |  0.000000e+00 |           0.000000e+00 |            |
 +---------------+----------------+---------------+---------------+------------------------+------------+
 | check         | theta          |  0.000000e+00 |  0.000000e+00 |           0.000000e+00 |            |
 +---------------+----------------+---------------+---------------+------------------------+------------+
@@ -1079,7 +1079,7 @@ Component: BrachistochroneODE &#39;ode&#39;
 +---------------+----------------+---------------+---------------+------------------------+------------+
 | xdot          | v              |  0.000000e+00 |  0.000000e+00 |           0.000000e+00 |            |
 +---------------+----------------+---------------+---------------+------------------------+------------+
-| ydot          | g              |  0.000000e+00 | -0.000000e+00 |           0.000000e+00 |            |
+| ydot          | g              |  0.000000e+00 |  0.000000e+00 |           0.000000e+00 |            |
 +---------------+----------------+---------------+---------------+------------------------+------------+
 | ydot          | theta          |  0.000000e+00 |  0.000000e+00 |           0.000000e+00 |            |
 +---------------+----------------+---------------+---------------+------------------------+------------+
@@ -1171,10 +1171,10 @@ Total colors vs. total size: 8 vs 50  (84.00% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem2&#39; was computed 3 times.
-Time to compute sparsity:   0.0219 sec
-Time to compute coloring:   0.0441 sec
+Time to compute sparsity:   0.0220 sec
+Time to compute coloring:   0.0448 sec
 Memory to compute coloring:   0.1250 MB
-Coloring created on: 2025-03-21 19:54:20
+Coloring created on: 2025-03-23 13:57:31
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully    (Exit mode 0)
