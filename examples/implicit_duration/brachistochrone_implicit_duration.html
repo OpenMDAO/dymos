@@ -982,8 +982,8 @@ NL: Newton Converged
 <p>We can utilize the <code class="docutils literal notranslate"><span class="pre">add_boundary_balance</span></code> method on <code class="docutils literal notranslate"><span class="pre">Phase</span></code> to turn <code class="docutils literal notranslate"><span class="pre">t_duration</span></code> into an implicit output and provide it with a residual.</p>
 <p>In our case, we set <code class="docutils literal notranslate"><span class="pre">phase.add_boundary_balance(param='t_duration',</span> <span class="pre">name='x',</span> <span class="pre">tgt_val=10.0)</span></code></p>
 <p>This specifies that we want <code class="docutils literal notranslate"><span class="pre">t_duration</span></code> to be associated with the following residual:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-b6cd0995-c5dc-4444-b7f3-62c926ecfc17">
-<span class="eqno">(96)<a class="headerlink" href="#equation-b6cd0995-c5dc-4444-b7f3-62c926ecfc17" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-7482642d-2c69-4423-950a-8345127ecf12">
+<span class="eqno">(96)<a class="headerlink" href="#equation-7482642d-2c69-4423-950a-8345127ecf12" title="Permalink to this equation">#</a></span>\[\begin{align}
   \mathcal{R}(t_d) = x - 10 = 0
 \end{align}\]</div>
 <p>Note that we limit the angle <span class="math notranslate nohighlight">\(\theta\)</span> to be between 0 and 180, the bead must move to the right and we can just terminate the propagation when x=10.</p>
@@ -1063,7 +1063,7 @@ Total colors vs. total size: 2 vs 81  (97.53% improvement)
 Sparsity computed using tolerance: 1e-25.
 Dense partial jacobian for BrachistochroneODE &#39;traj.phases.phase0.rhs_all&#39; was computed 3 times.
 Time to compute sparsity:   0.0075 sec
-Time to compute coloring:   0.0078 sec
+Time to compute coloring:   0.0077 sec
 Memory to compute coloring:   0.0000 MB
 NL: Newton Converged in 4 iterations
 </pre></div>
@@ -1109,8 +1109,8 @@ We can use this information to pose the brachistochrone as a boundary value prob
 That means that <code class="docutils literal notranslate"><span class="pre">theta_rate</span></code> is a parameter as far as dymos is concerned.
 We then make <code class="docutils literal notranslate"><span class="pre">theta</span></code> a state variable whose rate is provided by the <code class="docutils literal notranslate"><span class="pre">theta_rate</span></code> parameter.
 We’ll set the initial value of <code class="docutils literal notranslate"><span class="pre">theta</span></code> to zero degrees, since we know that is approximately correct for this problem.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-1440d849-d59d-4c1a-9884-1da5d3b5ccf6">
-<span class="eqno">(97)<a class="headerlink" href="#equation-1440d849-d59d-4c1a-9884-1da5d3b5ccf6" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-b824c751-9f43-4bdc-a3d1-4177be41ef6a">
+<span class="eqno">(97)<a class="headerlink" href="#equation-b824c751-9f43-4bdc-a3d1-4177be41ef6a" title="Permalink to this equation">#</a></span>\[\begin{align}
   \mathcal{R}(\dot{\theta}) &amp;= y_f - 5
 \end{align}\]</div>
 <p>Dymos currently doesn’t support making parameters implicit outputs, so we’re going to do this the manual OpenMDAO way.</p>
@@ -1200,7 +1200,7 @@ Total colors vs. total size: 2 vs 81  (97.53% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense partial jacobian for BrachistochroneODE &#39;traj.phases.phase0.rhs_all&#39; was computed 3 times.
-Time to compute sparsity:   0.0088 sec
+Time to compute sparsity:   0.0075 sec
 Time to compute coloring:   0.0078 sec
 Memory to compute coloring:   0.0000 MB
 </pre></div>
