@@ -49,7 +49,7 @@ jobs:
             OPENMDAO: 'dev'
             OPTIONAL: '[docs]'
             JAX: 'latest'
-            PUBLISH_DOCS: 1
+            PUBLISH_DOCS: 0
 
     steps:
       - name: Display run details
