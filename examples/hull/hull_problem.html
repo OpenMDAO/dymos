@@ -829,27 +829,27 @@ title="Print to PDF"
 <p>This system has one state variables, the position (<span class="math notranslate nohighlight">\(x\)</span>) of the sliding block.</p>
 <p>This system has a single control variable (<span class="math notranslate nohighlight">\(u\)</span>), the velocity of the block.</p>
 <p>The dynamics of the system are governed by</p>
-<div class="amsmath math notranslate nohighlight" id="equation-c6b6d935-e67c-4f31-b12f-73dea7c8eaa7">
-<span class="eqno">(48)<a class="headerlink" href="#equation-c6b6d935-e67c-4f31-b12f-73dea7c8eaa7" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-fc3ee1c2-2f35-442e-8401-36629bf7cbb0">
+<span class="eqno">(48)<a class="headerlink" href="#equation-fc3ee1c2-2f35-442e-8401-36629bf7cbb0" title="Permalink to this equation">#</a></span>\[\begin{align}
   \dot{x} &amp;= u
 \end{align}\]</div>
 </section>
 <section id="problem-definition">
 <h2>Problem Definition<a class="headerlink" href="#problem-definition" title="Permalink to this heading">#</a></h2>
 <p>We seek to minimize the control effort required and minimize the displacement from the origin.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-065ffb9e-1e59-47bc-8134-def2bd258552">
-<span class="eqno">(49)<a class="headerlink" href="#equation-065ffb9e-1e59-47bc-8134-def2bd258552" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-f8317f57-8694-41e7-b595-94c459be7b6c">
+<span class="eqno">(49)<a class="headerlink" href="#equation-f8317f57-8694-41e7-b595-94c459be7b6c" title="Permalink to this equation">#</a></span>\[\begin{align}
     \mathrm{Minimize} \, J &amp;= 2.5x_f^2 \, + \, 0.5 \int_0^1 u^2 dt
 \end{align}\]</div>
 <p>Subject to the initial conditions</p>
-<div class="amsmath math notranslate nohighlight" id="equation-1a32dc1f-83b0-4764-8e7c-b245bf375b7c">
-<span class="eqno">(50)<a class="headerlink" href="#equation-1a32dc1f-83b0-4764-8e7c-b245bf375b7c" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-f7ba6e95-ca81-4628-b364-fa3d3272f4f3">
+<span class="eqno">(50)<a class="headerlink" href="#equation-f7ba6e95-ca81-4628-b364-fa3d3272f4f3" title="Permalink to this equation">#</a></span>\[\begin{align}
     t_0 &amp;= 0.0 \\
     x_0 &amp;= 1.5
 \end{align}\]</div>
 <p>and the terminal constraints</p>
-<div class="amsmath math notranslate nohighlight" id="equation-5e458a6e-5e21-416b-a43a-334f5e93c04e">
-<span class="eqno">(51)<a class="headerlink" href="#equation-5e458a6e-5e21-416b-a43a-334f5e93c04e" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-e47a9981-bf50-4c4b-a50f-cc27881553b7">
+<span class="eqno">(51)<a class="headerlink" href="#equation-e47a9981-bf50-4c4b-a50f-cc27881553b7" title="Permalink to this equation">#</a></span>\[\begin{align}
     t_f &amp;= 10.0
 \end{align}\]</div>
 </section>
@@ -858,8 +858,8 @@ title="Print to PDF"
 <p>In classic optimal control, the objective is often broken into the terminal component (the Mayer term) and the integral component (the Lagrange term).
 Dymos does not distinguish between the two.
 In this case, since the objective <span class="math notranslate nohighlight">\(J\)</span> consists of both a terminal cost and an integrated cost (Bolza form), we add a term to the ODE to account for the integrated quantity</p>
-<div class="amsmath math notranslate nohighlight" id="equation-e07c8dba-5a78-49aa-8811-c0b2d073c035">
-<span class="eqno">(52)<a class="headerlink" href="#equation-e07c8dba-5a78-49aa-8811-c0b2d073c035" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-e366e505-148d-4917-b5e1-04704be4a892">
+<span class="eqno">(52)<a class="headerlink" href="#equation-e366e505-148d-4917-b5e1-04704be4a892" title="Permalink to this equation">#</a></span>\[\begin{align}
   \dot{x_L} &amp;= L \\
   L &amp;= 0.5 u^2
 \end{align}\]</div>
@@ -992,7 +992,7 @@ The rate source and units for the states are obtained from the tags in the ODE c
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;openmdao.core.problem.Problem at 0x7f56ec72bda0&gt;
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;openmdao.core.problem.Problem at 0x7f7e80a78190&gt;
 </pre></div>
 </div>
 </div>
@@ -1032,7 +1032,7 @@ This will attempt to repeatedly solve the problem and change the number of segme
 <span class="expanded">Hide code cell output</span>
 </summary>
 <div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.12/site-packages/openmdao/core/group.py:3000: UnitsWarning:&#39;traj.phases.phase0&#39; &lt;class Phase&gt;: Input &#39;traj.phases.phase0.collocation_constraint.f_computed:x&#39; with units of &#39;1.0/s&#39; is connected to output &#39;traj.phases.phase0.control_comp.control_values:u&#39; which has no units.
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:3000: UnitsWarning:&#39;traj.phases.phase0&#39; &lt;class Phase&gt;: Input &#39;traj.phases.phase0.collocation_constraint.f_computed:x&#39; with units of &#39;1.0/s&#39; is connected to output &#39;traj.phases.phase0.control_comp.control_values:u&#39; which has no units.
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (191, 216)  (2.29% nonzero)
@@ -1041,10 +1041,10 @@ Total colors vs. total size: 7 vs 216  (96.76% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem&#39; was computed 3 times.
-Time to compute sparsity:   0.2432 sec
-Time to compute coloring:   0.1751 sec
-Memory to compute coloring:   0.1250 MB
-Coloring created on: 2025-03-24 15:59:38
+Time to compute sparsity:   0.2354 sec
+Time to compute coloring:   0.1718 sec
+Memory to compute coloring:   0.0000 MB
+Coloring created on: 2025-03-24 19:35:26
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1053,11 +1053,11 @@ Coloring created on: 2025-03-24 15:59:38
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    3.3455
-       User Objective Time :       0.0855
-       User Sensitivity Time :     0.9704
-       Interface Time :            0.5705
-       Opt Solver Time:            1.7190
+    Total Time:                    3.0887
+       User Objective Time :       0.0671
+       User Sensitivity Time :     0.9083
+       Interface Time :            0.5224
+       Opt Solver Time:            1.5909
     Calls to Objective Function :      66
     Calls to Sens Function :           65
 
@@ -1485,7 +1485,7 @@ Coloring created on: 2025-03-24 15:59:38
 --------------------------------------------------------------------------------
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.12/site-packages/openmdao/core/group.py:1194: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:u_rate, ode_eval.control_interp.control_rates:u_rate2, ode_eval.control_interp.control_values:u] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:1194: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:u_rate, ode_eval.control_interp.control_rates:u_rate2, ode_eval.control_interp.control_values:u] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Simulating trajectory traj
@@ -1498,11 +1498,11 @@ Coloring created on: 2025-03-24 15:59:38
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 67
-  runtime     : 3.8581E+00 s
+  runtime     : 3.5584E+00 s
   model_evals : 67
-  model_time  : 5.6367E-02 s
+  model_time  : 4.4113E-02 s
   deriv_evals : 65
-  deriv_time  : 4.4055E-01 s
+  deriv_time  : 3.7342E-01 s
   exit_status : SUCCESS
 </pre></div>
 </div>
