@@ -122,9 +122,6 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 
     p.setup(check=True, force_alloc_complex=force_alloc_complex)
 
-    p['traj.phase0.t_initial'] = 0.0
-    p['traj.phase0.t_duration'] = 350.0
-
     phase.set_time_val(initial=0.0, duration=350.0)
     phase.set_state_val('r', [0.0, 111319.54])
     phase.set_state_val('h', [100.0, 20000.0])

@@ -51,15 +51,13 @@ phase.add_objective('time', loc='final')
 prob.setup()
 
 # Assign values to the times and states
-prob.set_val('traj.phase0.t_initial', 0.0)
-prob.set_val('traj.phase0.t_duration', 5.0)
+phase.set_time_val(initial=0.0, duration=5.0)
+phase.set_state_val('x', 10.0)
+phase.set_state_val('v', 0.0)
 
-prob.set_val('traj.phase0.states:x', 10.0)
-prob.set_val('traj.phase0.states:v', 0.0)
-
-prob.set_val('traj.phase0.parameters:k', 1.0)
-prob.set_val('traj.phase0.parameters:c', 0.5)
-prob.set_val('traj.phase0.parameters:m', 1.0)
+phase.set_parameter_val('k', 1.0)
+phase.set_parameter_val('c', 0.5)
+phase.set_parameter_val('m', 1.0)
 
 starts= {}
 

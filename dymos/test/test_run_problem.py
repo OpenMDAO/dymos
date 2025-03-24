@@ -229,7 +229,7 @@ class TestRunProblem(unittest.TestCase):
     @require_pyoptsparse(optimizer='SLSQP')
     def test_run_brachistochrone_problem(self):
         p = om.Problem(model=om.Group())
-        p.driver = om.pyOptSparseDriver()
+        p.driver = om.pyOptSparseDriver(print_results=False)
         p.driver.declare_coloring()
         p.driver.options['optimizer'] = 'SLSQP'
 
@@ -255,14 +255,12 @@ class TestRunProblem(unittest.TestCase):
         p.model.linear_solver = om.DirectSolver()
         p.setup(check=True)
 
-        p.set_val('traj.phase0.t_initial', 0.0)
-        p.set_val('traj.phase0.t_duration', 2.0)
-
-        p.set_val('traj.phase0.states:x', phase0.interp('x', [0, 10]))
-        p.set_val('traj.phase0.states:y', phase0.interp('y', [10, 5]))
-        p.set_val('traj.phase0.states:v', phase0.interp('v', [0, 9.9]))
-        p.set_val('traj.phase0.controls:theta', phase0.interp('theta', [5, 100]))
-        p.set_val('traj.phase0.parameters:g', 9.80665)
+        phase0.set_time_val(initial=0.0, duration=2.0)
+        phase0.set_state_val('x', [0, 10])
+        phase0.set_state_val('y', [10, 5])
+        phase0.set_state_val('v', [0, 9.9])
+        phase0.set_control_val('theta', [5, 100])
+        phase0.set_parameter_val('g', 9.80665)
 
         dm.run_problem(p, simulate=True, simulate_kwargs={'times_per_seg': 100})
 
@@ -318,14 +316,12 @@ class TestRunProblem(unittest.TestCase):
         p.model.linear_solver = om.DirectSolver()
         p.setup(check=True)
 
-        p.set_val('traj.phase0.t_initial', 0.0)
-        p.set_val('traj.phase0.t_duration', 2.0)
-
-        p.set_val('traj.phase0.states:x', phase0.interp('x', [0, 10]))
-        p.set_val('traj.phase0.states:y', phase0.interp('y', [10, 5]))
-        p.set_val('traj.phase0.states:v', phase0.interp('v', [0, 9.9]))
-        p.set_val('traj.phase0.controls:theta', phase0.interp('theta', [5, 100]))
-        p.set_val('traj.phase0.parameters:g', 9.80665)
+        phase0.set_time_val(initial=0.0, duration=2.0)
+        phase0.set_state_val('x', [0, 10])
+        phase0.set_state_val('y', [10, 5])
+        phase0.set_state_val('v', [0, 9.9])
+        phase0.set_control_val('theta', [5, 100])
+        phase0.set_parameter_val('g', 9.80665)
 
         with self.assertRaises(ValueError) as e:
             dm.run_problem(p, simulate=True, simulate_kwargs={'record_file': 'my_sim_file.db'})
@@ -376,14 +372,12 @@ class TestRunProblem(unittest.TestCase):
         p.model.linear_solver = om.DirectSolver()
         p.setup(check=True)
 
-        p.set_val('traj.phase0.t_initial', 0.0)
-        p.set_val('traj.phase0.t_duration', 2.0)
-
-        p.set_val('traj.phase0.states:x', phase0.interp('x', [0, 10]))
-        p.set_val('traj.phase0.states:y', phase0.interp('y', [10, 5]))
-        p.set_val('traj.phase0.states:v', phase0.interp('v', [0, 9.9]))
-        p.set_val('traj.phase0.controls:theta', phase0.interp('theta', [5, 100]))
-        p.set_val('traj.phase0.parameters:g', 9.80665)
+        phase0.set_time_val(initial=0.0, duration=2.0)
+        phase0.set_state_val('x', [0, 10])
+        phase0.set_state_val('y', [10, 5])
+        phase0.set_state_val('v', [0, 9.9])
+        phase0.set_control_val('theta', [5, 100])
+        phase0.set_parameter_val('g', 9.80665)
 
         dm.run_problem(p, refine_iteration_limit=20)
 
@@ -437,14 +431,12 @@ class TestRunProblem(unittest.TestCase):
         p.model.linear_solver = om.DirectSolver()
         p.setup(check=True)
 
-        p.set_val('traj.phase0.t_initial', 0.0)
-        p.set_val('traj.phase0.t_duration', 2.0)
-
-        p.set_val('traj.phase0.states:x', phase0.interp('x', [0, 10]))
-        p.set_val('traj.phase0.states:y', phase0.interp('y', [10, 5]))
-        p.set_val('traj.phase0.states:v', phase0.interp('v', [0, 9.9]))
-        p.set_val('traj.phase0.controls:theta', phase0.interp('theta', [5, 100]))
-        p.set_val('traj.phase0.parameters:g', 9.80665)
+        phase0.set_time_val(initial=0.0, duration=2.0)
+        phase0.set_state_val('x', [0, 10])
+        phase0.set_state_val('y', [10, 5])
+        phase0.set_state_val('v', [0, 9.9])
+        phase0.set_control_val('theta', [5, 100])
+        phase0.set_parameter_val('g', 9.80665)
 
         dm.run_problem(p, refine_iteration_limit=20, case_prefix='brach_test')
 
@@ -494,16 +486,14 @@ class TestRunProblem(unittest.TestCase):
         p.model.linear_solver = om.DirectSolver()
         p.setup(check=True, force_alloc_complex=True)
 
-        p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 2.0
+        phase.set_time_val(initial=0, duration=2.0)
 
         pos0 = [0, 10]
         posf = [10, 5]
-
-        p['phase0.states:pos'] = phase.interp('pos', [pos0, posf])
-        p['phase0.states:v'] = phase.interp('v', [0, 9.9])
-        p['phase0.controls:theta'] = phase.interp('theta', [5, 100])
-        p['phase0.parameters:g'] = 9.80665
+        phase.set_state_val('pos', [pos0, posf])
+        phase.set_state_val('v', [0, 9.9])
+        phase.set_control_val('theta', [5, 100])
+        phase.set_parameter_val('g', 9.80665)
 
         dm.run_problem(p, refine_iteration_limit=5)
 
@@ -538,14 +528,12 @@ class TestRunProblem(unittest.TestCase):
         p.model.linear_solver = om.DirectSolver()
         p.setup(check=True)
 
-        p.set_val('traj.phase0.t_initial', 0.0)
-        p.set_val('traj.phase0.t_duration', 2.0)
-
-        p.set_val('traj.phase0.states:x', phase0.interp('x', [0, 10]))
-        p.set_val('traj.phase0.states:y', phase0.interp('y', [10, 5]))
-        p.set_val('traj.phase0.states:v', phase0.interp('v', [0, 9.9]))
-        p.set_val('traj.phase0.controls:theta', phase0.interp('theta', [5, 100]))
-        p.set_val('traj.phase0.parameters:g', 9.80665)
+        phase0.set_time_val(initial=0.0, duration=2.0)
+        phase0.set_state_val('x', [0, 10])
+        phase0.set_state_val('y', [10, 5])
+        phase0.set_state_val('v', [0, 9.9])
+        phase0.set_control_val('theta', [5, 100])
+        phase0.set_parameter_val('g', 9.80665)
 
         dm.run_problem(p, simulate=True)
 
@@ -697,14 +685,12 @@ class TestRunProblemPlotting(unittest.TestCase):
         p.model.linear_solver = om.DirectSolver()
         p.setup(check=True)
 
-        p.set_val('traj.phase0.t_initial', 0.0)
-        p.set_val('traj.phase0.t_duration', 2.0)
-
-        p.set_val('traj.phase0.states:x', phase0.interp('x', [0, 10]))
-        p.set_val('traj.phase0.states:y', phase0.interp('y', [10, 5]))
-        p.set_val('traj.phase0.states:v', phase0.interp('v', [0, 9.9]))
-        p.set_val('traj.phase0.controls:theta', phase0.interp('theta', [5, 100]))
-        p.set_val('traj.phase0.parameters:g', 9.80665)
+        phase0.set_time_val(initial=0.0, duration=2.0)
+        phase0.set_state_val('x', [0, 10])
+        phase0.set_state_val('y', [10, 5])
+        phase0.set_state_val('v', [0, 9.9])
+        phase0.set_control_val('theta', [5, 100])
+        phase0.set_parameter_val('g', 9.80665)
 
         self.p = p
 
@@ -851,13 +837,12 @@ class TestSimulateArrayParam(unittest.TestCase):
         #
         # Set the initial values
         #
-        p['traj.phase0.t_initial'] = 0.0
-        p['traj.phase0.t_duration'] = 2.0
-
-        p['traj.phase0.states:x'] = phase.interp('x', [0, 10])
-        p['traj.phase0.states:y'] = phase.interp('y', [10, 5])
-        p['traj.phase0.states:v'] = phase.interp('v', [0, 9.9])
-        p['traj.phase0.controls:theta'] = phase.interp('theta', [5, 100.5])
+        phase.set_time_val(initial=0.0, duration=2.0)
+        phase.set_state_val('x', [0, 10])
+        phase.set_state_val('y', [10, 5])
+        phase.set_state_val('v', [0, 9.9])
+        phase.set_control_val('theta', [5, 100])
+        phase.set_parameter_val('g', 9.80665)
 
         #
         # Solve for the optimal trajectory

@@ -131,17 +131,17 @@ class TestBrachistochroneTandemPhases(unittest.TestCase):
         p.model.linear_solver = om.DirectSolver()
         p.setup(check=True)
 
-        p['phase0.t_initial'] = 0.0
-        p['phase0.t_duration'] = 2.0
+        phase0.set_time_val(initial=0.0, duration=2.0)
 
-        p.set_val('phase0.states:x', phase0.interp('x', ys=[0, 10]))
-        p.set_val('phase0.states:y', phase0.interp('y', ys=[10, 5]))
-        p.set_val('phase0.states:v', phase0.interp('v', ys=[0, 9.9]))
-        p.set_val('phase0.controls:theta', phase0.interp('theta', ys=[5, 100]))
+        phase0.set_state_val('x', [0, 10])
+        phase0.set_state_val('y', [10, 5])
+        phase0.set_state_val('v', [0, 9.9])
 
-        p['phase0.parameters:g'] = 9.80665
+        phase0.set_control_val('theta', [5, 100.5])
 
-        p['phase1.states:S'] = 0.0
+        phase0.set_parameter_val('g', 9.80665)
+
+        phase1.set_state_val('S', 0.0)
 
         dm.run_problem(p)
 

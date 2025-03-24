@@ -117,23 +117,22 @@ class TestBrachistochroneStaticGravity(unittest.TestCase):
         # The initial time is fixed, and we set that fixed value here.
         # The optimizer is allowed to modify t_duration, but an initial guess is provided here.
         #
-        p.set_val('traj.phase0.t_initial', 0.0)
-        p.set_val('traj.phase0.t_duration', 2.0)
+        phase.set_time_val(initial=0, duration=2)
 
         # Guesses for states are provided at all state_input nodes.
         # We use the phase.interpolate method to linearly interpolate values onto the state input nodes.
         # Since fix_initial=True for all states and fix_final=True for x and y, the initial or final
         # values of the interpolation provided here will not be changed by the optimizer.
-        p.set_val('traj.phase0.states:x', phase.interp('x', [0, 10]))
-        p.set_val('traj.phase0.states:y', phase.interp('y', [10, 5]))
-        p.set_val('traj.phase0.states:v', phase.interp('v', [0, 9.9]))
+        phase.set_state_val('x', [0, 10])
+        phase.set_state_val('y', [10, 5])
+        phase.set_state_val('v', [0, 9.9])
 
         # Guesses for controls are provided at all control_input node.
         # Here phase.interpolate is used to linearly interpolate values onto the control input nodes.
-        p.set_val('traj.phase0.controls:theta', phase.interp('theta', [5, 100.5]))
+        phase.set_control_val('theta', [5, 100.5])
 
         # Set the value for gravitational acceleration.
-        p.set_val('traj.phase0.parameters:g', 9.80665)
+        phase.set_parameter_val('g', 9.80665)
 
         #
         # Solve for the optimal trajectory

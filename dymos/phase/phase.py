@@ -8,7 +8,6 @@ import numpy as np
 from scipy import interpolate
 
 import openmdao.api as om
-from openmdao.utils.mpi import MPI
 from openmdao.utils.om_warnings import issue_warning
 from openmdao.core.system import System
 from openmdao.recorders.case import Case
@@ -2622,72 +2621,6 @@ class Phase(om.Group):
         sim_phase._calc_exprs = deepcopy(self._calc_exprs)
 
         return sim_phase
-
-    def initialize_values_from_phase(self, prob, from_phase, phase_path='', skip_params=None):
-        """
-        Initializes values in the Phase using the phase from which it was created.
-
-        Parameters
-        ----------
-        prob : Problem
-            The problem instance to set values taken from the from_phase instance.
-        from_phase : Phase
-            The Phase instance from which the values in this phase are being initialized.
-        phase_path : str
-            The pathname of the system in prob that contains the phases.
-        skip_params : None or set
-            Parameter names that will be skipped because they have already been initialized at the
-            trajectory level (Deprecated).
-        """
-        phs = from_phase
-
-        if skip_params is not None:
-            om.issue_warning(f'{self.pathname}: Option `skip_params` to Phase.initialize_values_from_phase` is '
-                             f'deprecated and will be removed dymos 2.0.0', category=om.OMDeprecationWarning)
-
-        op_dict = dict([(name, options) for (name, options) in phs.list_outputs(units=True,
-                                                                                list_autoivcs=True,
-                                                                                out_stream=None)])
-        ip_dict = dict([(name, options) for (name, options) in phs.list_inputs(units=True,
-                                                                               out_stream=None)])
-
-        if self.pathname.partition('.')[0] == self.name:
-            self_path = self.name + '.'
-        else:
-            self_path = self.pathname.partition('.')[0] + '.' + self.name + '.'
-
-        if MPI:
-            op_dict = MPI.COMM_WORLD.bcast(op_dict, root=0)
-
-        # Set the integration times
-        time_name = phs.time_options['name']
-        op = op_dict[f'timeseries.{time_name}']
-        prob.set_val(f'{self_path}t_initial', op['val'][0, ...])
-        prob.set_val(f'{self_path}t_duration', op['val'][-1, ...] - op['val'][0, ...])
-
-        # Assign initial state values
-        for name in phs.state_options:
-            op = op_dict[f'timeseries.states:{name}']
-            prob[f'{self_path}initial_states:{name}'][...] = op['val'][0, ...]
-
-        # Assign control values
-        for name, options in phs.control_options.items():
-            ip = ip_dict[f'control_comp.controls:{name}']
-            prob[f'{self_path}controls:{name}'][...] = ip['val']
-
-        # Assign parameter values
-        for name in phs.parameter_options:
-            units = phs.parameter_options[name]['units']
-
-            # We use this private function to grab the correctly sized variable from the
-            # auto_ivc source.
-            val = phs.get_val(f'parameters:{name}', units=units)
-
-            if phase_path:
-                prob_path = f'{phase_path}.{self.name}.parameters:{name}'
-            else:
-                prob_path = f'{self.name}.parameters:{name}'
-            prob.set_val(prob_path, val)
 
     def simulate(self, times_per_seg=None, method=_unspecified, atol=_unspecified, rtol=_unspecified,
                  first_step=_unspecified, max_step=_unspecified, record_file=None, reports=False,

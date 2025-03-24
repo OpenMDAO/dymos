@@ -67,13 +67,11 @@ class TestFlightPathEOM2D(unittest.TestCase):
 
         phase = self.p.model.phase0
 
-        self.p['phase0.t_initial'] = 0.0
-        self.p['phase0.t_duration'] = t_duration
-
-        self.p['phase0.states:r'] = phase.interp('r', [0, 700.0])
-        self.p['phase0.states:h'] = phase.interp('h', [0, 0])
-        self.p['phase0.states:v'] = phase.interp('v', [v0, v0])
-        self.p['phase0.states:gam'] = phase.interp('gam', [gam0, -gam0])
+        phase.set_time_val(0, t_duration)
+        phase.set_state_val('r', [0, v0 * np.cos(gam0) * t_duration])
+        phase.set_state_val('h', [0, 0])
+        phase.set_state_val('v', [v0, v0])
+        phase.set_state_val('gam', [gam0, -gam0])
 
         self.p.run_model()
 
@@ -98,13 +96,11 @@ class TestFlightPathEOM2D(unittest.TestCase):
 
         phase = self.p.model.phase0
 
-        self.p['phase0.t_initial'] = 0.0
-        self.p['phase0.t_duration'] = t_duration
-
-        self.p['phase0.states:r'] = phase.interp('r', [0, v0 * np.cos(gam0) * t_duration])
-        self.p['phase0.states:h'] = phase.interp('h', [0, 0])
-        self.p['phase0.states:v'] = phase.interp('v', [v0, v0])
-        self.p['phase0.states:gam'] = phase.interp('gam', [gam0, -gam0])
+        phase.set_time_val(0, t_duration)
+        phase.set_state_val('r', [0, v0 * np.cos(gam0) * t_duration])
+        phase.set_state_val('h', [0, 0])
+        phase.set_state_val('v', [v0, v0])
+        phase.set_state_val('gam', [gam0, -gam0])
 
         self.p.run_driver()
 

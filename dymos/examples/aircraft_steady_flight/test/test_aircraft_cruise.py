@@ -276,23 +276,16 @@ class TestAircraftCruise(unittest.TestCase):
 
         p.setup()
 
-        p['traj.phase0.t_initial'] = 0.0
-        p['traj.phase0.t_duration'] = 1.0 * 3600.0
+        phase.set_time_val(initial=0.0, duration=3600.0)
+        phase.set_state_val('range', [0.0, 500.0])
+        phase.set_state_val('mass_fuel', [10000.0, 1.0])
+        phase.set_state_val('alt', [10.0, 10.0])
+        phase.set_control_val('mach', 0.8)
+        phase.set_control_val('climb_rate', 0.0)
 
-        p['traj.phase0.initial_states:range'] = 0.0
-        p['traj.phase0.initial_states:mass_fuel'] = 10_000.
-        p['traj.phase0.initial_states:alt'] = 10.0
-
-        p['traj.phase0.final_states:mass_fuel'] = 1.0
-        p['traj.phase0.final_states:range'] = 500.0
-        p['traj.phase0.final_states:alt'] = 10.0
-
-        p['traj.phase0.controls:mach'] = 0.8
-        p['traj.phase0.controls:climb_rate'] = 0.0
-
-        p['assumptions.S'] = 427.8
-        p['assumptions.mass_empty'] = 0.15E6
-        p['assumptions.mass_payload'] = 84.02869 * 400
+        p.set_val('assumptions.S', 427.8)
+        p.set_val('assumptions.mass_empty', 0.15E6)
+        p.set_val('assumptions.mass_payload', 84.02869 * 400)
 
         dm.run_problem(p, simulate=True, make_plots=True)
 
