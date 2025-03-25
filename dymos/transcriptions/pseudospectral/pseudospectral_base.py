@@ -492,16 +492,16 @@ class PseudospectralBase(TranscriptionBase):
 
             phase.connect('dt_dstau', f'{name}.dt_dstau', flat_src_indices=True)
 
-    def _get_objective_src(self, var, loc, phase, ode_outputs=None):
+    def _get_response_src(self, var, loc, phase, ode_outputs=None):
         """
-        Return the path to the variable that will be used as the objective.
+        Return the path to the variable that will be used as a response..
 
         Parameters
         ----------
         var : str
-            Name of the variable to be used as the objective.
+            Name of the variable to be used as the response.
         loc : str
-            The location of the objective in the phase ['initial', 'final'].
+            The location of the response in the phase ['initial', 'final'].
         phase : dymos.Phase
             Phase object containing in which the objective resides.
         ode_outputs : dict or None
@@ -516,7 +516,7 @@ class PseudospectralBase(TranscriptionBase):
         units : str
             Source units.
         linear : bool
-            True if the objective quantity1 is linear.
+            True if the objective quantity is linear.
         """
         time_units = phase.time_options['units']
         var_type = phase.classify_var(var)
@@ -548,12 +548,7 @@ class PseudospectralBase(TranscriptionBase):
             else:
                 linear = False
             constraint_path = f'states:{var}'
-        elif var_type == 'indep_control':
-            shape = phase.control_options[var]['shape']
-            units = phase.control_options[var]['units']
-            linear = True
-            constraint_path = f'control_values:{var}'
-        elif var_type == 'input_control':
+        elif var_type == 'control':
             shape = phase.control_options[var]['shape']
             units = phase.control_options[var]['units']
             linear = False
@@ -572,11 +567,6 @@ class PseudospectralBase(TranscriptionBase):
             units = control_rate_units
             linear = False
             constraint_path = f'control_rates:{var}'
-        elif var_type == 'timeseries_exec_comp_output':
-            shape = (1,)
-            units = None
-            constraint_path = f'timeseries.timeseries_exec_comp.{var}'
-            linear = False
         else:
             # Failed to find variable, assume it is in the ODE. This requires introspection.
             constraint_path = f'{self._rhs_source}.{var}'

@@ -39,8 +39,7 @@ def classify_var(var, time_options, state_options, parameter_options, control_op
     -------
     str
         The classification of the given variable, which is one of
-        't', 't_phase', 'state',
-        'input_control', 'indep_control', 'control_rate',
+        't', 't_phase', 'state', 'control', 'control_rate',
         'control_rate2', 'parameter', or 'ode'.
     """
     time_name = time_options['name']
@@ -59,10 +58,7 @@ def classify_var(var, time_options, state_options, parameter_options, control_op
     elif var in state_options:
         return 'state'
     elif var in control_options:
-        if control_options[var]['opt']:
-            return 'indep_control'
-        else:
-            return 'input_control'
+        return 'control'
     elif var in parameter_options:
         return 'parameter'
     elif var.endswith('_rate'):
@@ -203,7 +199,7 @@ def _configure_constraint_introspection(phase):
                 con['units'] = param_units if con['units'] is None else con['units']
                 con['constraint_path'] = f'parameter_vals:{var}'
 
-            elif var_type in ['indep_control', 'input_control']:
+            elif var_type == 'control':
                 prefix = 'controls:' if phase.timeseries_options['use_prefix'] else ''
                 control_shape = phase.control_options[var]['shape']
                 control_units = phase.control_options[var]['units']
@@ -240,12 +236,6 @@ def _configure_constraint_introspection(phase):
                     con['constraint_path'] = f'boundary_vals.{var}'
                 else:
                     con['constraint_path'] = f'timeseries.{prefix}{var}'
-
-            elif var_type == 'timeseries_exec_comp_output':
-                con['shape'] = (1,)
-                con['units'] = None
-                con['constraint_path'] = f'timeseries.timeseries_exec_comp.{var}'
-
             else:
                 # Failed to find variable, assume it is in the ODE. This requires introspection.
                 ode = phase.options['transcription']._get_ode(phase)
@@ -526,7 +516,7 @@ def configure_states_introspection(state_options, time_options, control_options,
         elif rate_src_type == 'state':
             rate_src_units = state_options[rate_src]['units']
             rate_src_shape = state_options[rate_src]['shape']
-        elif rate_src_type in ['input_control', 'indep_control']:
+        elif rate_src_type == 'control':
             rate_src_units = control_options[rate_src]['units']
             rate_src_shape = control_options[rate_src]['shape']
         elif rate_src_type == 'parameter':
@@ -906,7 +896,7 @@ def _configure_boundary_balance_introspection(phase):
                 options['eq_units'] = phase.state_options[state_name]['units']
             elif resid_type == 'parameter':
                 options['eq_units'] = phase.parameter[resid_name]['units']
-            elif resid_type in ['input_control', 'indep_control']:
+            elif resid_type == 'control':
                 options['eq_units'] = phase.control_options[resid_name]['units']
             elif resid_type == 'control_rate':
                 control_units = phase.state_options[resid_name]['units']
@@ -978,7 +968,7 @@ def _configure_constraint_introspection(phase):
                 con['units'] = param_units if con['units'] is None else con['units']
                 con['constraint_path'] = f'parameter_vals:{var}'
 
-            elif var_type in ['indep_control', 'input_control']:
+            elif var_type == 'control':
                 prefix = 'controls:' if phase.timeseries_options['use_prefix'] else ''
                 control_shape = phase.control_options[var]['shape']
                 control_units = phase.control_options[var]['units']
@@ -1015,11 +1005,6 @@ def _configure_constraint_introspection(phase):
                     con['constraint_path'] = f'boundary_vals.{var}'
                 else:
                     con['constraint_path'] = f'timeseries.{prefix}{var}'
-
-            elif var_type == 'timeseries_exec_comp_output':
-                con['shape'] = (1,)
-                con['units'] = None
-                con['constraint_path'] = f'timeseries.timeseries_exec_comp.{var}'
 
             else:
                 # Failed to find variable, assume it is in the ODE. This requires introspection.

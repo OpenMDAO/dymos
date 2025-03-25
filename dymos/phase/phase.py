@@ -2921,7 +2921,7 @@ class Phase(om.Group):
             return self.is_time_fixed(loc)
         elif var_type == 'state':
             return self.is_state_fixed(var_name, loc)
-        elif var_type in {'input_control', 'indep_control'}:
+        elif var_type in {'control'}:
             return self.is_control_fixed(var_name, loc)
         elif var_type in {'control_rate', 'control_rate2'}:
             return self.is_control_rate_fixed(var_name, loc)

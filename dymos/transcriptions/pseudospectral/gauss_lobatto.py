@@ -409,10 +409,7 @@ class GaussLobatto(PseudospectralBase):
                 rate_path = f'states:{var}'
                 node_idxs = make_subset_map(gd.subset_node_indices['state_input'],
                                             gd.subset_node_indices[nodes])
-        elif var_type == 'indep_control':
-            rate_path = f'control_values:{var}'
-            node_idxs = gd.subset_node_indices[nodes]
-        elif var_type == 'input_control':
+        elif var_type == 'control':
             rate_path = f'control_values:{var}'
             node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'control_rate':
@@ -420,20 +417,6 @@ class GaussLobatto(PseudospectralBase):
             rate_path = f'control_rates:{control_name}_rate'
             node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'control_rate2':
-            control_name = var[:-6]
-            rate_path = f'control_rates:{control_name}_rate2'
-            node_idxs = gd.subset_node_indices[nodes]
-        elif var_type == 'indep_polynomial_control':
-            rate_path = f'control_values:{var}'
-            node_idxs = gd.subset_node_indices[nodes]
-        elif var_type == 'input_polynomial_control':
-            rate_path = f'control_values:{var}'
-            node_idxs = gd.subset_node_indices[nodes]
-        elif var_type == 'polynomial_control_rate':
-            control_name = var[:-5]
-            rate_path = f'control_rates:{control_name}_rate'
-            node_idxs = gd.subset_node_indices[nodes]
-        elif var_type == 'polynomial_control_rate2':
             control_name = var[:-6]
             rate_path = f'control_rates:{control_name}_rate2'
             node_idxs = gd.subset_node_indices[nodes]
@@ -502,7 +485,7 @@ class GaussLobatto(PseudospectralBase):
             path = f'interleave_comp.all_values:states:{var}'
             src_units = phase.state_options[var]['units']
             src_shape = phase.state_options[var]['shape']
-        elif var_type in ['indep_control', 'input_control']:
+        elif var_type == 'control':
             path = f'control_values:{var}'
             src_units = phase.control_options[var]['units']
             src_shape = phase.control_options[var]['shape']
@@ -517,22 +500,6 @@ class GaussLobatto(PseudospectralBase):
             path = f'control_rates:{control_name}_rate2'
             src_units = get_rate_units(phase.control_options[control_name]['units'], time_units, deriv=2)
             src_shape = phase.control_options[control_name]['shape']
-        elif var_type in ['indep_polynomial_control', 'input_polynomial_control']:
-            path = f'control_values:{var}'
-            src_units = phase.control_options[var]['units']
-            src_shape = phase.control_options[var]['shape']
-        elif var_type == 'polynomial_control_rate':
-            control_name = var[:-5]
-            path = f'control_rates:{control_name}_rate'
-            control = phase.control_options[control_name]
-            src_units = get_rate_units(control['units'], time_units, deriv=1)
-            src_shape = control['shape']
-        elif var_type == 'polynomial_control_rate2':
-            control_name = var[:-6]
-            path = f'control_rates:{control_name}_rate2'
-            control = phase.control_options[control_name]
-            src_units = get_rate_units(control['units'], time_units, deriv=2)
-            src_shape = control['shape']
         elif var_type == 'parameter':
             path = f'parameter_vals:{var}'
             node_idxs = np.zeros(gd.subset_num_nodes['all'], dtype=int)
