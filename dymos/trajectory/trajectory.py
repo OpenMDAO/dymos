@@ -621,7 +621,7 @@ class Trajectory(om.Group):
                 sources[i] = f'timeseries.{prefix}{vars[i]}'
                 units[i] = phases[i].state_options[vars[i]]['units']
                 shapes[i] = phases[i].state_options[vars[i]]['shape']
-            elif classes[i] in {'indep_control', 'input_control'}:
+            elif classes[i] in {'control'}:
                 prefix = 'controls:' if use_prefix[i] else ''
                 sources[i] = f'timeseries.{prefix}{vars[i]}'
                 units[i] = phases[i].control_options[vars[i]]['units']
@@ -633,20 +633,6 @@ class Trajectory(om.Group):
                 units[i] = phases[i].control_options[control_name]['units']
                 deriv = 1 if classes[i].endswith('rate') else 2
                 units[i] = get_rate_units(units[i], phases[i].time_options['units'], deriv=deriv)
-                shapes[i] = phases[i].control_options[control_name]['shape']
-            elif classes[i] in {'indep_polynomial_control', 'input_polynomial_control'}:
-                prefix = 'controls:' if use_prefix[i] else ''
-                sources[i] = f'timeseries.{prefix}{vars[i]}'
-                units[i] = phases[i].control_options[vars[i]]['units']
-                shapes[i] = phases[i].control_options[vars[i]]['shape']
-            elif classes[i] in {'polynomial_control_rate', 'polynomial_control_rate2'}:
-                prefix = 'control_rates:' if use_prefix[i] else ''
-                sources[i] = f'timeseries.{prefix}{vars[i]}'
-                control_name = vars[i][:-5] if classes[i] == 'polynomial_control_rate' else vars[i][:-6]
-                control_units = phases[i].control_options[control_name]['units']
-                time_units = phases[i].time_options['units']
-                deriv = 1 if classes[i].endswith('rate') else 2
-                units[i] = get_rate_units(control_units, time_units, deriv=deriv)
                 shapes[i] = phases[i].control_options[control_name]['shape']
             elif classes[i] == 'parameter':
                 sources[i] = f'parameter_vals:{vars[i]}'
@@ -796,14 +782,9 @@ class Trajectory(om.Group):
                     't_phase': '',
                     'state': 'states:',
                     'parameter': 'parameters:',
-                    'input_control': 'controls:',
-                    'indep_control': 'controls:',
+                    'control': 'controls:',
                     'control_rate': 'control_rates:',
                     'control_rate2': 'control_rates:',
-                    'input_polynomial_control': 'controls:',
-                    'indep_polynomial_control': 'controls:',
-                    'polynomial_control_rate': 'control_rates:',
-                    'polynomial_control_rate2': 'control_rates:',
                     'ode': ''
                     }
 

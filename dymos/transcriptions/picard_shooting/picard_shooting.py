@@ -449,16 +449,16 @@ class PicardShooting(TranscriptionBase):
 
         return con_path, constraint_kwargs
 
-    def _get_objective_src(self, var, loc, phase, ode_outputs=None):
+    def _get_response_src(self, var, loc, phase, ode_outputs=None):
         """
-        Return the path to the variable that will be used as the objective.
+        Return the path to the variable that will be used as a response..
 
         Parameters
         ----------
         var : str
-            Name of the variable to be used as the objective.
+            Name of the variable to be used as the response.
         loc : str
-            The location of the objective in the phase ['initial', 'final'].
+            The location of the response in the phase ['initial', 'final'].
         phase : dymos.Phase
             Phase object containing in which the objective resides.
         ode_outputs : dict or None
@@ -473,7 +473,7 @@ class PicardShooting(TranscriptionBase):
         units : str
             Source units.
         linear : bool
-            True if the objective quantity1 is linear.
+            True if the objective quantity is linear.
         """
         time_units = phase.time_options['units']
         var_type = phase.classify_var(var)
@@ -496,22 +496,7 @@ class PicardShooting(TranscriptionBase):
             units = phase.state_options[var]['units']
             linear = False
             constraint_path = f'timeseries.{var}'
-        elif var_type == 'indep_control':
-            shape = phase.control_options[var]['shape']
-            units = phase.control_options[var]['units']
-            linear = True
-            constraint_path = f'control_values:{var}'
-        elif var_type == 'input_control':
-            shape = phase.control_options[var]['shape']
-            units = phase.control_options[var]['units']
-            linear = False
-            constraint_path = f'control_values:{var}'
-        elif var_type == 'indep_polynomial_control':
-            shape = phase.control_options[var]['shape']
-            units = phase.control_options[var]['units']
-            linear = True
-            constraint_path = f'control_values:{var}'
-        elif var_type == 'input_polynomial_control':
+        elif var_type == 'control':
             shape = phase.control_options[var]['shape']
             units = phase.control_options[var]['units']
             linear = False
@@ -530,20 +515,6 @@ class PicardShooting(TranscriptionBase):
             units = control_rate_units
             linear = False
             constraint_path = f'control_rates:{var}'
-        elif var_type in ('polynomial_control_rate', 'polynomial_control_rate2'):
-            control_var = var[:-5]
-            shape = phase.control_options[control_var]['shape']
-            control_units = phase.control_options[control_var]['units']
-            d = 2 if var_type == 'polynomial_control_rate2' else 1
-            control_rate_units = get_rate_units(control_units, time_units, deriv=d)
-            units = control_rate_units
-            linear = False
-            constraint_path = f'control_rates:{var}'
-        elif var_type == 'timeseries_exec_comp_output':
-            shape = (1,)
-            units = None
-            constraint_path = f'timeseries.timeseries_exec_comp.{var}'
-            linear = False
         else:
             # Failed to find variable, assume it is in the ODE. This requires introspection.
             constraint_path = f'timeseries.{var}'
@@ -599,24 +570,12 @@ class PicardShooting(TranscriptionBase):
             rate_path = 't_phase'
         elif var_type == 'state':
             rate_path = f'states:{var}'
-        elif var_type == 'indep_control':
-            rate_path = f'control_values:{var}'
-        elif var_type == 'input_control':
+        elif var_type == 'control':
             rate_path = f'control_values:{var}'
         elif var_type == 'control_rate':
             control_name = var[:-5]
             rate_path = f'control_rates:{control_name}_rate'
         elif var_type == 'control_rate2':
-            control_name = var[:-6]
-            rate_path = f'control_rates:{control_name}_rate2'
-        elif var_type == 'indep_polynomial_control':
-            rate_path = f'control_values:{var}'
-        elif var_type == 'input_polynomial_control':
-            rate_path = f'control_values:{var}'
-        elif var_type == 'polynomial_control_rate':
-            control_name = var[:-5]
-            rate_path = f'control_rates:{control_name}_rate'
-        elif var_type == 'polynomial_control_rate2':
             control_name = var[:-6]
             rate_path = f'control_rates:{control_name}_rate2'
         elif var_type == 'parameter':
@@ -692,7 +651,7 @@ class PicardShooting(TranscriptionBase):
                                                                  dtype=int), repeats=repeat_idxs)
                 # Now select the subset of nodes we want to use.
                 node_idxs = map_input_node_idxs_to_all[gd.subset_node_indices['all']]
-        elif var_type in ['indep_control', 'input_control']:
+        elif var_type == 'control':
             path = f'control_values:{var}'
             src_units = phase.control_options[var]['units']
             src_shape = phase.control_options[var]['shape']
@@ -707,22 +666,6 @@ class PicardShooting(TranscriptionBase):
             path = f'control_rates:{control_name}_rate2'
             src_units = get_rate_units(phase.control_options[control_name]['units'], time_units, deriv=2)
             src_shape = phase.control_options[control_name]['shape']
-        elif var_type in ['indep_polynomial_control', 'input_polynomial_control']:
-            path = f'control_values:{var}'
-            src_units = phase.control_options[var]['units']
-            src_shape = phase.control_options[var]['shape']
-        elif var_type == 'polynomial_control_rate':
-            control_name = var[:-5]
-            path = f'control_rates:{control_name}_rate'
-            control = phase.control_options[control_name]
-            src_units = get_rate_units(control['units'], time_units, deriv=1)
-            src_shape = control['shape']
-        elif var_type == 'polynomial_control_rate2':
-            control_name = var[:-6]
-            path = f'control_rates:{control_name}_rate2'
-            control = phase.control_options[control_name]
-            src_units = get_rate_units(control['units'], time_units, deriv=2)
-            src_shape = control['shape']
         elif var_type == 'parameter':
             path = f'parameter_vals:{var}'
             # Timeseries are never a static_target

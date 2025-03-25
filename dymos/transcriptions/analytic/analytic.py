@@ -442,16 +442,16 @@ class Analytic(TranscriptionBase):
         """
         return self.options['order']
 
-    def _get_objective_src(self, var, loc, phase, ode_outputs=None):
+    def _get_response_src(self, var, loc, phase, ode_outputs=None):
         """
-        Return the path to the variable that will be used as the objective.
+        Return the path to the variable that will be used as a response..
 
         Parameters
         ----------
         var : str
-            Name of the variable to be used as the objective.
+            Name of the variable to be used as the response.
         loc : str
-            The location of the objective in the phase ['initial', 'final'].
+            The location of the response in the phase ['initial', 'final'].
         phase : dymos.Phase
             Phase object containing in which the objective resides.
         ode_outputs : dict or None
@@ -466,7 +466,7 @@ class Analytic(TranscriptionBase):
         units : str
             Source units.
         linear : bool
-            True if the objective quantity1 is linear.
+            True if the objective quantity is linear.
         """
         time_units = phase.time_options['units']
         var_type = phase.classify_var(var)

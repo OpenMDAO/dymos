@@ -592,7 +592,7 @@ class TranscriptionBase(object):
             index = options['index']
             loc = options['loc']
 
-            obj_path, shape, _, _ = self._get_objective_src(name, loc, phase)
+            obj_path, shape, _, _ = self._get_response_src(name, loc, phase)
 
             shape = options['shape'] if shape is None else shape
 
@@ -623,16 +623,16 @@ class TranscriptionBase(object):
                                               scaler=options['scaler'],
                                               parallel_deriv_color=options['parallel_deriv_color'])
 
-    def _get_objective_src(self, name, loc, phase, ode_outputs=None):
+    def _get_response_src(self, name, loc, phase, ode_outputs=None):
         """
-        Return the path to the variable that will be used as the objective.
+        Return the path to the variable that will be used as a response..
 
         Parameters
         ----------
         var : str
-            Name of the variable to be used as the objective.
+            Name of the variable to be used as the response.
         loc : str
-            The location of the objective in the phase ['initial', 'final'].
+            The location of the response in the phase ['initial', 'final'].
         phase : dymos.Phase
             Phase object containing in which the objective resides.
         ode_outputs : dict or None
@@ -647,10 +647,10 @@ class TranscriptionBase(object):
         units : str
             Source units.
         linear : bool
-            True if the objective quantity1 is linear.
+            True if the objective quantity is linear.
         """
         raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method '
-                                  '_get_objective_src.')
+                                  '_get_response_src.')
 
     def _get_rate_source_path(self, name, loc, phase):
         raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method '

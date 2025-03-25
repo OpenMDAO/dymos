@@ -215,7 +215,7 @@ def eval_ode_on_grid(phase, transcription):
         elif rate_source_class in {'state'}:
             src_units = phase.state_options[rate_source]['units']
             f[name] = om.convert_units(x[rate_source], src_units, rate_units)
-        elif rate_source_class in {'input_control', 'indep_control'}:
+        elif rate_source_class in {'control'}:
             src_units = phase.control_options[rate_source]['units']
             f[name] = om.convert_units(u[rate_source], src_units, rate_units)
         elif rate_source_class in {'control_rate'}:
