@@ -1,4 +1,57 @@
-*******************************
+********************************
+# Release Notes for Dymos 1.13.0
+
+Apr 04, 2025
+
+Version 1.13.0 of dymos adds a few significant features.
+
+Users can now declare a calculation expression using `phase.add_calc_expr`.
+Previously this was done solely in timeseries and constraints.
+To generalize the capability, these expressions are now evaluated via an ExecComp that is executed as part of the ODE. This ExecComp is evaluated immediately after the ODE in the model hierarchy.
+Any output created with `add_calc_expr` will be seen as an ODE output by dymos.
+
+We've deprecated `set_duration_balance` in favor of `phase.add_boundary_balance`, which allows any parameter-like phase input to be an implicit output subject to some residual at the start or end of the phase. Note that this capability only makes sense in phases where the dynamics are satisfied via a nonlinear solver rather than an optimizer (PicardShooting, ExplicitShooting, or Pseudospectral phases using `solve_segments`). This capability allows the user to satisfy boundary value problems without an optimizer. Following versions of dymos will use this capability in more examples.
+
+This release also adds the new `PicardShooting` transcription, which uses [Picard iteration](https://en.wikipedia.org/wiki/Picard%E2%80%93Lindel%C3%B6f_theorem) to implicitly propagate states. An internal solver (`PicardShooting.options['ode_nonlinear_solver']` which is NonlinearBlockGS by default) converges the dynamics in each segment, while an outer solver (`PicardShooting.options['ms_nonlinear_solver']` which is NonlinearBlockGS by default) enforces state continuity at segment bounds if multiple segments are used.
+`PicardShooting` is a faster alternative to ExplicitShooting.
+
+## Backwards Incompatible API Changes & Deprecations
+
+- Added `phase.add_boundary_balance` and deprecated `phase.set_duration_balance` [#1148](https://github.com/OpenMDAO/dymos/pull/1148)
+
+## Enhancements
+
+- Added interpolation of results to arbitrary nodes, removed use of `scipy.interpolate.interp1d` from `phase.interp`. [#1129](https://github.com/OpenMDAO/dymos/pull/1129)
+- Moved Expressions from being calculated in the timeseries to being calculated along side the ODE. [#1147](https://github.com/OpenMDAO/dymos/pull/1147)
+- Added an image definition and a workflow to publish the image [#1143](https://github.com/OpenMDAO/dymos/pull/1143)
+- Added an ARM image [#1149](https://github.com/OpenMDAO/dymos/pull/1149)
+- Added `phase.add_boundary_balance` and deprecated `phase.set_duration_balance`. This PR also adds the new `PicardShooting` transcription. [#1148](https://github.com/OpenMDAO/dymos/pull/1148)
+
+## Bug Fixes
+
+- Fixed a NumPy 2.x testing issue and added a NumPy 2.x build to the test workflow [#1114](https://github.com/OpenMDAO/dymos/pull/1114)
+- Fixed bug in timeseries plots under MPI. [#1116](https://github.com/OpenMDAO/dymos/pull/1116)
+- Fixed a bug that caused a shape mismatch error when using explicit shooting on a problem with a matrix valued parameter. [#1127](https://github.com/OpenMDAO/dymos/pull/1127)
+- Allow double linkage between phases [#1121](https://github.com/OpenMDAO/dymos/pull/1121)
+- Trajectory timeseries reports now work with multiple trajectories in a single problem. [#1123](https://github.com/OpenMDAO/dymos/pull/1123)
+- Replaced interp1d with InterpND in tests and docs [#1125](https://github.com/OpenMDAO/dymos/pull/1125)
+- Fixed a bug where control rates of polynomial controls were not correct in simulation. [#1133](https://github.com/OpenMDAO/dymos/pull/1133)
+- Trajectory results report plots now plot vector variables, respect the x_name argument, and avoid noisy plots when values are nearly constant. [#1135](https://github.com/OpenMDAO/dymos/pull/1135)
+- Fixed an issue with implicit duration [#1140](https://github.com/OpenMDAO/dymos/pull/1140)
+- Fixed a small bug in the output report when simulate=False [#1150](https://github.com/OpenMDAO/dymos/pull/1150)
+
+## Miscellaneous
+
+- Changed 'latest' job in test and docs workflows to use Python 3.12 [#1122](https://github.com/OpenMDAO/dymos/pull/1122)
+- Some cleanup of the Birkhoff transcription and tests. [#1142](https://github.com/OpenMDAO/dymos/pull/1142)
+- Removed ControlGroup since ControlInterpComp handles all types of controls [#1146](https://github.com/OpenMDAO/dymos/pull/1146)
+- Removed stdout constraint summary from Trajectory configure process. [#1145](https://github.com/OpenMDAO/dymos/pull/1145)
+- Added a test of the readme.md file to make sure it doesnt get out-of-date [#1151](https://github.com/OpenMDAO/dymos/pull/1151)
+- Changed most examples to use set_state_val instead of set_val. [#1152](https://github.com/OpenMDAO/dymos/pull/1152)
+- Get baseline and latest docs building again. [#1153](https://github.com/OpenMDAO/dymos/pull/1153)
+- Cleanup of some dead code involving polynomial controls and timeseries expressions [#1154](https://github.com/OpenMDAO/dymos/pull/1154)
+
+********************************
 # Release Notes for Dymos 1.12.0
 
 Oct 02, 2024
