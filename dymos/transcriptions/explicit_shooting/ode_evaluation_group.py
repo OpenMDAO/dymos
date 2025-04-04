@@ -225,7 +225,9 @@ class ODEEvaluationGroup(om.Group):
 
             self.connect(rate_path, f'state_rate_collector.state_rates_in:{name}_rate')
 
-            self.add_constraint(f'state_rate_collector.state_rates:{name}_rate')
+            if self._compute_derivs:
+                # Adding the constraint/responds lets use compute the derivatives for this.
+                self.add_constraint(f'state_rate_collector.state_rates:{name}_rate')
 
     def _configure_params(self):
         ode_inputs = get_promoted_vars(self.ode, iotypes='input', metadata_keys=['shape', 'units', 'val', 'tags'])
@@ -290,9 +292,12 @@ class ODEEvaluationGroup(om.Group):
 
                 self._ivc.add_output(uhat_name, shape=(num_control_input_nodes,) + shape, units=units)
                 self.add_design_var(uhat_name)
-                self.add_constraint(u_name)
-                self.add_constraint(u_rate_name)
-                self.add_constraint(u_rate2_name)
+
+                if self._compute_derivs:
+                    # Adding the constraint/responds lets use compute the derivatives for this.
+                    self.add_constraint(u_name)
+                    self.add_constraint(u_rate_name)
+                    self.add_constraint(u_rate2_name)
 
                 self.promotes('control_interp', inputs=[uhat_name],
                               outputs=[u_name, u_rate_name, u_rate2_name])
