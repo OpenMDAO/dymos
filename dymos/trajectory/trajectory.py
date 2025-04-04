@@ -1374,6 +1374,9 @@ class Trajectory(om.Group):
             # record_outputs is needed to capture the timeseries outputs
             sim_prob.recording_options['record_outputs'] = True
 
+        # Support model options
+        sim_prob.model_options = self._problem_meta['model_options']
+
         with warnings.catch_warnings():
             # Some timeseries options are duplicated (expression options may be provide duplicate shape)
             # These filters suppress these warnings during simulation when they are not the
