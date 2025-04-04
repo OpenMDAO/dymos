@@ -212,7 +212,7 @@ class TestReentry(unittest.TestCase):
         p.driver.declare_coloring(tol=1.0E-12)
         p.driver.options['optimizer'] = 'IPOPT'
         p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
-        p.driver.opt_settings['print_level'] = 5
+        p.driver.opt_settings['print_level'] = 0
         p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
         p.driver.opt_settings['mu_strategy'] = 'monotone'
         p.driver.opt_settings['bound_mult_init_method'] = 'mu-based'
