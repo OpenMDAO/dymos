@@ -3,7 +3,7 @@ import numpy as np
 import openmdao.api as om
 
 from ..transcription_base import TranscriptionBase
-from ..common import TimeComp, TimeseriesOutputComp, ControlInterpComp
+from ..common import TimeComp, TimeseriesOutputComp, ControlInterpComp, GaussLobattoContinuityComp
 from .multiple_shooting_iter_group import MultipleShootingIterGroup
 
 from ..grid_data import GaussLobattoGrid, ChebyshevGaussLobattoGrid
@@ -270,26 +270,6 @@ class PicardShooting(TranscriptionBase):
         phase._get_subsystem('ode_iter_group').configure_io(phase)
         phase.connect('dt_dstau', 'picard_update_comp.dt_dstau')
 
-    def setup_defects(self, phase):
-        """
-        Create the continuity_comp to house the defects.
-
-        Parameters
-        ----------
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
-        """
-        pass
-
-    def configure_defects(self, phase):
-        """
-        Connect the collocation constraints.
-
-        Parameters
-        ----------
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
-        """
         num_nodes = self.grid_data.subset_num_nodes['all']
         for name, options in phase.state_options.items():
             rate_source_type = phase.classify_var(options['rate_source'])
@@ -301,6 +281,36 @@ class PicardShooting(TranscriptionBase):
 
             if rate_source_type not in ('state', 'ode'):
                 phase.connect(rate_src_path, f'picard_update_comp.f_computed:{name}', src_indices=src_idxs)
+
+    def setup_defects(self, phase):
+        """
+        Create the continuity_comp to house the defects.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
+        if any(self._requires_continuity_constraints(phase)):
+            phase.add_subsystem('continuity_comp',
+                                GaussLobattoContinuityComp(grid_data=self.grid_data,
+                                                           state_options={},
+                                                           control_options=phase.control_options,
+                                                           time_units=phase.time_options['units']))
+
+    def configure_defects(self, phase):
+        """
+        Connect the collocation constraints.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
+        any_state_cnty, any_control_cnty, any_control_rate_cnty = self._requires_continuity_constraints(phase)
+
+        if any((any_state_cnty, any_control_cnty, any_control_rate_cnty)):
+            phase._get_subsystem('continuity_comp').configure_io()
 
     def setup_solvers(self, phase):
         """
@@ -746,9 +756,9 @@ class PicardShooting(TranscriptionBase):
         num_seg = self.grid_data.num_segments
         compressed = self.grid_data.compressed
 
-        any_state_continuity = num_seg > 1 and not compressed
+        any_state_continuity = False
         any_control_continuity = any([opts['continuity'] for opts in phase.control_options.values()])
-        any_control_continuity = any_control_continuity and num_seg > 1
+        any_control_continuity = any_control_continuity and num_seg > 1 and not compressed
         any_rate_continuity = any([opts['rate_continuity'] or opts['rate2_continuity']
                                    for opts in phase.control_options.values()])
         any_rate_continuity = any_rate_continuity and num_seg > 1

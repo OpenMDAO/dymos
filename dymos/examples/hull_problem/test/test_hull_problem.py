@@ -6,7 +6,7 @@ from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 import dymos as dm
-from dymos import Trajectory, GaussLobatto, Phase, Radau, ExplicitShooting
+from dymos import Trajectory, GaussLobatto, Phase, Radau, ExplicitShooting, PicardShooting
 from dymos.examples.hull_problem.hull_ode import HullProblemODE
 
 c = 5
@@ -33,7 +33,7 @@ class TestHull(unittest.TestCase):
         phase0.set_time_options(fix_initial=True, fix_duration=True)
         phase0.add_state('x', fix_initial=True, fix_final=False, rate_source='u')
         phase0.add_state('xL', fix_initial=True, fix_final=False, rate_source='L')
-        phase0.add_control('u', opt=True, targets=['u'])
+        phase0.add_control('u', opt=True, targets=['u'], continuity=False, rate_continuity=True)
 
         phase0.add_objective(f'J = {c}*x**2/2 + xL')
 
@@ -83,6 +83,23 @@ class TestHull(unittest.TestCase):
 
     def test_hull_shooting(self):
         p = self.make_problem(transcription=ExplicitShooting)
+        dm.run_problem(p, simulate=True)
+
+        xf, uf = self.solution(1.5, 10)
+
+        assert_near_equal(p.get_val('traj.phase.timeseries.x')[-1],
+                          xf,
+                          tolerance=1e-4)
+
+        assert_near_equal(p.get_val('traj.phase.timeseries.u')[-1],
+                          uf,
+                          tolerance=1e-4)
+
+
+    def test_hull_picard(self):
+        p = self.make_problem(transcription=PicardShooting, numseg=3)
+        p.final_setup()
+        p.list_driver_vars()
         dm.run_problem(p, simulate=True)
 
         xf, uf = self.solution(1.5, 10)
