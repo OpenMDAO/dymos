@@ -2076,6 +2076,9 @@ title="Open an issue"
             <span class="c1"># record_outputs is needed to capture the timeseries outputs</span>
             <span class="n">sim_prob</span><span class="o">.</span><span class="n">recording_options</span><span class="p">[</span><span class="s1">&#39;record_outputs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
 
+        <span class="c1"># Support model options</span>
+        <span class="n">sim_prob</span><span class="o">.</span><span class="n">model_options</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_problem_meta</span><span class="p">[</span><span class="s1">&#39;model_options&#39;</span><span class="p">]</span>
+
         <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
             <span class="c1"># Some timeseries options are duplicated (expression options may be provide duplicate shape)</span>
             <span class="c1"># These filters suppress these warnings during simulation when they are not the</span>
