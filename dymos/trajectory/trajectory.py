@@ -1307,7 +1307,7 @@ class Trajectory(om.Group):
 
     def simulate(self, times_per_seg=_unspecified, method=_unspecified, atol=_unspecified, rtol=_unspecified,
                  first_step=_unspecified, max_step=_unspecified, record_file=None, case_prefix=None,
-                 reset_iter_counts=True, reports=False, interpolant='cubic'):
+                 reset_iter_counts=True, reports=False, interpolant='cubic', model_options=None):
         """
         Simulate the Trajectory using scipy.integrate.solve_ivp.
 
@@ -1337,6 +1337,8 @@ class Trajectory(om.Group):
             Reports setting for the subproblems run under simualate.
         interpolant : str
             The interpolation method to be used for the controls in the simulation phase.
+        model_options : dict or None
+            Dictionary of options to be passed into the trajectory simulation problem.
 
         Returns
         -------
@@ -1373,6 +1375,8 @@ class Trajectory(om.Group):
             sim_prob.add_recorder(rec)
             # record_outputs is needed to capture the timeseries outputs
             sim_prob.recording_options['record_outputs'] = True
+
+        sim_prob.model_options = model_options
 
         with warnings.catch_warnings():
             # Some timeseries options are duplicated (expression options may be provide duplicate shape)

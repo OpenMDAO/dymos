@@ -114,6 +114,8 @@ def run_problem(problem, refine_method='hp', refine_iteration_limit=0, run_drive
         if 'case_prefix' in _simulate_kwargs:
             raise ValueError('Key "case_prefix" was found in simulate_kwargs but should instead by provided by the '
                              'argument "case_prefix", not part of the simulate_kwargs dictionary.')
+        _simulate_kwargs['model_options'] = problem.model_options
+
         for subsys in problem.model.system_iter(include_self=True, recurse=True):
             if isinstance(subsys, Trajectory):
                 sim_prob = subsys.simulate(record_file=simulation_record_file,
