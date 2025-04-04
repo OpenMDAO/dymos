@@ -117,6 +117,9 @@ class ODEIntegrationComp(om.ExplicitComponent):
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
 
+        # Support model options
+        p.model_options = self._problem_meta['model_options']
+
         if om_version()[0] <= (3, 34, 2):
             p.setup(check=None)
         else:
