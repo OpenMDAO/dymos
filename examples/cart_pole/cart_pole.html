@@ -834,16 +834,16 @@ Friction force is ignored to simplify the problem.</p>
 <section id="trajectory-optimization-problem">
 <h2>Trajectory Optimization Problem<a class="headerlink" href="#trajectory-optimization-problem" title="Permalink to this heading">#</a></h2>
 <p>We use the following quadratic objective function to approximately minimize the total control effort:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-3ed569e8-3bc6-4f6e-8244-d2a27a7ea627">
-<span class="eqno">(91)<a class="headerlink" href="#equation-3ed569e8-3bc6-4f6e-8244-d2a27a7ea627" title="Permalink to this equation">#</a></span>\[\begin{equation}
+<div class="amsmath math notranslate nohighlight" id="equation-b43875a1-eda5-4399-9b49-e47ee5089c33">
+<span class="eqno">(91)<a class="headerlink" href="#equation-b43875a1-eda5-4399-9b49-e47ee5089c33" title="Permalink to this equation">#</a></span>\[\begin{equation}
     J = \int_{t_0}^{t_f} F(t)^2 dt ~~ \rightarrow ~ \min
 \end{equation}\]</div>
 <p>where <span class="math notranslate nohighlight">\(F(t)\)</span> is the external force, <span class="math notranslate nohighlight">\(t_0\)</span> is the initial time, and <span class="math notranslate nohighlight">\(t_f\)</span> is the final time.</p>
 <section id="dynamics">
 <h3>Dynamics<a class="headerlink" href="#dynamics" title="Permalink to this heading">#</a></h3>
 <p>The equations of motion of the cart-pole system are given by</p>
-<div class="amsmath math notranslate nohighlight" id="equation-f0c12e6c-d30c-4652-8a1d-6515bfce41c1">
-<span class="eqno">(92)<a class="headerlink" href="#equation-f0c12e6c-d30c-4652-8a1d-6515bfce41c1" title="Permalink to this equation">#</a></span>\[\begin{equation}
+<div class="amsmath math notranslate nohighlight" id="equation-8ed251d8-b502-42e4-b60c-0998542faa88">
+<span class="eqno">(92)<a class="headerlink" href="#equation-8ed251d8-b502-42e4-b60c-0998542faa88" title="Permalink to this equation">#</a></span>\[\begin{equation}
     \begin{bmatrix}
         \ddot{x} \\ \ddot{\theta}
     \end{bmatrix} =
@@ -860,13 +860,13 @@ Friction force is ignored to simplify the problem.</p>
 To do so, we define our state vector to be <span class="math notranslate nohighlight">\(X = [x, \dot{x}, \theta, \dot{\theta}]^T\)</span>.
 We also add an “energy” state <span class="math notranslate nohighlight">\(e\)</span> and set <span class="math notranslate nohighlight">\(\dot{e} = F^2\)</span> to keep track of the accumulated control input.
 By setting setting <span class="math notranslate nohighlight">\(e_0 = 0\)</span>, the objective function is equal to the final value of the state <span class="math notranslate nohighlight">\(e\)</span>:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-e467ce64-8bd6-4f64-9f8a-864e03f0fd71">
-<span class="eqno">(93)<a class="headerlink" href="#equation-e467ce64-8bd6-4f64-9f8a-864e03f0fd71" title="Permalink to this equation">#</a></span>\[\begin{equation}
+<div class="amsmath math notranslate nohighlight" id="equation-11b56e78-6550-48ea-9e3f-8380e75fb550">
+<span class="eqno">(93)<a class="headerlink" href="#equation-11b56e78-6550-48ea-9e3f-8380e75fb550" title="Permalink to this equation">#</a></span>\[\begin{equation}
     J = \int_{t_0}^{t_f} \dot{e} ~dt = e_f
 \end{equation}\]</div>
 <p>To summarize, the ODE for the cart-pole system is given by</p>
-<div class="amsmath math notranslate nohighlight" id="equation-8526bb8f-429d-4237-bac5-f7c52cddb5c4">
-<span class="eqno">(94)<a class="headerlink" href="#equation-8526bb8f-429d-4237-bac5-f7c52cddb5c4" title="Permalink to this equation">#</a></span>\[\begin{equation}
+<div class="amsmath math notranslate nohighlight" id="equation-061ed1a7-2a95-4e37-83de-61671f87bd8d">
+<span class="eqno">(94)<a class="headerlink" href="#equation-061ed1a7-2a95-4e37-83de-61671f87bd8d" title="Permalink to this equation">#</a></span>\[\begin{equation}
     \begin{bmatrix}
         \dot{x} \\ \dot{\theta} \\ \ddot{x} \\ \ddot{\theta} \\ \dot{e} 
     \end{bmatrix} =
@@ -887,8 +887,8 @@ By setting setting <span class="math notranslate nohighlight">\(e_0 = 0\)</span>
 <section id="initial-and-terminal-conditions">
 <h3>Initial and terminal conditions<a class="headerlink" href="#initial-and-terminal-conditions" title="Permalink to this heading">#</a></h3>
 <p>The initial state variables are all zero at <span class="math notranslate nohighlight">\(t_0 = 0\)</span>, and the final conditions at time <span class="math notranslate nohighlight">\(t_f\)</span> are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-de391516-3ba9-46e2-9bce-d132c4f76602">
-<span class="eqno">(95)<a class="headerlink" href="#equation-de391516-3ba9-46e2-9bce-d132c4f76602" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-c30136bb-3ce4-49eb-83b8-55e24fa787c1">
+<span class="eqno">(95)<a class="headerlink" href="#equation-c30136bb-3ce4-49eb-83b8-55e24fa787c1" title="Permalink to this equation">#</a></span>\[\begin{align}
     x_f &amp;= d \\
     \dot{x}_f &amp;= 0 \\
     \theta_f &amp;= \pi \\
@@ -1196,7 +1196,7 @@ First, we instantiate the OpenMDAO problem and set up the Dymos trajectory, phas
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;dymos.phase.phase.Phase at 0x7f19112fcb50&gt;
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;dymos.phase.phase.Phase at 0x7fb120704790&gt;
 </pre></div>
 </div>
 </div>
@@ -1270,7 +1270,7 @@ We then call the <code class="docutils literal notranslate"><span class="pre">se
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;openmdao.core.problem.Problem at 0x7f19114b22d0&gt;
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;openmdao.core.problem.Problem at 0x7fb1219b9dd0&gt;
 </pre></div>
 </div>
 </div>
@@ -1301,10 +1301,10 @@ Total colors vs. total size: 10 vs 281  (96.44% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem&#39; was computed 3 times.
-Time to compute sparsity:   0.5819 sec
-Time to compute coloring:   0.2175 sec
-Memory to compute coloring:   0.1250 MB
-Coloring created on: 2025-04-04 14:59:17
+Time to compute sparsity:   0.5841 sec
+Time to compute coloring:   0.2117 sec
+Memory to compute coloring:   0.2500 MB
+Coloring created on: 2025-04-04 20:26:48
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/group.py:1194: DerivativesWarning:Constraints or objectives [ode_eval.control_interp.control_rates:f_rate, ode_eval.control_interp.control_rates:f_rate2, ode_eval.control_interp.control_values:f] cannot be impacted by the design variables of the problem because no partials were defined for them in their parent component(s).
@@ -1320,11 +1320,11 @@ Coloring created on: 2025-04-04 14:59:17
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 43
-  runtime     : 3.4049E+00 s
+  runtime     : 3.2575E+00 s
   model_evals : 43
-  model_time  : 6.0263E-02 s
+  model_time  : 5.0499E-02 s
   deriv_evals : 42
-  deriv_time  : 7.5613E-01 s
+  deriv_time  : 7.2857E-01 s
   exit_status : SUCCESS
 </pre></div>
 </div>
