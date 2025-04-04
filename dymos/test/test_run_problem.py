@@ -649,6 +649,45 @@ class TestRunProblem(unittest.TestCase):
         assert_almost_equal(x0q, fx0s(tq), decimal=2)
         assert_almost_equal(uq, fus(tq), decimal=5)
 
+    def test_simulate_support_model_options(self):
+
+        class MyODE(om.ExplicitComponent):
+
+            def initialize(self):
+                self.options.declare('num_nodes', types=int)
+                self.options.declare('enable', default=False)
+
+            def setup(self):
+                nn = self.options['num_nodes']
+
+                if not self.options['enable']:
+                    raise RuntimeError("Model options not passed.")
+
+                self.add_input('state', shape=(nn,))
+                self.add_output('out', shape=(nn,))
+                self.add_output('state_deriv', shape=(nn,))
+
+            def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
+                pass
+
+        prob = om.Problem()
+
+        phase = dm.Phase(ode_class=MyODE,
+                         transcription=dm.GaussLobatto(num_segments=3))
+
+        phase.add_state('state', rate_source='state_deriv')
+        phase.add_objective('out', loc='final', ref=1000.0)
+
+        traj = dm.Trajectory()
+        prob.model.add_subsystem('traj', traj)
+        traj.add_phase('phase', phase)
+
+        prob.model_options['*'] = {'enable': True}
+        prob.setup()
+
+        # Will raise an error during simulation if model options are not set.
+        dm.run_problem(prob, make_plots=False, simulate=True)
+
 
 @use_tempdirs
 @require_pyoptsparse(optimizer='SLSQP')
