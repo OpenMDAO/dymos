@@ -92,8 +92,10 @@ class TestControlRateComp(unittest.TestCase):
 
                 p = om.Problem(model=om.Group())
 
-                controls = {'a': {'units': 'm', 'shape': (1,), 'dynamic': True, 'opt': False},
-                            'b': {'units': 'm', 'shape': (1,), 'dynamic': True, 'opt': False}}
+                controls = {'a': {'units': 'm', 'shape': (1,), 'val': 1.0,
+                                  'dynamic': True, 'opt': False},
+                            'b': {'units': 'm', 'shape': (1,), 'val': 1.0,
+                                  'dynamic': True, 'opt': False}}
 
                 ivc = om.IndepVarComp()
                 p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
@@ -183,7 +185,8 @@ class TestControlRateComp(unittest.TestCase):
 
                 p = om.Problem(model=om.Group())
 
-                controls = {'a': {'units': 'm', 'shape': (3,), 'dynamic': True, 'opt': False}}
+                controls = {'a': {'units': 'm', 'shape': (3,), 'val': np.array([1, 2, 3]),
+                                  'dynamic': True, 'opt': False}}
 
                 ivc = om.IndepVarComp()
                 p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
@@ -283,7 +286,8 @@ class TestControlRateComp(unittest.TestCase):
 
                 p = om.Problem(model=om.Group())
 
-                controls = {'a': {'units': 'm', 'shape': (3, 1), 'dynamic': True, 'opt': False}}
+                controls = {'a': {'units': 'm', 'shape': (3, 1), 'val': 1.0,
+                                  'dynamic': True, 'opt': False}}
 
                 ivc = om.IndepVarComp()
                 p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
@@ -382,7 +386,8 @@ class TestControlRateComp(unittest.TestCase):
 
                 p = om.Problem(model=om.Group())
 
-                controls = {'a': {'units': 'm', 'shape': (2, 2), 'dynamic': True, 'opt': False}}
+                controls = {'a': {'units': 'm', 'shape': (2, 2), 'val': np.array([[1, 2], [3, 4]]),
+                                  'dynamic': True, 'opt': False}}
 
                 ivc = om.IndepVarComp()
                 p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])

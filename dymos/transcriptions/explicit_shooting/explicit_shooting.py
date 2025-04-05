@@ -9,7 +9,7 @@ from .explicit_shooting_continuity_comp import ExplicitShootingContinuityComp
 from ..transcription_base import TranscriptionBase
 from ..grid_data import BirkhoffGrid, GaussLobattoGrid, RadauGrid, UniformGrid, ChebyshevGaussLobattoGrid
 from .ode_integration_comp import ODEIntegrationComp
-from ...utils.misc import get_rate_units, CoerceDesvar
+from ...utils.misc import get_rate_units, CoerceDesvar, reshape_val
 from ...utils.indexing import get_src_indices_by_row
 from ...utils.introspection import get_promoted_vars, get_source_metadata, get_targets, _get_targets_metadata
 from ...utils.constants import INF_BOUND
@@ -414,6 +414,8 @@ class ExplicitShooting(TranscriptionBase):
                 ncin = self.options['grid'].subset_num_nodes['control_input']
 
             phase.promotes('integrator', inputs=[f'controls:{control_name}'])
+            default_val = reshape_val(options['val'], options['shape'], ncin)
+            phase.set_input_defaults(f'controls:{control_name}', val=default_val)
 
             if options['opt']:
                 coerce_desvar_option = CoerceDesvar(num_input_nodes=ncin, options=options)
@@ -708,6 +710,11 @@ class ExplicitShooting(TranscriptionBase):
         control_rate_continuity : bool
             True if any control rate continuity is required to be enforced.
         """
+        if not self.options['propagate_derivs']:
+            # We're not propagating derivatives because we're just doing a simulation run_model.
+            # No continuity is needed.
+            return False, False, False
+
         num_seg = self.options['grid'].num_segments
         compressed = self.options['grid'].compressed
         transcription = self.options['grid'].transcription

@@ -70,7 +70,7 @@ def reshape_val(val, shape, num_input_nodes):
         The given value of the correct shape.
     """
     if np.isscalar(val) or np.prod(np.asarray(val).shape) == 1:
-        shaped_val = float(val) * np.ones((num_input_nodes,) + shape)
+        shaped_val = float(np.asarray(val).ravel()[0]) * np.ones((num_input_nodes,) + shape)
     elif np.asarray(val).shape == shape:
         shaped_val = np.repeat(val[np.newaxis, ...], num_input_nodes, axis=0)
     else:
