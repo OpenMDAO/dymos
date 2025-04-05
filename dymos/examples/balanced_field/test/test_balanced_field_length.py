@@ -97,9 +97,6 @@ class TestBalancedFieldLengthDefaultValues(unittest.TestCase):
 
         p = om.Problem()
 
-        p.driver = om.pyOptSparseDriver()
-        p.driver.declare_coloring()
-
         # First Phase: Brake release to V1 - both engines operable
         br_to_v1 = dm.Phase(ode_class=ode_class, transcription=tx,
                             ode_init_kwargs={'mode': 'runway'})
