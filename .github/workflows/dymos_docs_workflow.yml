@@ -9,6 +9,10 @@ on:
   pull_request:
     branches: [ master, develop ]
 
+  # Trigger on release, to publish release versioned docs to openmdao.org
+  release:
+    types: [published]
+
   # Trigger via workflow_dispatch event
   workflow_dispatch:
 
@@ -262,8 +266,7 @@ jobs:
 
       - name: Publish docs to github.io
         if: |
-          github.event_name == 'push' && github.ref == 'refs/heads/master' &&
-          matrix.PUBLISH_DOCS == '1'
+          github.event_name == 'push' && matrix.PUBLISH_DOCS == '1'
         shell: bash -l {0}
         run: |
           echo "============================================================="
@@ -275,7 +278,7 @@ jobs:
 
       - name: Publish docs to openmdao.org
         if: |
-          github.event_name == 'push' && github.ref == 'refs/heads/master' &&
+          (github.event_name == 'push' || github.event_name == 'release') &&
           matrix.PUBLISH_DOCS == '1'
         env:
           DOCS_LOCATION: ${{ secrets.DOCS_LOCATION }}
