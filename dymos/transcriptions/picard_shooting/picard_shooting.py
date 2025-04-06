@@ -307,10 +307,37 @@ class PicardShooting(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
+        grid_data = self.grid_data
         any_state_cnty, any_control_cnty, any_control_rate_cnty = self._requires_continuity_constraints(phase)
 
         if any((any_state_cnty, any_control_cnty, any_control_rate_cnty)):
             phase._get_subsystem('continuity_comp').configure_io()
+
+        if any_control_rate_cnty:
+            phase.connect('t_duration_val', 'continuity_comp.t_duration')
+
+            for name, options in phase.control_options.items():
+                # The sub-indices of control_disc indices that are segment ends
+                segment_end_idxs = grid_data.subset_node_indices['segment_ends']
+                src_idxs = get_src_indices_by_row(segment_end_idxs, options['shape'], flat=True)
+
+                # enclose indices in tuple to ensure shaping of indices works
+                src_idxs = (src_idxs,)
+
+                if options['continuity']:
+                    phase.connect(f'control_values:{name}',
+                                  f'continuity_comp.controls:{name}',
+                                  src_indices=src_idxs, flat_src_indices=True)
+
+                if options['rate_continuity']:
+                    phase.connect(f'control_rates:{name}_rate',
+                                  f'continuity_comp.control_rates:{name}_rate',
+                                  src_indices=src_idxs, flat_src_indices=True)
+
+                if options['rate2_continuity']:
+                    phase.connect(f'control_rates:{name}_rate2',
+                                  f'continuity_comp.control_rates:{name}_rate2',
+                                  src_indices=src_idxs, flat_src_indices=True)
 
     def setup_solvers(self, phase):
         """

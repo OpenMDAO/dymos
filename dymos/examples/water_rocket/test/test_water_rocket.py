@@ -12,7 +12,6 @@ except ImportError:
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
-from openmdao.utils.general_utils import env_truthy
 
 from dymos.examples.water_rocket.phases import (new_water_rocket_trajectory,
                                                 set_sane_initial_guesses)
@@ -52,11 +51,12 @@ class TestWaterRocketForDocs(unittest.TestCase):
 
         exp_out = traj.simulate(times_per_seg=10)
 
-        if not env_truthy('TESTFLO_RUNNING'):
-            plot_propelled_ascent(p, exp_out)
-            plot_trajectory(p, exp_out)
-            plot_states(p, exp_out)
-            plt.show()
+        # NOTE: only the last figure is shown in the generated docs
+        plot_propelled_ascent(p, exp_out)
+        plot_trajectory(p, exp_out)
+        plot_states(p, exp_out)
+
+        plt.show()
 
         # Check results (tolerance is relative unless value is zero)
         assert_near_equal(summary['Launch angle'].value, 85, 0.01)
@@ -93,11 +93,12 @@ class TestWaterRocketForDocs(unittest.TestCase):
 
         exp_out = traj.simulate(times_per_seg=10)
 
-        if not env_truthy('TESTFLO_RUNNING'):
-            plot_propelled_ascent(p, exp_out)
-            plot_trajectory(p, exp_out)
-            plot_states(p, exp_out)
-            plt.show()
+        # NOTE: only the last figure is shown in the generated docs
+        plot_propelled_ascent(p, exp_out)
+        plot_trajectory(p, exp_out)
+        plot_states(p, exp_out)
+
+        # plt.show()
 
         # Check results (tolerance is relative unless value is zero)
         assert_near_equal(summary['Launch angle'].value, 46, 0.02)
