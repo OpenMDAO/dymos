@@ -14,7 +14,7 @@ from dymos.examples.hull_problem.hull_ode import HullProblemODE
 c = 5
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestHull(unittest.TestCase):
 
     @staticmethod
