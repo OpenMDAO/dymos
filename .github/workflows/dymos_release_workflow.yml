@@ -7,6 +7,10 @@ on:
   release:
     types: [published]
 
+  # Run the workflow manually
+  # This might be useful if the automated publish fails for some reason (use with CARE!!)
+  workflow_dispatch:
+
 jobs:
   pypi-publish:
     name: Upload release to PyPI
