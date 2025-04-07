@@ -1,8 +1,5 @@
 # Run Tests
 
-# Matrix Options
-# DOCS: 2-Build and publish, 1-build only, 0-no docs
-
 name: Dymos Tests
 
 on:
