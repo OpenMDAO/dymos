@@ -1,4 +1,35 @@
 ********************************
+# Release Notes for Dymos 1.13.1
+
+Apr 10, 2025
+
+This release addresses issues found in 1.13.0.
+
+The default `val` given for controls were not correctly applied.
+Control continuity was left out of the PicardShooting transcription.
+These have been fixed, in addition to some maintainence improvements for the devs.
+
+## Backwards Incompatible API Changes & Deprecations
+
+None
+
+## Enhancements
+
+None
+
+## Bug Fixes
+
+- Added support for using `model_options` when simulate=True. [#1164](https://github.com/OpenMDAO/dymos/pull/1164)
+- Fixed an issue where default values in add_control or set_control_options were no longer being respected. [#1165](https://github.com/OpenMDAO/dymos/pull/1165)
+- Added control continuity to PicardShooting [#1167](https://github.com/OpenMDAO/dymos/pull/1167).
+
+## Miscellaneous
+
+- Quieted plots and IPOPT output in a few tests when testflo is running. [#1161](https://github.com/OpenMDAO/dymos/pull/1161)
+- Publish docs to openmdao.org on release event [#1162](https://github.com/OpenMDAO/dymos/pull/1162)
+- Added a PyPi release workflow [#1168](https://github.com/OpenMDAO/dymos/pull/1168)
+
+********************************
 # Release Notes for Dymos 1.13.0
 
 Apr 04, 2025
