@@ -1,4 +1,4 @@
-__version__ = '1.13.1-dev'
+__version__ = '1.13.1'
 
 
 from .phase import Phase, AnalyticPhase
