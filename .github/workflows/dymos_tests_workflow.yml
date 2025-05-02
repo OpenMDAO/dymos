@@ -25,47 +25,53 @@ on:
         type: boolean
         description: "Include 'baseline' in test matrix"
         required: false
-        default: false
+        default: true
 
       no_pyoptsparse:
         type: boolean
         description: "Include 'no_pyoptsparse' in test matrix"
         required: false
-        default: false
+        default: true
 
       numpy2_no_pyoptsparse:
         type: boolean
         description: "Include 'numpy2_no_pyoptsparse' in test matrix"
         required: false
-        default: false
+        default: true
 
       no_snopt:
         type: boolean
         description: "Include 'no_snopt' in test matrix"
         required: false
-        default: false
+        default: true
 
       no_mpi:
         type: boolean
         description: "Include 'no_mpi' Baseline in test matrix"
         required: false
-        default: false
+        default: true
 
       latest:
         type: boolean
         description: "Include 'latest' in test matrix"
         required: false
-        default: false
+        default: true
 
       python313:
         type: boolean
         description: "Include 'python313' in test matrix"
         required: false
-        default: false
+        default: true
 
       oldest:
         type: boolean
         description: "Include 'oldest' in test matrix"
+        required: false
+        default: true
+
+      use_pypi:
+        type: boolean
+        description: 'Run tests against the published PyPI version of Dymos'
         required: false
         default: false
 
@@ -352,7 +358,12 @@ jobs:
           echo "============================================================="
           echo "Install Dymos"
           echo "============================================================="
-          if [[ "${{ matrix.PEP517 }}" == "true" ]]; then
+          if [[  "${{ inputs.use_pypi }}" == "true" ]]; then
+            echo "-----------------------------------------------------------"
+            echo "Installing from PyPI"
+            echo "-----------------------------------------------------------"
+            python -m pip install dymos${{ matrix.OPTIONAL }}
+          elif [[ "${{ matrix.PEP517 }}" == "true" ]]; then
             pip wheel --no-deps --use-pep517 .
             WHEEL=`find dymos-*.whl`
             echo "-----------------------------------------------------------"
