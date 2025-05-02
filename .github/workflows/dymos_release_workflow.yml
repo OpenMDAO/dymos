@@ -1,6 +1,6 @@
 # Publish release to PyPi
 
-name: Dymos Release
+name: Publish Release
 
 on:
   # Trigger on release, to publish release packages to PyPI
@@ -16,7 +16,7 @@ jobs:
     name: Upload release to PyPI
     runs-on: ubuntu-latest
 
-    environment: release
+    environment: testpypi
 
     permissions:
       id-token: write
@@ -34,5 +34,25 @@ jobs:
       - name: build
         run: hatch build
 
-      - name: Publish package distributions to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+      - name: Publish package distributions to PyPI (v1.12.4)
+        uses: pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfe128415bbaabdfc
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
+  test-pypi-release:
+    name: Test Dymos PyPi Release
+    needs: [pypi-publish]
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: benc-uk/workflow-dispatch@v1
+      with:
+        workflow: Dymos Tests
+        repo: ${{ github.repository_owner }}/Dymos
+        inputs: >
+          {
+            "run_name": "Test Dymos PyPi release",
+            "use_pypi": true
+           }
+        token: ${{ secrets.ACCESS_TOKEN }}
+      if: github.event_name == 'release'
