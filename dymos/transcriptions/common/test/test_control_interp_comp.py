@@ -10,6 +10,7 @@ import dymos as dm
 from dymos.transcriptions.common import TimeComp
 from dymos.transcriptions.common import ControlInterpComp
 from dymos.transcriptions.grid_data import GridData
+from dymos.utils.lgl import lgl
 
 # Modify class so we can run it standalone.
 from dymos.utils.misc import CompWrapperConfig
@@ -79,8 +80,8 @@ class TestControlRateComp(unittest.TestCase):
     def test_control_interp_scalar(self):
         param_list = itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
                                        [True, False],  # compressed
-                                       )
-        for transcription, compressed in param_list:
+                                       ['polynomial', 'full'])  # control type
+        for transcription, compressed, control_type in param_list:
             with self.subTest():
                 segends = np.array([0.0, 3.0, 10.0])
 
@@ -93,20 +94,31 @@ class TestControlRateComp(unittest.TestCase):
                 p = om.Problem(model=om.Group())
 
                 controls = {'a': {'units': 'm', 'shape': (1,), 'val': 1.0,
-                                  'dynamic': True, 'opt': False},
+                                  'dynamic': True, 'opt': False, 'control_type': control_type,
+                                  'order': 3},
                             'b': {'units': 'm', 'shape': (1,), 'val': 1.0,
-                                  'dynamic': True, 'opt': False}}
+                                  'dynamic': True, 'opt': False, 'control_type': control_type,
+                                  'order': 5}}
 
                 ivc = om.IndepVarComp()
                 p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
 
-                ivc.add_output('controls:a',
-                               val=np.zeros((gd.subset_num_nodes['control_input'], 1)),
-                               units='m')
+                if control_type == 'polynomial':
+                    ivc.add_output('controls:a',
+                                val=np.zeros((controls['a']['order'] + 1, 1)),
+                                units='m')
 
-                ivc.add_output('controls:b',
-                               val=np.zeros((gd.subset_num_nodes['control_input'], 1)),
-                               units='m')
+                    ivc.add_output('controls:b',
+                                val=np.zeros((controls['b']['order'] + 1, 1)),
+                                units='m')
+                else:
+                    ivc.add_output('controls:a',
+                                val=np.zeros((gd.subset_num_nodes['control_input'], 1)),
+                                units='m')
+
+                    ivc.add_output('controls:b',
+                                val=np.zeros((gd.subset_num_nodes['control_input'], 1)),
+                                units='m')
 
                 ivc.add_output('t_initial', val=0.0, units='s')
                 ivc.add_output('t_duration', val=10.0, units='s')
@@ -121,7 +133,7 @@ class TestControlRateComp(unittest.TestCase):
                                       subsys=ControlInterpComp(grid_data=gd,
                                                                control_options=controls,
                                                                time_units='s'),
-                                      promotes_inputs=['controls:*'])
+                                      promotes_inputs=['controls:*', 't_duration'])
 
                 p.model.connect('dt_dstau', 'control_interp_comp.dt_dstau')
 
@@ -133,8 +145,19 @@ class TestControlRateComp(unittest.TestCase):
                 p.run_model()
 
                 t = p['t']
-                p['controls:a'][:, 0] = f_a(t[gd.subset_node_indices['control_input']])
-                p['controls:b'][:, 0] = f_b(t[gd.subset_node_indices['control_input']])
+
+                if control_type == 'polynomial':
+                    lgl_nodes_a, _ = lgl(controls['a']['order'] + 1)
+                    lgl_nodes_b, _ = lgl(controls['b']['order'] + 1)
+
+                    t_a = 0.5 * (lgl_nodes_a + 1) * 3.0
+                    t_b = 0.5 * (lgl_nodes_b + 1) * 3.0
+
+                    p['controls:a'][:, 0] = f_a(t_a)
+                    p['controls:b'][:, 0] = f_b(t_b)
+                else:
+                    p['controls:a'][:, 0] = f_a(t[gd.subset_node_indices['control_input']])
+                    p['controls:b'][:, 0] = f_b(t[gd.subset_node_indices['control_input']])
 
                 p.run_model()
 
@@ -165,8 +188,26 @@ class TestControlRateComp(unittest.TestCase):
                 assert_almost_equal(p['control_interp_comp.control_rates:b_rate2'],
                                     np.atleast_2d(b_rate2_expected).T)
 
-                np.set_printoptions(linewidth=1024)
-                cpd = p.check_partials(compact_print=False, method='cs', out_stream=None)
+                assert_almost_equal(p['control_interp_comp.control_boundary_values:a'],
+                                    np.atleast_2d(a_value_expected).T[(0, -1), ...])
+
+                assert_almost_equal(p['control_interp_comp.control_boundary_values:b'],
+                                    np.atleast_2d(b_value_expected).T[(0, -1), ...])
+
+                assert_almost_equal(p['control_interp_comp.control_boundary_rates:a_rate'],
+                                    np.atleast_2d(a_rate_expected).T[(0, -1), ...])
+
+                assert_almost_equal(p['control_interp_comp.control_boundary_rates:b_rate'],
+                                    np.atleast_2d(b_rate_expected).T[(0, -1), ...])
+
+                assert_almost_equal(p['control_interp_comp.control_boundary_rates:a_rate2'],
+                                    np.atleast_2d(a_rate2_expected).T[(0, -1), ...])
+
+                assert_almost_equal(p['control_interp_comp.control_boundary_rates:b_rate2'],
+                                    np.atleast_2d(b_rate2_expected).T[(0, -1), ...])
+
+                cpd = p.check_partials(compact_print=False, show_only_incorrect=True,
+                                       abs_err_tol=1.0E-8, rel_err_tol=1.0E-8, method='cs')#, out_stream=None)
                 assert_check_partials(cpd)
 
     def test_control_interp_vector(self, transcription='gauss-lobatto', compressed=True):

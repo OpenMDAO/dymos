@@ -74,15 +74,15 @@ class MultipleShootingUpdateComp(om.ExplicitComponent):
         seg_start_nodes = gd.subset_node_indices['segment_ends'][::2]
         seg_end_nodes = gd.subset_node_indices['segment_ends'][1::2]
 
-        M_fwd = sp.lil_array((num_segs, num_nodes), dtype=int)
+        M_fwd = sp.lil_array((num_segs, num_nodes))
         for iseg in range(1, gd.num_segments):
             # The ith row of M_fwd contains in the column pertaining to first node in the (i-1)th segment
-            M_fwd[iseg, seg_end_nodes[iseg-1]] = 1
+            M_fwd[iseg, seg_end_nodes[iseg-1]] = 1.
 
-        M_bkwd = sp.lil_array((num_segs, num_nodes), dtype=int)
+        M_bkwd = sp.lil_array((num_segs, num_nodes))
         for iseg in range(gd.num_segments-1):
             # The ith row of M_bkwd contains in the column pertaining to first node in the (i+1)th segment
-            M_bkwd[iseg, seg_start_nodes[iseg+1]] = 1
+            M_bkwd[iseg, seg_start_nodes[iseg+1]] = 1.
 
         self._M_fwd = {}
         self._M_bkwd = {}
@@ -112,7 +112,7 @@ class MultipleShootingUpdateComp(om.ExplicitComponent):
                 units=rate_units)
 
             if options['solve_segments'] == 'forward':
-                self._M_fwd[state_name] = sp.kron(M_fwd, sp.eye(size, dtype=int))
+                self._M_fwd[state_name] = sp.kron(M_fwd, sp.eye(size))
 
                 self.add_input(
                     name=var_names['x_a'],
@@ -143,7 +143,7 @@ class MultipleShootingUpdateComp(om.ExplicitComponent):
                                           val=self._M_fwd[state_name].data.ravel())
 
             elif options['solve_segments'] == 'backward':
-                self._M_bkwd[state_name] = sp.kron(M_bkwd, sp.eye(size, dtype=int))
+                self._M_bkwd[state_name] = sp.kron(M_bkwd, sp.eye(size))
 
                 self.add_input(
                     name=var_names['x_b'],
