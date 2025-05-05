@@ -306,6 +306,33 @@ class TestControlRateComp(unittest.TestCase):
                 assert_almost_equal(p['control_interp_comp.control_rates:a_rate2'][:, 2],
                                     a2_rate2_expected)
 
+                assert_almost_equal(p['control_interp_comp.control_boundary_values:a'][:, 0],
+                                    a0_value_expected.T[(0, -1), ...])
+
+                assert_almost_equal(p['control_interp_comp.control_boundary_values:a'][:, 1],
+                                    a1_value_expected.T[(0, -1), ...])
+
+                assert_almost_equal(p['control_interp_comp.control_boundary_values:a'][:, 2],
+                                    a2_value_expected.T[(0, -1), ...])
+
+                assert_almost_equal(p['control_interp_comp.control_boundary_rates:a_rate'][:, 0],
+                                    a0_rate_expected.T[(0, -1), ...])
+
+                assert_almost_equal(p['control_interp_comp.control_boundary_rates:a_rate'][:, 1],
+                                    a1_rate_expected.T[(0, -1), ...])
+
+                assert_almost_equal(p['control_interp_comp.control_boundary_rates:a_rate'][:, 2],
+                                    a2_rate_expected.T[(0, -1), ...])
+
+                assert_almost_equal(p['control_interp_comp.control_boundary_rates:a_rate2'][:, 0],
+                                    a0_rate2_expected.T[(0, -1), ...])
+
+                assert_almost_equal(p['control_interp_comp.control_boundary_rates:a_rate2'][:, 1],
+                                    a1_rate2_expected.T[(0, -1), ...])
+
+                assert_almost_equal(p['control_interp_comp.control_boundary_rates:a_rate2'][:, 2],
+                                    a2_rate2_expected.T[(0, -1), ...])
+
                 np.set_printoptions(linewidth=1024)
                 cpd = p.check_partials(compact_print=True, method='cs', out_stream=None)
 
