@@ -168,7 +168,7 @@ jobs:
           - NAME: oldest
             PY: 3.9
             NUMPY: 1.25
-            SCIPY: 1.9
+            SCIPY: 1.11
             OPENMPI: '4.0'
             MPI4PY: '3.0'
             PETSc: 3.13
