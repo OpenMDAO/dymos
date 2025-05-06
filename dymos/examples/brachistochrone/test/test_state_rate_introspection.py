@@ -317,7 +317,7 @@ class TestIntegrateControl(unittest.TestCase):
         phase.set_control_val('theta', [0, 100], units='deg')
 
         # Run the driver to solve the problem
-        dm.run_problem(p, simulate=True, make_plots=True, simulate_kwargs={'atol': 1.0E-9, 'rtol': 1.0E-9,
+        dm.run_problem(p, simulate=True, make_plots=False, simulate_kwargs={'atol': 1.0E-9, 'rtol': 1.0E-9,
                                                                             'times_per_seg': 10})
 
         sol_db = 'dymos_solution.db'
