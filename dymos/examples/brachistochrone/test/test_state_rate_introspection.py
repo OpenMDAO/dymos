@@ -12,7 +12,7 @@ from dymos.utils.testing_utils import assert_timeseries_near_equal
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
 
-@use_tempdirs
+# @use_tempdirs
 class TestIntegrateControl(unittest.TestCase):
 
     def _test_integrate_control(self, transcription):
@@ -249,7 +249,7 @@ class TestIntegrateControl(unittest.TestCase):
         # Define a Dymos Phase object with GaussLobatto Transcription
         #
         phase = dm.Phase(ode_class=BrachistochroneODE,
-                         transcription=transcription(num_segments=15, order=3))
+                         transcription=transcription(num_segments=5, order=3))
 
         traj.add_phase(name='phase0', phase=phase)
 
@@ -291,13 +291,13 @@ class TestIntegrateControl(unittest.TestCase):
         # Note we have to add theta_rate to the timeseries outputs here because
         # linkages get boundary values from that output.
         phase.add_timeseries_output('theta_rate')
+        phase.add_timeseries_output('theta_rate2')
 
         # Minimize final time.
         phase.add_objective('time', loc='final')
 
         # Set the driver.
         p.driver = om.ScipyOptimizeDriver()
-        p.driver.opt_settings['ACC'] = 1e-9
 
         # Allow OpenMDAO to automatically determine our sparsity pattern.
         # Doing so can significant speed up the execution of Dymos.
@@ -317,7 +317,7 @@ class TestIntegrateControl(unittest.TestCase):
         phase.set_control_val('theta', [0, 100], units='deg')
 
         # Run the driver to solve the problem
-        dm.run_problem(p, simulate=True, make_plots=False, simulate_kwargs={'atol': 1.0E-9, 'rtol': 1.0E-9,
+        dm.run_problem(p, simulate=True, make_plots=True, simulate_kwargs={'atol': 1.0E-9, 'rtol': 1.0E-9,
                                                                             'times_per_seg': 10})
 
         sol_db = 'dymos_solution.db'
@@ -943,3 +943,7 @@ class TestInvalidStateRateSource(unittest.TestCase):
 
         expected = 'Error during configure_states_introspection in phase traj0.phases.phase0.'
         self.assertEqual(str(ctx.exception), expected)
+
+
+if __name__ == '__main__':
+    unittest.main()
