@@ -25,7 +25,7 @@ classifiers = [
 dependencies = [
     "numpy",
     "openmdao>=3.36.0",
-    "scipy",
+    "scipy>=1.11",
 ]
 
 [project.optional-dependencies]

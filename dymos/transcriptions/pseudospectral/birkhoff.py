@@ -173,27 +173,26 @@ class Birkhoff(TranscriptionBase):
         if phase.control_options:
             phase.control_comp.configure_io()
             phase.promotes('control_comp',
-                           any=['*controls:*', '*control_values:*', '*control_rates:*'])
+                           any=['*controls:*', 'control_values:*', 'control_rates:*', 'control_boundary*'])
 
             phase.connect('dt_dstau', 'control_comp.dt_dstau')
 
         for name, options in phase.control_options.items():
             if options['targets']:
                 phase.connect(f'control_values:{name}', [f'ode_all.{t}' for t in options['targets']])
-                phase.connect(f'control_values:{name}', [f'boundary_vals.{t}' for t in options['targets']],
-                              src_indices=om.slicer[[0, -1], ...])
+                phase.connect(f'control_boundary_values:{name}', [f'boundary_vals.{t}' for t in options['targets']])
 
             if options['rate_targets']:
                 phase.connect(f'control_rates:{name}_rate',
                               [f'ode_all.{t}' for t in options['rate_targets']])
-                phase.connect(f'control_rates:{name}_rate',
+                phase.connect(f'control_boundary_rates:{name}_rate',
                               [f'boundary_vals.{t}' for t in options['rate_targets']],
                               src_indices=om.slicer[[0, -1], ...])
 
             if options['rate2_targets']:
                 phase.connect(f'control_rates:{name}_rate2',
                               [f'ode_all.{t}' for t in options['rate2_targets']])
-                phase.connect(f'control_rates:{name}_rate2',
+                phase.connect(f'control_boundary_rates:{name}_rate2',
                               [f'boundary_vals.{t}' for t in options['rate2_targets']],
                               src_indices=om.slicer[[0, -1], ...])
 
