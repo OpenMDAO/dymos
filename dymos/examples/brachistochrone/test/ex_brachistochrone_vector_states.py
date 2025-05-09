@@ -38,6 +38,11 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
         transcription = dm.Birkhoff(num_nodes=25,
                                     grid_type=grid_type)
         fix_final = not solve_segments
+    elif transcription == 'picard':
+        transcription = dm.PicardShooting(num_segments=5,
+                                          nodes_per_seg=5,
+                                          solve_segments='forward')
+        fix_final = False
 
     traj = dm.Trajectory()
     phase = dm.Phase(ode_class=BrachistochroneVectorStatesODE,

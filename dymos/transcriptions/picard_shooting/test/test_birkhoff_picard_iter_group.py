@@ -27,75 +27,76 @@ class TestBirkhoffPicardIterGroup(unittest.TestCase):
         for direction in ['forward', 'backward']:
             for grid_type in ['lgl', 'cgl']:
                 for nl_solver in ['newton', 'nlbgs']:
-                    with self.subTest(msg=f'{direction=} {grid_type=} {nl_solver=}'):
-                        with dymos.options.temporary(include_check_partials=True):
+                    for num_segments, nodes_per_seg in [(1, 11)]:
+                        with self.subTest(msg=f'{direction=} {grid_type=} {nl_solver=}'):
+                            with dymos.options.temporary(include_check_partials=True):
 
-                            state_options = {'x': StateOptionsDictionary()}
+                                state_options = {'x': StateOptionsDictionary()}
 
-                            state_options['x']['shape'] = (1,)
-                            state_options['x']['units'] = 's**2'
-                            state_options['x']['targets'] = ['x']
+                                state_options['x']['shape'] = (1,)
+                                state_options['x']['units'] = 's**2'
+                                state_options['x']['targets'] = ['x']
 
-                            state_options['x']['initial_bounds'] = (None, None)
-                            state_options['x']['final_bounds'] = (None, None)
-                            state_options['x']['solve_segments'] = direction
-                            state_options['x']['rate_source'] = 'x_dot'
+                                state_options['x']['initial_bounds'] = (None, None)
+                                state_options['x']['final_bounds'] = (None, None)
+                                state_options['x']['solve_segments'] = direction
+                                state_options['x']['rate_source'] = 'x_dot'
 
-                            time_options = TimeOptionsDictionary()
-                            grid_data = GaussLobattoGrid(nodes_per_seg=11, num_segments=1)
+                                time_options = TimeOptionsDictionary()
+                                grid_data = GaussLobattoGrid(nodes_per_seg=nodes_per_seg, num_segments=num_segments)
 
-                            nn = grid_data.subset_num_nodes['all']
-                            ode_class = SimpleODE
+                                nn = grid_data.subset_num_nodes['all']
+                                ode_class = SimpleODE
 
-                            p = om.Problem()
-                            p.model.add_subsystem('birkhoff', BirkhoffPicardIterGroup(state_options=state_options,
-                                                                                      time_units=time_options['units'],
-                                                                                      grid_data=grid_data,
-                                                                                      ode_class=ode_class))
+                                p = om.Problem()
+                                p.model.add_subsystem('birkhoff', BirkhoffPicardIterGroup(state_options=state_options,
+                                                                                        time_units=time_options['units'],
+                                                                                        grid_data=grid_data,
+                                                                                        ode_class=ode_class))
 
-                            birkhoff = p.model._get_subsystem('birkhoff')
+                                birkhoff = p.model._get_subsystem('birkhoff')
 
-                            if nl_solver == 'newton':
-                                birkhoff.nonlinear_solver = om.NewtonSolver(solve_subsystems=True, maxiter=100)
-                            elif nl_solver == 'nlbgs':
-                                birkhoff.nonlinear_solver = om.NonlinearBlockGS(maxiter=201, use_aitken=True)
-                            else:
-                                birkhoff.nonlinear_solver = om.NonlinearRunOnce()
-                            birkhoff.linear_solver = om.DirectSolver()
+                                if nl_solver == 'newton':
+                                    birkhoff.nonlinear_solver = om.NewtonSolver(solve_subsystems=True, maxiter=100)
+                                elif nl_solver == 'nlbgs':
+                                    birkhoff.nonlinear_solver = om.NonlinearBlockGS(maxiter=201, use_aitken=True)
+                                else:
+                                    birkhoff.nonlinear_solver = om.NonlinearRunOnce()
+                                birkhoff.linear_solver = om.DirectSolver()
 
-                            p.setup(force_alloc_complex=True)
+                                p.setup(force_alloc_complex=True)
 
-                            # Instead of using the TimeComp just transform the node segment taus onto [0, 2]
-                            times = (grid_data.node_stau + 1) * 1.0
+                                # Instead of using the TimeComp just transform the node segment taus onto [0, 2]
+                                times = (grid_data.node_stau + 1) * 1.0
 
-                            solution = np.reshape(times**2 + 2 * times + 1 - 0.5 * np.exp(times), (nn, 1))
-                            dsolution_dt = np.reshape(2 * times + 2 - 0.5 * np.exp(times), (nn, 1))
+                                solution = np.reshape(times**2 + 2 * times + 1 - 0.5 * np.exp(times), (nn, 1))
+                                dsolution_dt = np.reshape(2 * times + 2 - 0.5 * np.exp(times), (nn, 1))
 
-                            p.final_setup()
+                                p.final_setup()
 
-                            if direction == 'forward':
-                                p.set_val('birkhoff.picard_update_comp.seg_initial_states:x', 0.5)
-                            else:
-                                p.set_val('birkhoff.picard_update_comp.seg_final_states:x', solution[-1])
-                            p.set_val('birkhoff.ode_all.t', times)
-                            p.set_val('birkhoff.ode_all.p', 1.0)
+                                if direction == 'forward':
+                                    p.set_val('birkhoff.picard_update_comp.seg_initial_states:x', 0.5)
+                                else:
+                                    p.set_val('birkhoff.picard_update_comp.seg_final_states:x', solution[-1])
+                                p.set_val('birkhoff.ode_all.t', times)
+                                p.set_val('birkhoff.ode_all.p', 1.0)
 
-                            p.final_setup()
+                                p.final_setup()
 
-                            t_start = time.perf_counter()
-                            p.run_model()
-                            t_end = time.perf_counter()
+                                t_start = time.perf_counter()
+                                p.run_model()
+                                t_end = time.perf_counter()
 
-                            print(f"Elapsed time: {t_end-t_start:.4f} seconds")
+                                print(f"Elapsed time: {t_end-t_start:.4f} seconds")
 
-                            assert_near_equal(solution, p.get_val('birkhoff.states:x'), tolerance=1.0E-9)
-                            assert_near_equal(dsolution_dt.ravel(),
-                                              p.get_val('birkhoff.picard_update_comp.f_computed:x').ravel(),
-                                              tolerance=1.0E-9)
+                                assert_near_equal(solution, p.get_val('birkhoff.states:x'), tolerance=1.0E-9)
+                                assert_near_equal(dsolution_dt.ravel(),
+                                                p.get_val('birkhoff.picard_update_comp.f_computed:x').ravel(),
+                                                tolerance=1.0E-9)
 
-                            cpd = p.check_partials(method='cs', compact_print=True,
-                                                   show_only_incorrect=True, out_stream=None)
-                            assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
+                                cpd = p.check_partials(method='cs', compact_print=False,
+                                                    show_only_incorrect=True)#, out_stream=None)
+                                assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
 
     @unittest.skip('This test is a demonstation of the inability of Birkhoff-Picard '
                    'iteration to solve highly nonlinear systems.')

@@ -243,6 +243,19 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
                                                            transcription_order=11)
         self.assert_results(p)
 
+    def test_ex_brachistochrone_vs_picard(self):
+        ex_brachistochrone_vs.SHOW_PLOTS = False
+        p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='picard',
+                                                           compressed=False,
+                                                           force_alloc_complex=True,
+                                                           solve_segments='forward',
+                                                           num_segments=1,
+                                                           transcription_order=5,
+                                                           run_driver=False)
+        p.check_partials(show_only_incorrect=False, abs_err_tol=1.0E-5, rel_err_tol=1.0E-5, compact_print=False)
+
+        # self.assert_results(p)
+
 
 @require_pyoptsparse(optimizer='IPOPT')
 @use_tempdirs
