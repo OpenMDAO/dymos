@@ -828,8 +828,8 @@ Such phases are avaialble in dymos through the <code class="docutils literal not
 Compared to implicit approaches this reduces the size of the optimization problem by removing some design variables and corresponding defect constraints.
 Compared to explicit approaches it removes the need to numerically propagate the ODE, which is generally a performance bottleneck.</p>
 <p>For analytic phases, the OpenMDAO system we provide to the phase provides the <em>solution</em> to the ODE, not the ODE itself.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-1c7f727f-8c92-4bfb-9999-fb2f0750fcae">
-<span class="eqno">(100)<a class="headerlink" href="#equation-1c7f727f-8c92-4bfb-9999-fb2f0750fcae" title="Permalink to this equation">#</a></span>\[\begin{align}  
+<div class="amsmath math notranslate nohighlight" id="equation-193cc6da-0ff6-4701-9d13-8cc46817df4e">
+<span class="eqno">(100)<a class="headerlink" href="#equation-193cc6da-0ff6-4701-9d13-8cc46817df4e" title="Permalink to this equation">#</a></span>\[\begin{align}  
     \textbf x = \textbf f(t, \textbf p)
 \end{align}\]</div>
 <p>where
@@ -880,26 +880,26 @@ a shape of (3,).</p>
 <section id="a-basic-example">
 <h2>A basic example<a class="headerlink" href="#a-basic-example" title="Permalink to this heading">#</a></h2>
 <p>Suppose we want to use Dymos to solve the ODE</p>
-<div class="amsmath math notranslate nohighlight" id="equation-4eb75774-36fc-4e39-bf90-12e30c0b2dfe">
-<span class="eqno">(101)<a class="headerlink" href="#equation-4eb75774-36fc-4e39-bf90-12e30c0b2dfe" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-31bfe383-6c5c-4020-8bb2-66909c2aa0c9">
+<span class="eqno">(101)<a class="headerlink" href="#equation-31bfe383-6c5c-4020-8bb2-66909c2aa0c9" title="Permalink to this equation">#</a></span>\[\begin{align}
   \frac{dx}{dt} = x - t^2 + 1
 \end{align}\]</div>
 <p>subject to:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-87ea4623-791c-44f2-9431-da9216d8384d">
-<span class="eqno">(102)<a class="headerlink" href="#equation-87ea4623-791c-44f2-9431-da9216d8384d" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-b9595b34-851e-4e1d-a2e1-d0df9672039b">
+<span class="eqno">(102)<a class="headerlink" href="#equation-b9595b34-851e-4e1d-a2e1-d0df9672039b" title="Permalink to this equation">#</a></span>\[\begin{align}
   x(0) = 0.5
 \end{align}\]</div>
 <p>Here we want to find the value of <em>x</em> at t=2.</p>
 <p>We can absolutely use a pseudospectral method or explicit shooting in Dymos to find the value of <em>x</em> on a given interval using this information.
 But in this case, the solution is known analytically.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-8e13270d-d0b8-48bf-ab6a-fac8fe6916f2">
-<span class="eqno">(103)<a class="headerlink" href="#equation-8e13270d-d0b8-48bf-ab6a-fac8fe6916f2" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-95f56ee1-9ee2-41cc-a7e6-ae3994c0c4b2">
+<span class="eqno">(103)<a class="headerlink" href="#equation-95f56ee1-9ee2-41cc-a7e6-ae3994c0c4b2" title="Permalink to this equation">#</a></span>\[\begin{align}
   x(t) &amp;= t^2 + 2t + 1 - c_1e^t
 \end{align}\]</div>
 <p>We need to find the value of constant <span class="math notranslate nohighlight">\(c_1\)</span> to find our particular solution.
 Applying the given initial condition gives c_1 as 0.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-c13b376b-3200-47d8-a350-2b59dccb2719">
-<span class="eqno">(104)<a class="headerlink" href="#equation-c13b376b-3200-47d8-a350-2b59dccb2719" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-267e6103-dd55-4b87-ae5b-1e71ea398d9b">
+<span class="eqno">(104)<a class="headerlink" href="#equation-267e6103-dd55-4b87-ae5b-1e71ea398d9b" title="Permalink to this equation">#</a></span>\[\begin{align}
   x(0) &amp;= 1 - c_1 = 0.5 \\
   c_1 &amp;\equiv y_0 = 0.5
 \end{align}\]</div>
@@ -987,7 +987,7 @@ Applying the given initial condition gives c_1 as 0.</p>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>x(2.0) = 5.305471950534675
 </pre></div>
 </div>
-<img alt="../../_images/b6f84795cb95ceef0cd0bebfbda8c6c4e16365224777c685a460091d28290ad0.png" src="../../_images/b6f84795cb95ceef0cd0bebfbda8c6c4e16365224777c685a460091d28290ad0.png" />
+<img alt="../../_images/11957d5c2084a0c3e97712c637c7daaf331a507eb4b9212ab38f3c0d36cd296a.png" src="../../_images/11957d5c2084a0c3e97712c637c7daaf331a507eb4b9212ab38f3c0d36cd296a.png" />
 </div>
 </div>
 </section>
@@ -1113,7 +1113,7 @@ x(0.533871279941519) = 1.5000000542207101
 x(2.0) = 5.305471950534675
 </pre></div>
 </div>
-<img alt="../../_images/904dbe59b15e757895b2ed63f01dea30c0b98730c994efdcb2ac4a2e638ffe3d.png" src="../../_images/904dbe59b15e757895b2ed63f01dea30c0b98730c994efdcb2ac4a2e638ffe3d.png" />
+<img alt="../../_images/4d95c00e45fae73291c080f373b93606970337a5046244098c84d519a2d94290.png" src="../../_images/4d95c00e45fae73291c080f373b93606970337a5046244098c84d519a2d94290.png" />
 </div>
 </div>
 </section>

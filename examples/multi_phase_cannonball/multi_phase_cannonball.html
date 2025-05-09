@@ -841,24 +841,24 @@ the system at an event in the trajectory. Here, we have the first phase
 (ascent) terminate when the flight path angle reaches zero (apogee). The
 descent phase follows until the cannonball impacts the ground.</p>
 <p>The dynamics are given by</p>
-<div class="amsmath math notranslate nohighlight" id="equation-66daf835-ef59-4a6b-a874-a56596976ed1">
-<span class="eqno">(75)<a class="headerlink" href="#equation-66daf835-ef59-4a6b-a874-a56596976ed1" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-bc84c17a-1fc5-4f1e-813e-6b17ea88b420">
+<span class="eqno">(75)<a class="headerlink" href="#equation-bc84c17a-1fc5-4f1e-813e-6b17ea88b420" title="Permalink to this equation">#</a></span>\[\begin{align}
   \frac{dv}{dt} &amp;= \frac{D}{m} - g \sin \gamma \\
   \frac{d\gamma}{dt} &amp;= - \frac{g \cos \gamma}{v} \\
   \frac{dh}{dt} &amp;= v \sin \gamma \\
   \frac{dr}{dt} &amp;= v \cos \gamma \\
 \end{align}\]</div>
 <p>The initial conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-1957d835-5efe-4580-af62-fe6014f38b66">
-<span class="eqno">(76)<a class="headerlink" href="#equation-1957d835-5efe-4580-af62-fe6014f38b66" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-fc2292f0-487f-4a98-aa4a-9714e683493c">
+<span class="eqno">(76)<a class="headerlink" href="#equation-fc2292f0-487f-4a98-aa4a-9714e683493c" title="Permalink to this equation">#</a></span>\[\begin{align}
   r_0 &amp;= 0 \rm{\,m} \\
   h_0 &amp;= 100 \rm{\,m} \\
   v_0 &amp;= \rm{free} \\
   \gamma_0 &amp;= \rm{free}
 \end{align}\]</div>
 <p>and the final conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-22651d82-f431-4c91-a2e4-7c8ec6f8a450">
-<span class="eqno">(77)<a class="headerlink" href="#equation-22651d82-f431-4c91-a2e4-7c8ec6f8a450" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-33719e37-8ac5-4686-8a95-9474ea5204db">
+<span class="eqno">(77)<a class="headerlink" href="#equation-33719e37-8ac5-4686-8a95-9474ea5204db" title="Permalink to this equation">#</a></span>\[\begin{align}
   h_f &amp;= 0 \rm{\,m}
 \end{align}\]</div>
 </section>
@@ -871,8 +871,8 @@ energy and that our cannonball is made of solid iron. The volume (and
 mass) of the cannonball is proportional to its radius cubed, while the
 cross-sectional area is proportional to its radius squared. If we
 increase the size of the cannonball, the ballistic coefficient</p>
-<div class="amsmath math notranslate nohighlight" id="equation-a11070ff-2ace-4e25-bc60-82d94c00166a">
-<span class="eqno">(78)<a class="headerlink" href="#equation-a11070ff-2ace-4e25-bc60-82d94c00166a" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-08fdc83a-2b6e-4f92-ab6d-50a30aeef785">
+<span class="eqno">(78)<a class="headerlink" href="#equation-08fdc83a-2b6e-4f92-ab6d-50a30aeef785" title="Permalink to this equation">#</a></span>\[\begin{align}
   BC &amp;= \frac{m}{C_D A}
 \end{align}\]</div>
 <p>will increase, meaning the cannonball overcome air resistance more
@@ -1161,8 +1161,8 @@ Total colors vs. total size: 6 vs 63  (90.48% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense partial jacobian for CannonballODE &#39;traj.phases.ascent.rhs_all&#39; was computed 3 times.
-Time to compute sparsity:   0.0286 sec
-Time to compute coloring:   0.0072 sec
+Time to compute sparsity:   0.0293 sec
+Time to compute coloring:   0.0071 sec
 Memory to compute coloring:   0.3750 MB
 
 Coloring for &#39;traj.phases.descent.rhs_disc&#39; (class CannonballODE)
@@ -1195,10 +1195,10 @@ Total colors vs. total size: 30 vs 88  (65.91% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem&#39; was computed 3 times.
-Time to compute sparsity:   0.1274 sec
-Time to compute coloring:   0.0974 sec
+Time to compute sparsity:   0.1276 sec
+Time to compute coloring:   0.0975 sec
 Memory to compute coloring:   0.6250 MB
-Coloring created on: 2025-05-05 16:31:59
+Coloring created on: 2025-05-09 13:27:14
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1207,11 +1207,11 @@ Coloring created on: 2025-05-05 16:31:59
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    2.2392
-       User Objective Time :       0.2608
-       User Sensitivity Time :     1.5018
-       Interface Time :            0.3126
-       Opt Solver Time:            0.1640
+    Total Time:                    2.0343
+       User Objective Time :       0.2333
+       User Sensitivity Time :     1.3369
+       Interface Time :            0.3041
+       Opt Solver Time:            0.1600
     Calls to Objective Function :     118
     Calls to Sens Function :           89
 
@@ -1415,11 +1415,11 @@ Done simulating trajectory traj
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 119
-  runtime     : 2.5685E+00 s
+  runtime     : 2.3666E+00 s
   model_evals : 119
-  model_time  : 2.1226E-01 s
+  model_time  : 1.9444E-01 s
   deriv_evals : 89
-  deriv_time  : 1.0819E+00 s
+  deriv_time  : 1.0413E+00 s
   exit_status : SUCCESS
 </pre></div>
 </div>
@@ -1508,8 +1508,8 @@ launch angle: 32.01951038708562 deg
 maximum range: 3183.1177268017022 m
 </pre></div>
 </div>
-<img alt="../../_images/92ce69e4f2939f98a61c2b561ce362ac70512a0ef7cc29f5dad97b40ca80a832.png" src="../../_images/92ce69e4f2939f98a61c2b561ce362ac70512a0ef7cc29f5dad97b40ca80a832.png" />
-<img alt="../../_images/33e8f6a30951861b8f59ea758eb052f1bb6be960232688862a3c7567410cf671.png" src="../../_images/33e8f6a30951861b8f59ea758eb052f1bb6be960232688862a3c7567410cf671.png" />
+<img alt="../../_images/7b5bac56ecc37b935af075168b24b2e51e2c9772b7e2c3c797cbe10cfb99d473.png" src="../../_images/7b5bac56ecc37b935af075168b24b2e51e2c9772b7e2c3c797cbe10cfb99d473.png" />
+<img alt="../../_images/441fd5c1f3b3e4e83a7299ae3fa6b953666d4dd7edd6060b46ee3f1446d065e1.png" src="../../_images/441fd5c1f3b3e4e83a7299ae3fa6b953666d4dd7edd6060b46ee3f1446d065e1.png" />
 </div>
 </div>
 </section>
