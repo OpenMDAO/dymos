@@ -130,27 +130,52 @@ class PicardUpdateComp(om.ExplicitComponent):
                     units=units
                 )
 
+                num_seg = gd.num_segments
+                nnps_last = gd.subset_num_nodes_per_segment['all'][num_seg - 1]
+
+                # Derivatives of integrated state wrt dt_dstau at each node
                 rs, cs = sp.kron(self._B, np.ones((size, 1), dtype=int), format='csr').nonzero()
                 self.declare_partials(of=var_names['x_hat'],
                                       wrt='dt_dstau',
                                       rows=rs, cols=cs)
 
+                # Derivatives of final state wrt dt_dstau
+                last_seg_first_col = num_nodes - nnps_last
+                rs = np.repeat(np.arange(size, dtype=int), nnps_last)
+                cs = np.tile(np.arange(last_seg_first_col, last_seg_first_col + nnps_last, dtype=int), size)
+                self.declare_partials(of=var_names['x_b'],
+                                      wrt='dt_dstau',
+                                      rows=rs, cols=cs)
+
+                # Derivatives of integrated state wrt computed state rate
                 rs, cs = sp.kron(self._B.multiply(np.ones((1, num_nodes))), sp.eye(size), format='csr').nonzero()
                 self.declare_partials(of=var_names['x_hat'],
                                       wrt=var_names['f_computed'],
                                       rows=rs, cols=cs)
-                rs=[0]
-                cs=[0]
-                self.declare_partials(of=var_names['x_b'],
-                                      wrt='dt_dstau')
-                self.declare_partials(of=var_names['x_b'],
-                                      wrt=var_names['f_computed'])
 
-                rs = np.arange(num_nodes, dtype=int)
-                cs = np.repeat(np.arange(num_segs, dtype=int), self._seg_repeats)
+                # Derivativews of final state wrt computed state rate
+                last_seg_first_col = size * (num_nodes - nnps_last)
+                # rs = np.repeat(np.arange(size, dtype=int), nnps_last)
+                # cs = np.tile(np.arange(last_seg_first_col, last_seg_first_col + nnps_last, dtype=int), size)
+                rs = rs[-size * nnps_last:]
+                rs = np.asarray(rs, dtype=int) - rs[0]
+                cs = cs[-size * nnps_last:]
+                self.declare_partials(of=var_names['x_b'],
+                                      wrt=var_names['f_computed'],
+                                      rows=rs, cols=cs)
+
+                # Derivatives of integrated state wrt seg initial value
+                blocks = []
+                for seg_i in range(gd.num_segments):
+                    nnps_i = gd.subset_num_nodes_per_segment['all'][seg_i]
+                    blocks.append(sp.kron(np.ones((nnps_i, 1)), sp.eye(size)))
+                dxhat_dx0 = sp.block_diag(blocks)
+                rs, cs, vals = sp.find(dxhat_dx0)
                 self.declare_partials(of=var_names['x_hat'],
                                       wrt=var_names['x_0'],
-                                      rows=rs, cols=cs, val=1.0)
+                                      rows=rs, cols=cs, val=vals)
+
+                # Derivatives of final state wrt seg initial value
                 template = sp.lil_array((1, num_segs), dtype=int)
                 template[0, -1] = 1
                 template = sp.kron(template.tocsr(), sp.eye(size, dtype=int))
@@ -264,7 +289,8 @@ class PicardUpdateComp(om.ExplicitComponent):
                 #     exit(0)
                 dx_df = sp.kron(self._B.multiply(dt_dstau.T), sp.eye(size), format='csr')
                 partials[x_name, f_name] = dx_df.data
-                partials[x_b_name, 'dt_dstau'] = dx_df.data[-size * num_nodes:]
+                nnps_last = gd.subset_num_nodes_per_segment['all'][-1]
+                partials[x_b_name, f_name] = dx_df.data[-size * nnps_last:]
 
                 dx_dtdtau_jac_map = {}
                 phase_node_idx = 0
@@ -279,7 +305,7 @@ class PicardUpdateComp(om.ExplicitComponent):
 
                         phase_node_idx += 1
                     seg_row_idx0 += nnps * size
-                    print(seg_idx, seg_row_idx0)
+                    # print(seg_idx, seg_row_idx0)
                 B_kron = sp.kron(self._B, np.ones((size, 1)), format='csr')
                 f_t_flat = f_t.reshape(num_nodes, -1)
                 M_f = sp.lil_matrix(B_kron.shape)
@@ -288,6 +314,7 @@ class PicardUpdateComp(om.ExplicitComponent):
                     M_f[rs, cs] = f_t_flat[phase_node_idx, state_idx]
                 nzr, nzc = B_kron.nonzero()
                 partials[x_name, 'dt_dstau'] = B_kron.data.ravel() * M_f.todense()[nzr, nzc].A1
+                partials[x_b_name, 'dt_dstau'] = partials[x_name, 'dt_dstau'][-nnps * size:]
 
             elif options['solve_segments'] == 'backward':
                 B_flip = self._B[::-1, ...]

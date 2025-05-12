@@ -252,7 +252,7 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
                                                            num_segments=3,
                                                            transcription_order=3,
                                                            run_driver=False)
-        p.check_partials(show_only_incorrect=False, abs_err_tol=1.0E-5, rel_err_tol=1.0E-5, compact_print=False)
+        p.check_partials(show_only_incorrect=True, abs_err_tol=1.0E-5, rel_err_tol=1.0E-5, compact_print=False)
 
         # self.assert_results(p)
 
