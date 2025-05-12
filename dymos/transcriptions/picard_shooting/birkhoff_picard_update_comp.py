@@ -6,7 +6,7 @@ import openmdao.api as om
 
 from dymos.transcriptions.grid_data import GridData
 from dymos.utils.misc import get_rate_units
-from dymos._options import options as dymos_options
+# from dymos._options import options as dymos_options
 from dymos.utils.birkhoff import birkhoff_matrix
 
 
@@ -26,7 +26,7 @@ class PicardUpdateComp(om.ExplicitComponent):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._no_check_partials = not dymos_options['include_check_partials']
+        # self._no_check_partials = not dymos_options['include_check_partials']
 
     def initialize(self):
         """
@@ -70,7 +70,9 @@ class PicardUpdateComp(om.ExplicitComponent):
             w_i = gd.node_weight[start_idx: start_idx + nnps_i]
 
             B_i = birkhoff_matrix(tau_i, w_i, grid_type=gd.grid_type)
-            B_blocks.append(B_i)
+            rs, cs = B_i.nonzero()
+            B_i_sparse = sp.csr_matrix((B_i[rs, cs].ravel(), (rs, cs)), shape=B_i.shape)
+            B_blocks.append(B_i_sparse)
             start_idx += nnps_i
 
         self._B = scipy.sparse.block_diag(B_blocks, format='csr')
@@ -127,15 +129,18 @@ class PicardUpdateComp(om.ExplicitComponent):
                     desc=f'Final value of state {state_name} in the phase',
                     units=units
                 )
-                # The first row of these matrices are zero.
-                rs = np.repeat(np.arange(1, num_nodes, dtype=int), num_nodes)
-                cs = np.tile(np.arange(num_nodes, dtype=int), num_nodes - 1)
+
+                rs, cs = sp.kron(self._B, np.ones((size, 1), dtype=int), format='csr').nonzero()
                 self.declare_partials(of=var_names['x_hat'],
                                       wrt='dt_dstau',
                                       rows=rs, cols=cs)
+
+                rs, cs = sp.kron(self._B.multiply(np.ones((1, num_nodes))), sp.eye(size), format='csr').nonzero()
                 self.declare_partials(of=var_names['x_hat'],
                                       wrt=var_names['f_computed'],
                                       rows=rs, cols=cs)
+                rs=[0]
+                cs=[0]
                 self.declare_partials(of=var_names['x_b'],
                                       wrt='dt_dstau')
                 self.declare_partials(of=var_names['x_b'],
@@ -163,8 +168,6 @@ class PicardUpdateComp(om.ExplicitComponent):
                                 shape=(1,) + shape,
                                 desc=f'Initial value of state {state_name} in the phase',
                                 units=units)
-                rs = np.repeat(np.arange(num_nodes - 1, dtype=int), num_nodes)
-                cs = np.tile(np.arange(num_nodes, dtype=int), num_nodes - 1)
                 self.declare_partials(of=var_names['x_hat'], wrt='dt_dstau',
                                       rows=rs, cols=cs)
                 self.declare_partials(of=var_names['x_hat'], wrt=var_names['f_computed'],
@@ -243,6 +246,7 @@ class PicardUpdateComp(om.ExplicitComponent):
 
         for state_name, options in self.options['state_options'].items():
             var_names = self.var_names[state_name]
+            size = np.prod(options['shape'])
 
             x_a_name = var_names['x_a']
             x_b_name = var_names['x_b']
@@ -254,10 +258,36 @@ class PicardUpdateComp(om.ExplicitComponent):
             f_t = inputs[var_names['f_computed']]
 
             if options['solve_segments'] == 'forward':
-                partials[x_name, f_name] = (self._B.multiply(dt_dstau.T)).todense()[1:, ...].ravel()
-                partials[x_b_name, f_name] = partials[x_name, f_name][-num_nodes:]
-                partials[x_name, 'dt_dstau'] = (self._B.multiply(f_t.T)).todense()[1:, ...].ravel()
-                partials[x_b_name, 'dt_dstau'] = partials[x_name, 'dt_dstau'][-num_nodes:]
+                # with np.printoptions(linewidth=10000, edgeitems=10000):
+                #     print(sp.kron(self._B.multiply(dt_dstau.T), sp.eye(size), format='csr').todense())
+                #     print(self._B)
+                #     exit(0)
+                dx_df = sp.kron(self._B.multiply(dt_dstau.T), sp.eye(size), format='csr')
+                partials[x_name, f_name] = dx_df.data
+                partials[x_b_name, 'dt_dstau'] = dx_df.data[-size * num_nodes:]
+
+                dx_dtdtau_jac_map = {}
+                phase_node_idx = 0
+                seg_row_idx0 = 0
+                for seg_idx in range(gd.num_segments):
+                    nnps = gd.subset_num_nodes_per_segment['all'][seg_idx]
+                    for seg_node_idx in range(gd.subset_num_nodes_per_segment['all'][seg_idx]):
+                        for state_idx in range(size):
+                            rs = seg_row_idx0 + size + state_idx + np.arange((nnps - 1) * size, step=size, dtype=int)
+                            cs = phase_node_idx * np.ones_like(rs, dtype=int)
+                            dx_dtdtau_jac_map[state_name, phase_node_idx, state_idx] = rs, cs
+
+                        phase_node_idx += 1
+                    seg_row_idx0 += nnps * size
+                    print(seg_idx, seg_row_idx0)
+                B_kron = sp.kron(self._B, np.ones((size, 1)), format='csr')
+                f_t_flat = f_t.reshape(num_nodes, -1)
+                M_f = sp.lil_matrix(B_kron.shape)
+                for (state_name, phase_node_idx, state_idx), (rs, cs) in dx_dtdtau_jac_map.items():
+                    # print(state_name, state_idx, phase_node_idx, rs, cs)
+                    M_f[rs, cs] = f_t_flat[phase_node_idx, state_idx]
+                nzr, nzc = B_kron.nonzero()
+                partials[x_name, 'dt_dstau'] = B_kron.data.ravel() * M_f.todense()[nzr, nzc].A1
 
             elif options['solve_segments'] == 'backward':
                 B_flip = self._B[::-1, ...]

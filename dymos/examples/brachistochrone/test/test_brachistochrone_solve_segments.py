@@ -90,7 +90,7 @@ def _make_problem(transcription='gauss-lobatto', num_segments=8, transcription_o
 
     p.setup(check=['unconnected_inputs'], force_alloc_complex=force_alloc_complex)
 
-    phase.set_time_val(initial=0.0, duration=1.5)
+    phase.set_time_val(initial=0.0, duration=1.0)
 
     phase.set_state_val('x', [0, 10])
     phase.set_state_val('y', [10, 5])
@@ -249,8 +249,8 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
                                                            compressed=False,
                                                            force_alloc_complex=True,
                                                            solve_segments='forward',
-                                                           num_segments=1,
-                                                           transcription_order=5,
+                                                           num_segments=3,
+                                                           transcription_order=3,
                                                            run_driver=False)
         p.check_partials(show_only_incorrect=False, abs_err_tol=1.0E-5, rel_err_tol=1.0E-5, compact_print=False)
 
