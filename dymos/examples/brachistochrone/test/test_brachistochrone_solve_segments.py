@@ -249,14 +249,10 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
                                                            compressed=False,
                                                            force_alloc_complex=True,
                                                            solve_segments='forward',
-                                                           fix_initial=True,
-                                                           fix_final=False,
                                                            num_segments=10,
                                                            transcription_order=3,
                                                            make_plots=True,
                                                            run_driver=True)
-        p.check_partials(show_only_incorrect=True, method='cs', abs_err_tol=1.0E-5, rel_err_tol=1.0E-5, compact_print=False)
-
         self.assert_results(p)
 
 

@@ -210,7 +210,6 @@ class PicardUpdateComp(om.ExplicitComponent):
                                 desc=f'Initial value of state {state_name} in the phase',
                                 units=units)
 
-
                 nnps_first = gd.subset_num_nodes_per_segment['all'][0]
                 # Derivatives of integrated state wrt dt_dstau at each node
                 rs, cs = sp.kron(self._B[::-1, ::-1], np.ones((size, 1), dtype=int), format='csr').nonzero()
@@ -223,13 +222,11 @@ class PicardUpdateComp(om.ExplicitComponent):
                                       wrt='dt_dstau',
                                       rows=rs[:nnps_first * size], cols=cs[:nnps_first * size])
 
-
                 nnps_first = gd.subset_num_nodes_per_segment['all'][0]
                 rs, cs = sp.kron(self._B[::-1, ::-1].multiply(np.ones((1, num_nodes))), sp.eye(size), format='csr').nonzero()
                 self.declare_partials(of=var_names['x_hat'],
                                       wrt=var_names['f_computed'],
                                       rows=rs, cols=cs)
-
 
                 self.declare_partials(of=var_names['x_a'],
                                       wrt=var_names['f_computed'],

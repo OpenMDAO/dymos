@@ -50,9 +50,9 @@ class TestBirkhoffPicardIterGroup(unittest.TestCase):
 
                                 p = om.Problem()
                                 p.model.add_subsystem('birkhoff', BirkhoffPicardIterGroup(state_options=state_options,
-                                                                                        time_units=time_options['units'],
-                                                                                        grid_data=grid_data,
-                                                                                        ode_class=ode_class))
+                                                                                          time_units=time_options['units'],
+                                                                                          grid_data=grid_data,
+                                                                                          ode_class=ode_class))
 
                                 birkhoff = p.model._get_subsystem('birkhoff')
 
@@ -91,11 +91,11 @@ class TestBirkhoffPicardIterGroup(unittest.TestCase):
 
                                 assert_near_equal(solution, p.get_val('birkhoff.states:x'), tolerance=1.0E-9)
                                 assert_near_equal(dsolution_dt.ravel(),
-                                                p.get_val('birkhoff.picard_update_comp.f_computed:x').ravel(),
-                                                tolerance=1.0E-9)
+                                                  p.get_val('birkhoff.picard_update_comp.f_computed:x').ravel(),
+                                                  tolerance=1.0E-9)
 
                                 cpd = p.check_partials(method='cs', compact_print=False,
-                                                    show_only_incorrect=True)#, out_stream=None)
+                                                       show_only_incorrect=True, out_stream=None)
                                 assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
 
     @unittest.skip('This test is a demonstation of the inability of Birkhoff-Picard '
