@@ -14,7 +14,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     if optimizer == 'SNOPT':
         p.driver = om.pyOptSparseDriver()
         p.driver.options['optimizer'] = optimizer
-        p.driver.opt_settings['Major iterations limit'] = 100
+        p.driver.opt_settings['Major iterations limit'] = 1000
         p.driver.opt_settings['Major feasibility tolerance'] = 1.0E-6
         p.driver.opt_settings['Major optimality tolerance'] = 1.0E-6
         p.driver.opt_settings['iSumm'] = 6
@@ -24,6 +24,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     if dynamic_simul_derivs:
         p.driver.declare_coloring()
 
+    fix_initial=True
     if transcription == 'gauss-lobatto':
         transcription = dm.GaussLobatto(num_segments=num_segments,
                                         order=transcription_order,
@@ -41,8 +42,10 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
     elif transcription == 'picard':
         transcription = dm.PicardShooting(num_segments=num_segments,
                                           nodes_per_seg=transcription_order+1,
-                                          solve_segments='forward')
+                                          solve_segments=solve_segments)
         fix_final = False
+        if solve_segments == 'backward':
+            fix_initial=False
 
     traj = dm.Trajectory()
     phase = dm.Phase(ode_class=BrachistochroneVectorStatesODE,
@@ -55,10 +58,10 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     # can't fix final position if you're solving the segments
 
-    phase.add_state('pos', fix_initial=True, fix_final=fix_final,
+    phase.add_state('pos', fix_initial=fix_initial, fix_final=fix_final,
                     solve_segments=solve_segments, ref=[1, 1])
     #
-    phase.add_state('v', fix_initial=True, fix_final=False, solve_segments=solve_segments)
+    phase.add_state('v', fix_initial=fix_initial, fix_final=fix_final, solve_segments=solve_segments)
     #
     phase.add_control('theta',
                       continuity=True, rate_continuity=True,
@@ -68,6 +71,10 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
     if not fix_final:
         phase.add_boundary_constraint('pos', loc='final', equals=[10, 5])
+
+    if not fix_initial:
+        phase.add_boundary_constraint('pos', loc='initial', equals=[0, 10])
+        phase.add_boundary_constraint('v', loc='initial', equals=1.0E-6)
 
     # Minimize time at the end of the phase
     phase.add_objective('time', loc='final', scaler=10)

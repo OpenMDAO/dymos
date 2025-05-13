@@ -62,6 +62,7 @@ class PicardUpdateComp(om.ExplicitComponent):
         B_blocks = []
 
         self._seg_repeats = gd.subset_num_nodes_per_segment['all']
+        self._dx_dtdtau_jac_map = {}
 
         start_idx = 0
         for i in range(num_segs):
@@ -94,6 +95,7 @@ class PicardUpdateComp(om.ExplicitComponent):
             shape = options['shape']
             size = np.prod(shape)
             units = options['units']
+            direction = options['solve_segments']
 
             rate_units = get_rate_units(units, time_units)
             var_names = self.var_names[state_name]
@@ -116,7 +118,7 @@ class PicardUpdateComp(om.ExplicitComponent):
                 units=units
             )
 
-            if options['solve_segments'] == 'forward':
+            if direction == 'forward':
                 self.add_input(
                     name=var_names['x_0'],
                     shape=(num_segs,) + shape,
@@ -155,8 +157,6 @@ class PicardUpdateComp(om.ExplicitComponent):
 
                 # Derivativews of final state wrt computed state rate
                 last_seg_first_col = size * (num_nodes - nnps_last)
-                # rs = np.repeat(np.arange(size, dtype=int), nnps_last)
-                # cs = np.tile(np.arange(last_seg_first_col, last_seg_first_col + nnps_last, dtype=int), size)
                 rs = rs[-size * nnps_last:]
                 rs = np.asarray(rs, dtype=int) - rs[0]
                 cs = cs[-size * nnps_last:]
@@ -184,7 +184,23 @@ class PicardUpdateComp(om.ExplicitComponent):
                                       wrt=var_names['x_0'],
                                       rows=rs, cols=cs, val=1.0)
 
-            elif options['solve_segments'] == 'backward':
+                # Build a mapper to help pack the derivatives wrt dt_dstau
+                if (size, direction) not in self._dx_dtdtau_jac_map:
+                    phase_node_idx = 0
+                    seg_row_idx0 = 0
+                    self._dx_dtdtau_jac_map[size, direction] = {}
+                    for seg_idx in range(gd.num_segments):
+                        nnps = gd.subset_num_nodes_per_segment['all'][seg_idx]
+                        for seg_node_idx in range(gd.subset_num_nodes_per_segment['all'][seg_idx]):
+                            for state_idx in range(size):
+                                rs = seg_row_idx0 + size + state_idx + np.arange((nnps - 1) * size, step=size, dtype=int)
+                                cs = phase_node_idx * np.ones_like(rs, dtype=int)
+                                self._dx_dtdtau_jac_map[size, direction][phase_node_idx, state_idx] = rs, cs
+
+                            phase_node_idx += 1
+                        seg_row_idx0 += nnps * size
+
+            elif direction == 'backward':
                 self.add_input(name=var_names['x_f'],
                                shape=(num_segs,) + shape,
                                desc=f'Final value of state {state_name} in each segment',
@@ -193,25 +209,66 @@ class PicardUpdateComp(om.ExplicitComponent):
                                 shape=(1,) + shape,
                                 desc=f'Initial value of state {state_name} in the phase',
                                 units=units)
-                self.declare_partials(of=var_names['x_hat'], wrt='dt_dstau',
+
+
+                nnps_first = gd.subset_num_nodes_per_segment['all'][0]
+                # Derivatives of integrated state wrt dt_dstau at each node
+                rs, cs = sp.kron(self._B[::-1, ::-1], np.ones((size, 1), dtype=int), format='csr').nonzero()
+                self.declare_partials(of=var_names['x_hat'],
+                                      wrt='dt_dstau',
                                       rows=rs, cols=cs)
-                self.declare_partials(of=var_names['x_hat'], wrt=var_names['f_computed'],
+
+                # Derivatives of final state wrt dt_dstau
+                self.declare_partials(of=var_names['x_a'],
+                                      wrt='dt_dstau',
+                                      rows=rs[:nnps_first * size], cols=cs[:nnps_first * size])
+
+
+                nnps_first = gd.subset_num_nodes_per_segment['all'][0]
+                rs, cs = sp.kron(self._B[::-1, ::-1].multiply(np.ones((1, num_nodes))), sp.eye(size), format='csr').nonzero()
+                self.declare_partials(of=var_names['x_hat'],
+                                      wrt=var_names['f_computed'],
                                       rows=rs, cols=cs)
+
+
                 self.declare_partials(of=var_names['x_a'],
-                                      wrt='dt_dstau')
-                self.declare_partials(of=var_names['x_a'],
-                                      wrt=var_names['f_computed'])
-                rs = np.arange(num_nodes, dtype=int)
-                cs = np.repeat(np.arange(num_segs, dtype=int), self._seg_repeats)
+                                      wrt=var_names['f_computed'],
+                                      rows=rs[:size * nnps_first],
+                                      cols=cs[:size * nnps_first])
+
+                # Derivatives of integrated state wrt seg final value
+                blocks = []
+                for seg_i in range(gd.num_segments):
+                    nnps_i = gd.subset_num_nodes_per_segment['all'][seg_i]
+                    blocks.append(sp.kron(np.ones((nnps_i, 1)), sp.eye(size)))
+                dxhat_dx0 = sp.block_diag(blocks)
+                rs, cs, vals = sp.find(dxhat_dx0)
                 self.declare_partials(of=var_names['x_hat'],
                                       wrt=var_names['x_f'],
-                                      rows=rs, cols=cs, val=1.0)
+                                      rows=rs, cols=cs, val=vals)
+
                 template = sp.lil_array((1, num_segs), dtype=int)
                 template[0, 0] = 1
                 template = sp.kron(template.tocsr(), sp.eye(size, dtype=int))
                 rs, cs = template.nonzero()
                 self.declare_partials(of=var_names['x_a'], wrt=var_names['x_f'],
                                       rows=rs, cols=cs, val=1.0)
+
+                # Build a mapper to help pack the derivatives wrt dt_dstau
+                if (size, direction) not in self._dx_dtdtau_jac_map:
+                    phase_node_idx = 0
+                    seg_row_idx0 = 0
+                    self._dx_dtdtau_jac_map[size, direction] = {}
+                    for seg_idx in range(gd.num_segments):
+                        nnps = gd.subset_num_nodes_per_segment['all'][seg_idx]
+                        for seg_node_idx in range(gd.subset_num_nodes_per_segment['all'][seg_idx]):
+                            for state_idx in range(size):
+                                rs = seg_row_idx0 + state_idx + np.arange((nnps - 1) * size, step=size, dtype=int)
+                                cs = phase_node_idx * np.ones_like(rs, dtype=int)
+                                self._dx_dtdtau_jac_map[size, direction][phase_node_idx, state_idx] = rs, cs
+
+                            phase_node_idx += 1
+                        seg_row_idx0 += nnps * size
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         """
@@ -282,45 +339,60 @@ class PicardUpdateComp(om.ExplicitComponent):
             # so we need to convert f from being dx/dt to dx/dtau.
             f_t = inputs[var_names['f_computed']]
 
-            if options['solve_segments'] == 'forward':
-                # with np.printoptions(linewidth=10000, edgeitems=10000):
-                #     print(sp.kron(self._B.multiply(dt_dstau.T), sp.eye(size), format='csr').todense())
-                #     print(self._B)
-                #     exit(0)
+            direction = options['solve_segments']
+
+            if direction == 'forward':
+
+                # Patials of the integrated state wrt the computed state rates
                 dx_df = sp.kron(self._B.multiply(dt_dstau.T), sp.eye(size), format='csr')
                 partials[x_name, f_name] = dx_df.data
+
+                # Partials of the final state wrt the computed state rates
                 nnps_last = gd.subset_num_nodes_per_segment['all'][-1]
                 partials[x_b_name, f_name] = dx_df.data[-size * nnps_last:]
 
-                dx_dtdtau_jac_map = {}
-                phase_node_idx = 0
-                seg_row_idx0 = 0
-                for seg_idx in range(gd.num_segments):
-                    nnps = gd.subset_num_nodes_per_segment['all'][seg_idx]
-                    for seg_node_idx in range(gd.subset_num_nodes_per_segment['all'][seg_idx]):
-                        for state_idx in range(size):
-                            rs = seg_row_idx0 + size + state_idx + np.arange((nnps - 1) * size, step=size, dtype=int)
-                            cs = phase_node_idx * np.ones_like(rs, dtype=int)
-                            dx_dtdtau_jac_map[state_name, phase_node_idx, state_idx] = rs, cs
-
-                        phase_node_idx += 1
-                    seg_row_idx0 += nnps * size
-                    # print(seg_idx, seg_row_idx0)
                 B_kron = sp.kron(self._B, np.ones((size, 1)), format='csr')
+
                 f_t_flat = f_t.reshape(num_nodes, -1)
                 M_f = sp.lil_matrix(B_kron.shape)
-                for (state_name, phase_node_idx, state_idx), (rs, cs) in dx_dtdtau_jac_map.items():
-                    # print(state_name, state_idx, phase_node_idx, rs, cs)
+                for (phase_node_idx, state_idx), (rs, cs) in self._dx_dtdtau_jac_map[size, direction].items():
                     M_f[rs, cs] = f_t_flat[phase_node_idx, state_idx]
-                nzr, nzc = B_kron.nonzero()
-                partials[x_name, 'dt_dstau'] = B_kron.data.ravel() * M_f.todense()[nzr, nzc].A1
-                partials[x_b_name, 'dt_dstau'] = partials[x_name, 'dt_dstau'][-nnps * size:]
+
+                # Convert M_f to COO format
+                M_f_coo = M_f.tocoo()
+                M_f_dict = {(r, c): v for r, c, v in zip(M_f_coo.row, M_f_coo.col, M_f_coo.data)}
+
+                # Multiply B_kron.data with corresponding M_f values
+                partials[x_name, 'dt_dstau'] = np.array([
+                    B_kron.data[i] * M_f_dict.get((r, c), 0.0)
+                    for i, (r, c) in enumerate(zip(*B_kron.nonzero()))])
+                partials[x_b_name, 'dt_dstau'] = partials[x_name, 'dt_dstau'][-nnps_last * size:]
 
             elif options['solve_segments'] == 'backward':
-                B_flip = self._B[::-1, ...]
+                B_flip = self._B[::-1, ::-1]
                 dt_dstau_flip = dt_dstau[::-1, ...]
+                nnps_first = gd.subset_num_nodes_per_segment['all'][0]
 
-                partials[x_name, f_name] = -(B_flip.multiply(dt_dstau_flip.T)).todense()[:-1, ::-1].ravel()
-                partials[x_a_name, f_name] = partials[x_name, f_name][:num_nodes]
-                partials[x_name, 'dt_dstau'] = -(B_flip.multiply(f_t[::-1, ...].T)).todense()[:-1, ::-1].ravel()
-                partials[x_a_name, 'dt_dstau'] = partials[x_name, 'dt_dstau'][:num_nodes]
+                dx_df = -sp.kron(self._B[::-1, ::-1].multiply(dt_dstau_flip.T), sp.eye(size), format='csr')
+                partials[x_name, f_name] = dx_df.data
+
+                # partials[x_name, f_name] = -(B_flip.multiply(dt_dstau_flip.T)).todense()[:-1, ::-1].ravel()
+                partials[x_a_name, f_name] = partials[x_name, f_name][:nnps_first * size]
+
+                B_flip_kron = sp.kron(B_flip, np.ones((size, 1)), format='csr')
+                f_t_flat = f_t.reshape(num_nodes, -1)
+                M_f = sp.lil_matrix(B_flip_kron.shape)
+                for (phase_node_idx, state_idx), (rs, cs) in self._dx_dtdtau_jac_map[size, direction].items():
+                    M_f[rs, cs] = f_t_flat[phase_node_idx, state_idx]
+
+                # Convert M_f to COO format
+                M_f_coo = M_f.tocoo()
+                M_f_dict = {(r, c): v for r, c, v in zip(M_f_coo.row, M_f_coo.col, M_f_coo.data)}
+
+                # Multiply B_kron.data with corresponding M_f values
+                partials[x_name, 'dt_dstau'] = -np.array([
+                    B_flip_kron.data[i] * M_f_dict.get((r, c), 0.0)
+                    for i, (r, c) in enumerate(zip(*B_flip_kron.nonzero()))])
+
+                # partials[x_name, 'dt_dstau'] = -(B_flip_kron.multiply(f_t[0, 0])).data
+                partials[x_a_name, 'dt_dstau'] = partials[x_name, 'dt_dstau'][:nnps_first * size]
