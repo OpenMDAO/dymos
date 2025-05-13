@@ -90,7 +90,7 @@ def _make_problem(transcription='gauss-lobatto', num_segments=8, transcription_o
 
     p.setup(check=['unconnected_inputs'], force_alloc_complex=force_alloc_complex)
 
-    phase.set_time_val(initial=0.0, duration=1.5)
+    phase.set_time_val(initial=0.0, duration=1.0)
 
     phase.set_state_val('x', [0, 10])
     phase.set_state_val('y', [10, 5])
@@ -106,7 +106,7 @@ def _make_problem(transcription='gauss-lobatto', num_segments=8, transcription_o
 @use_tempdirs
 class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
 
-    def assert_results(self, p):
+    def assert_results(self, p, tol=1.0E-2):
         t_initial = p.get_val('traj0.phase0.t')[0]
         t_final = p.get_val('traj0.phase0.t')[-1]
 
@@ -123,18 +123,18 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
 
         thetaf = p.get_val('traj0.phase0.timeseries.theta')[-1, 0]
 
-        assert_near_equal(t_initial, 0.0, tolerance=1.0E-2)
-        assert_near_equal(x0, 0.0, tolerance=1.0E-2)
-        assert_near_equal(y0, 10.0, tolerance=1.0E-2)
-        assert_near_equal(v0, 0.0, tolerance=1.0E-2)
+        assert_near_equal(t_initial, 0.0, tolerance=tol)
+        assert_near_equal(x0, 0.0, tolerance=tol)
+        assert_near_equal(y0, 10.0, tolerance=tol)
+        assert_near_equal(v0, 0.0, tolerance=tol)
 
-        assert_near_equal(t_final, 1.8016, tolerance=1.0E-2)
-        assert_near_equal(xf, 10.0, tolerance=1.0E-2)
-        assert_near_equal(yf, 5.0, tolerance=1.0E-2)
-        assert_near_equal(vf, 9.902, tolerance=1.0E-2)
-        assert_near_equal(g, 9.80665, tolerance=1.0E-2)
+        assert_near_equal(t_final, 1.8016, tolerance=tol)
+        assert_near_equal(xf, 10.0, tolerance=tol)
+        assert_near_equal(yf, 5.0, tolerance=tol)
+        assert_near_equal(vf, 9.902, tolerance=tol)
+        assert_near_equal(g, 9.80665, tolerance=tol)
 
-        assert_near_equal(thetaf, 100.12, tolerance=1.0E-2)
+        assert_near_equal(thetaf, 100.12, tolerance=tol)
 
     def test_ex_brachistochrone_vs_radau_compressed(self):
         ex_brachistochrone_vs.SHOW_PLOTS = False
@@ -241,6 +241,18 @@ class TestBrachistochroneVectorStatesExampleSolveSegments(unittest.TestCase):
                                                            grid_type='cgl',
                                                            num_segments=1,
                                                            transcription_order=11)
+        self.assert_results(p)
+
+    def test_ex_brachistochrone_vs_picard_fwd(self):
+        ex_brachistochrone_vs.SHOW_PLOTS = False
+        p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='picard',
+                                                           compressed=False,
+                                                           force_alloc_complex=True,
+                                                           solve_segments='forward',
+                                                           num_segments=10,
+                                                           transcription_order=3,
+                                                           make_plots=True,
+                                                           run_driver=True)
         self.assert_results(p)
 
 
