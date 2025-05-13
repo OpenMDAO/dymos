@@ -922,25 +922,26 @@ Rather than forcing them to rewrite this code in the form of OpenMDAO components
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">openmdao.api</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">om</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">openmdao.func_api</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">omf</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dymos.utils.misc</span><span class="w"> </span><span class="kn">import</span> <span class="n">om_version</span>
+
 <span class="k">def</span><span class="w"> </span><span class="nf">wrap_ode_func</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">flight_mode</span><span class="p">,</span> <span class="n">grad_method</span><span class="o">=</span><span class="s1">&#39;jax&#39;</span><span class="p">,</span> <span class="n">jax_jit</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the metadata from omf needed to create a new ExplciitFuncComp.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">nn</span> <span class="o">=</span> <span class="n">num_nodes</span>
     <span class="n">ode_func</span> <span class="o">=</span> <span class="n">runway_ode</span> <span class="k">if</span> <span class="n">flight_mode</span> <span class="o">==</span> <span class="s1">&#39;runway&#39;</span> <span class="k">else</span> <span class="n">climb_ode</span>
-    
+
     <span class="n">meta</span> <span class="o">=</span> <span class="p">(</span><span class="n">omf</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">ode_func</span><span class="p">)</span>
-               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;rho&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">1.225</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;atmospheric density at runway&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/m**3&#39;</span><span class="p">)</span>
-               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;S&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">124.7</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;aerodynamic reference area&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m**2&#39;</span><span class="p">)</span>
-               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;CD0&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;zero-lift drag coefficient&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;CL0&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;zero-alpha lift coefficient&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;CL_max&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;maximum lift coefficient for linear fit&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;alpha_max&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;angle of attack at CL_max&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;rad&#39;</span><span class="p">)</span>
-               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;h_w&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;height of the wing above the CG&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">)</span>
-               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;AR&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">9.45</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;wing aspect ratio&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;e&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">0.801</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Oswald span efficiency factor&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;span&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">35.7</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Wingspan&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">)</span>
-               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;thrust&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;N&#39;</span><span class="p">)</span>
+               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;rho&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">1.225</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;atmospheric density at runway&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/m**3&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,))</span>
+               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;S&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">124.7</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;aerodynamic reference area&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m**2&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,))</span>
+               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;CD0&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;zero-lift drag coefficient&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,))</span>
+               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;CL0&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;zero-alpha lift coefficient&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,))</span>
+               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;CL_max&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;maximum lift coefficient for linear fit&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,))</span>
+               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;alpha_max&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;angle of attack at CL_max&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;rad&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,))</span>
+               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;h_w&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;height of the wing above the CG&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,))</span>
+               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;AR&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">9.45</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;wing aspect ratio&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,))</span>
+               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;e&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">0.801</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Oswald span efficiency factor&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,))</span>
+               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;span&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">35.7</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Wingspan&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,))</span>
+               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;thrust&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,))</span>
 
                <span class="c1"># Dynamic inputs (can assume a different value at every node)</span>
                <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nn</span><span class="p">,),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;aircraft mass&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg&#39;</span><span class="p">)</span>
@@ -965,23 +966,21 @@ Rather than forcing them to rewrite this code in the form of OpenMDAO components
            <span class="p">)</span>
 
     <span class="k">if</span> <span class="n">flight_mode</span> <span class="o">==</span> <span class="s1">&#39;runway&#39;</span><span class="p">:</span>
-        <span class="n">meta</span><span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;mu_r&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;runway friction coefficient&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">meta</span><span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;mu_r&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;runway friction coefficient&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,))</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">meta</span><span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;gam&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nn</span><span class="p">,),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;flight path angle&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;rad&#39;</span><span class="p">)</span>
         <span class="n">meta</span><span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="s1">&#39;gam_dot&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nn</span><span class="p">,),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;rate of change of flight path angle&#39;</span><span class="p">,</span>
                         <span class="n">units</span><span class="o">=</span><span class="s1">&#39;rad/s&#39;</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dymos.state_rate_source:gam&#39;</span><span class="p">])</span>
         <span class="n">meta</span><span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="s1">&#39;h_dot&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nn</span><span class="p">,),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;rate of change of altitude&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m/s&#39;</span><span class="p">,</span>
                         <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dymos.state_rate_source:h&#39;</span><span class="p">])</span>
-    
+
     <span class="n">meta</span><span class="o">.</span><span class="n">declare_coloring</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">grad_method</span><span class="p">)</span>
     <span class="n">meta</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">grad_method</span><span class="p">)</span>
-    
+
     <span class="k">if</span> <span class="n">om_version</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">35</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">om</span><span class="o">.</span><span class="n">ExplicitFuncComp</span><span class="p">(</span><span class="n">meta</span><span class="p">,</span> <span class="n">derivs_method</span><span class="o">=</span><span class="n">grad_method</span><span class="p">,</span> <span class="n">use_jit</span><span class="o">=</span><span class="n">jax_jit</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">om</span><span class="o">.</span><span class="n">ExplicitFuncComp</span><span class="p">(</span><span class="n">meta</span><span class="p">,</span> <span class="n">use_jax</span><span class="o">=</span><span class="n">grad_method</span> <span class="o">==</span> <span class="s1">&#39;jax&#39;</span><span class="p">,</span> <span class="n">use_jit</span><span class="o">=</span><span class="n">jax_jit</span><span class="p">)</span>
-    
-    
 </pre></div>
 </div>
 </div>
@@ -1183,49 +1182,49 @@ This allows us to declare a single ODE component for use in the problem regardle
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000969 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.001077 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000031 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000049 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000318 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000381 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000274 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000268 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000002 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000003 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.003824 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.004275 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000080 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000151 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000002 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000003 sec).
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/recorders/sqlite_recorder.py:231: UserWarning:The existing case recorder file, /home/runner/work/dymos/dymos/docs/dymos_book/examples/balanced_field/problem_out/dymos_solution.db, is being overwritten.
@@ -1234,25 +1233,25 @@ This allows us to declare a single ODE component for use in the problem regardle
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000526 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000811 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000046 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000038 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000325 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000309 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000490 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000271 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
@@ -1264,44 +1263,44 @@ This allows us to declare a single ODE component for use in the problem regardle
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.003992 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.003991 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000106 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000129 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000002 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000003 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Coloring for &#39;traj.phases.br_to_v1.rhs_all&#39; (class ExplicitFuncComp)
 
-Jacobian shape: (132, 60)  (9.70% nonzero)
+Jacobian shape: (132, 60)  (9.73% nonzero)
 FWD solves: 16   REV solves: 0
 Total colors vs. total size: 16 vs 60  (73.33% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense partial jacobian for ExplicitFuncComp &#39;traj.phases.br_to_v1.rhs_all&#39; was computed 3 times.
-Time to compute sparsity:   0.0150 sec
-Time to compute coloring:   0.0103 sec
+Time to compute sparsity:   0.0164 sec
+Time to compute coloring:   0.0107 sec
 Memory to compute coloring:   0.2500 MB
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Coloring for &#39;traj.phases.rto.rhs_all&#39; (class ExplicitFuncComp)
 
-Jacobian shape: (132, 60)  (9.72% nonzero)
+Jacobian shape: (132, 60)  (9.71% nonzero)
 FWD solves: 16   REV solves: 0
 Total colors vs. total size: 16 vs 60  (73.33% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense partial jacobian for ExplicitFuncComp &#39;traj.phases.rto.rhs_all&#39; was computed 3 times.
-Time to compute sparsity:   0.0148 sec
-Time to compute coloring:   0.0104 sec
+Time to compute sparsity:   0.0163 sec
+Time to compute coloring:   0.0110 sec
 Memory to compute coloring:   0.0000 MB
 </pre></div>
 </div>
@@ -1313,8 +1312,8 @@ Total colors vs. total size: 16 vs 60  (73.33% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense partial jacobian for ExplicitFuncComp &#39;traj.phases.v1_to_vr.rhs_all&#39; was computed 3 times.
-Time to compute sparsity:   0.0151 sec
-Time to compute coloring:   0.0105 sec
+Time to compute sparsity:   0.0164 sec
+Time to compute coloring:   0.0112 sec
 Memory to compute coloring:   0.0000 MB
 </pre></div>
 </div>
@@ -1326,8 +1325,8 @@ Total colors vs. total size: 16 vs 60  (73.33% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense partial jacobian for ExplicitFuncComp &#39;traj.phases.rotate.rhs_all&#39; was computed 3 times.
-Time to compute sparsity:   0.0151 sec
-Time to compute coloring:   0.0106 sec
+Time to compute sparsity:   0.0161 sec
+Time to compute coloring:   0.0113 sec
 Memory to compute coloring:   0.0000 MB
 </pre></div>
 </div>
@@ -1339,9 +1338,9 @@ Total colors vs. total size: 16 vs 111  (85.59% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense partial jacobian for ExplicitFuncComp &#39;traj.phases.climb.rhs_all&#39; was computed 3 times.
-Time to compute sparsity:   0.0259 sec
-Time to compute coloring:   0.0198 sec
-Memory to compute coloring:   0.0000 MB
+Time to compute sparsity:   0.0285 sec
+Time to compute coloring:   0.0206 sec
+Memory to compute coloring:   0.1250 MB
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (178, 166)  (3.16% nonzero)
@@ -1350,10 +1349,10 @@ Total colors vs. total size: 14 vs 166  (91.57% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem&#39; was computed 3 times.
-Time to compute sparsity:   2.3565 sec
-Time to compute coloring:   0.1447 sec
-Memory to compute coloring:   0.2500 MB
-Coloring created on: 2025-05-09 13:21:15
+Time to compute sparsity:   2.5115 sec
+Time to compute coloring:   0.1448 sec
+Memory to compute coloring:   0.1250 MB
+Coloring created on: 2025-05-13 17:45:32
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/total_jac.py:1731: DerivativesWarning:Constraints or objectives [(&#39;traj.climb.gam[path]&#39;, inds=[(0, 0)])] cannot be impacted by the design variables of the problem.
