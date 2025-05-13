@@ -868,8 +868,8 @@ without friction along the wire moves from point A to point B in minimum time.</
 <section id="system-dynamics">
 <h2>System dynamics<a class="headerlink" href="#system-dynamics" title="Permalink to this heading">#</a></h2>
 <p>From the free-body diagram above, the evolution of the state variables is given by the following ordinary differential equations (ODE).</p>
-<div class="amsmath math notranslate nohighlight" id="equation-904cca1a-9f33-4b0a-80ef-3b774ac1469a">
-<span class="eqno">(13)<a class="headerlink" href="#equation-904cca1a-9f33-4b0a-80ef-3b774ac1469a" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-fade8ca7-9f0f-4996-a258-8933e9f88a72">
+<span class="eqno">(13)<a class="headerlink" href="#equation-fade8ca7-9f0f-4996-a258-8933e9f88a72" title="Permalink to this equation">#</a></span>\[\begin{align}
     \frac{d x}{d t} &amp;= v \sin(\theta) \\
     \frac{d y}{d t} &amp;= -v \cos(\theta) \\
     \frac{d v}{d t} &amp;= g \cos(\theta)
@@ -887,8 +887,8 @@ without friction along the wire moves from point A to point B in minimum time.</
 <p>In this case, starting point <strong>A</strong> is given as <em>(0, 10)</em>.
 The point moving along the curve will begin there with zero initial velocity.</p>
 <p>The initial conditions are:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-d7d7e0ac-1a7b-4b96-8b2d-79319b1d5906">
-<span class="eqno">(14)<a class="headerlink" href="#equation-d7d7e0ac-1a7b-4b96-8b2d-79319b1d5906" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-ab539835-d09b-4466-a6a3-b0313933f073">
+<span class="eqno">(14)<a class="headerlink" href="#equation-ab539835-d09b-4466-a6a3-b0313933f073" title="Permalink to this equation">#</a></span>\[\begin{align}
     x_0 &amp;= 0 \\
     y_0 &amp;= 10 \\
     v_0 &amp;= 0
@@ -896,8 +896,8 @@ The point moving along the curve will begin there with zero initial velocity.</p
 <p>The end point <strong>B</strong> is given as <em>(10, 5)</em>.
 The point will end there, but the velocity at that point is not constrained.</p>
 <p>The final conditions are:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-908a30fb-0057-4486-9967-285cd8bd0036">
-<span class="eqno">(15)<a class="headerlink" href="#equation-908a30fb-0057-4486-9967-285cd8bd0036" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-4adefcb3-20cc-48e6-b6fd-f9a74af32b62">
+<span class="eqno">(15)<a class="headerlink" href="#equation-4adefcb3-20cc-48e6-b6fd-f9a74af32b62" title="Permalink to this equation">#</a></span>\[\begin{align}
     x_f &amp;= 10 \\
     y_f &amp;= 5 \\
     v_f &amp;= \mathrm{free}
@@ -1171,10 +1171,10 @@ Total colors vs. total size: 8 vs 50  (84.00% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem2&#39; was computed 3 times.
-Time to compute sparsity:   0.0263 sec
-Time to compute coloring:   0.0444 sec
+Time to compute sparsity:   0.0244 sec
+Time to compute coloring:   0.0425 sec
 Memory to compute coloring:   0.1250 MB
-Coloring created on: 2025-05-13 17:45:41
+Coloring created on: 2025-05-13 20:01:06
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully    (Exit mode 0)
@@ -1324,11 +1324,11 @@ Optimization Complete
 -----------------------------------
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/visualization/opt_report/opt_report.py:611: UserWarning: Attempting to set identical low and high ylims makes transformation singular; automatically expanding.
-  ax.set_ylim([ymin_plot, ymax_plot])
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[1.80185208]
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[1.80185208]
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/visualization/opt_report/opt_report.py:611: UserWarning: Attempting to set identical low and high ylims makes transformation singular; automatically expanding.
+  ax.set_ylim([ymin_plot, ymax_plot])
 </pre></div>
 </div>
 </div>
