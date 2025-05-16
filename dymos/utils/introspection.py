@@ -142,115 +142,6 @@ def get_targets(ode, name, user_targets):
             return user_targets
     return []
 
-
-def _configure_constraint_introspection(phase):
-    """
-    Modify constraint options in-place using introspection of the phase and its ODE.
-
-    Parameters
-    ----------
-    phase : Phase
-        The phase object whose boundary and path constraints are to be introspected.
-    """
-    from ..transcriptions import Birkhoff
-    birkhoff = isinstance(phase.options['transcription'], Birkhoff)
-
-    for constraint_type, constraints in [('initial', phase._initial_boundary_constraints),
-                                         ('final', phase._final_boundary_constraints),
-                                         ('path', phase._path_constraints)]:
-
-        time_units = phase.time_options['units']
-        time_name = phase.time_options['name']
-
-        for con in constraints:
-            # Determine the path to the variable which we will be constraining
-            var = con['name']
-            var_type = phase.classify_var(var)
-
-            if var != con['constraint_name'] is not None and var_type != 'ode':
-                om.issue_warning(f"Option 'constraint_name' on {constraint_type} constraint {var} is only "
-                                 f"valid for ODE outputs. The option is being ignored.", om.UnusedOptionWarning)
-
-            if var_type == 't':
-                con['shape'] = (1,)
-                con['units'] = time_units if con['units'] is None else con['units']
-                con['constraint_path'] = f'timeseries.{time_name}'
-
-            elif var_type == 't_phase':
-                con['shape'] = (1,)
-                con['units'] = time_units if con['units'] is None else con['units']
-                con['constraint_path'] = f'timeseries.{time_name}_phase'
-
-            elif var_type == 'state':
-                prefix = 'states:' if phase.timeseries_options['use_prefix'] else ''
-                state_shape = phase.state_options[var]['shape']
-                state_units = phase.state_options[var]['units']
-                con['shape'] = state_shape
-                con['units'] = state_units if con['units'] is None else con['units']
-                if birkhoff and constraint_type in ('initial', 'final'):
-                    con['constraint_path'] = f'boundary_vals.{var}'
-                else:
-                    con['constraint_path'] = f'timeseries.{prefix}{var}'
-
-            elif var_type == 'parameter':
-                param_shape = phase.parameter_options[var]['shape']
-                param_units = phase.parameter_options[var]['units']
-                con['shape'] = param_shape
-                con['units'] = param_units if con['units'] is None else con['units']
-                con['constraint_path'] = f'parameter_vals:{var}'
-
-            elif var_type == 'control':
-                prefix = 'controls:' if phase.timeseries_options['use_prefix'] else ''
-                control_shape = phase.control_options[var]['shape']
-                control_units = phase.control_options[var]['units']
-
-                con['shape'] = control_shape
-                con['units'] = control_units if con['units'] is None else con['units']
-                if birkhoff and constraint_type in ('initial', 'final'):
-                    con['constraint_path'] = f'boundary_vals.{var}'
-                else:
-                    con['constraint_path'] = f'timeseries.{prefix}{var}'
-
-            elif var_type == 'control_rate':
-                prefix = 'control_rates:' if phase.timeseries_options['use_prefix'] else ''
-                control_name = var[:-5]
-                control_shape = phase.control_options[control_name]['shape']
-                control_units = phase.control_options[control_name]['units']
-                con['shape'] = control_shape
-                con['units'] = get_rate_units(control_units, time_units, deriv=1) \
-                    if con['units'] is None else con['units']
-                if birkhoff and constraint_type in ('initial', 'final'):
-                    con['constraint_path'] = f'boundary_vals.{var}'
-                else:
-                    con['constraint_path'] = f'timeseries.{prefix}{var}'
-
-            elif var_type == 'control_rate2':
-                prefix = 'control_rates:' if phase.timeseries_options['use_prefix'] else ''
-                control_name = var[:-6]
-                control_shape = phase.control_options[control_name]['shape']
-                control_units = phase.control_options[control_name]['units']
-                con['shape'] = control_shape
-                con['units'] = get_rate_units(control_units, time_units, deriv=2) \
-                    if con['units'] is None else con['units']
-                if birkhoff and constraint_type in ('initial', 'final'):
-                    con['constraint_path'] = f'boundary_vals.{var}'
-                else:
-                    con['constraint_path'] = f'timeseries.{prefix}{var}'
-            else:
-                # Failed to find variable, assume it is in the ODE. This requires introspection.
-                ode = phase.options['transcription']._get_ode(phase)
-
-                meta = get_source_metadata(ode, src=var, user_units=con['units'], user_shape=con['shape'])
-
-                con['shape'] = meta['shape']
-                con['units'] = meta['units']
-
-                if birkhoff and constraint_type in ('initial', 'final'):
-                    con['constraint_path'] = f'boundary_vals.{var}'
-                else:
-                    con['constraint_path'] = f'timeseries.{con["constraint_name"]}'
-
-
 def configure_controls_introspection(control_options, ode, time_units='s'):
     """
     Modify control options in-place using introspection of the user-provided ODE.
@@ -921,8 +812,7 @@ def _configure_constraint_introspection(phase):
     phase : Phase
         The phase object whose boundary and path constraints are to be introspected.
     """
-    from ..transcriptions import Birkhoff
-    birkhoff = isinstance(phase.options['transcription'], Birkhoff)
+    has_boundary_ode = phase.options['transcription']._has_boundary_ode
 
     for constraint_type, constraints in [('initial', phase._initial_boundary_constraints),
                                          ('final', phase._final_boundary_constraints),
@@ -956,7 +846,7 @@ def _configure_constraint_introspection(phase):
                 state_units = phase.state_options[var]['units']
                 con['shape'] = state_shape
                 con['units'] = state_units if con['units'] is None else con['units']
-                if birkhoff and constraint_type in ('initial', 'final'):
+                if has_boundary_ode and constraint_type in ('initial', 'final'):
                     con['constraint_path'] = f'boundary_vals.{var}'
                 else:
                     con['constraint_path'] = f'timeseries.{prefix}{var}'
@@ -975,7 +865,7 @@ def _configure_constraint_introspection(phase):
 
                 con['shape'] = control_shape
                 con['units'] = control_units if con['units'] is None else con['units']
-                if birkhoff and constraint_type in ('initial', 'final'):
+                if has_boundary_ode and constraint_type in ('initial', 'final'):
                     con['constraint_path'] = f'boundary_vals.{var}'
                 else:
                     con['constraint_path'] = f'timeseries.{prefix}{var}'
@@ -988,7 +878,7 @@ def _configure_constraint_introspection(phase):
                 con['shape'] = control_shape
                 con['units'] = get_rate_units(control_units, time_units, deriv=1) \
                     if con['units'] is None else con['units']
-                if birkhoff and constraint_type in ('initial', 'final'):
+                if has_boundary_ode and constraint_type in ('initial', 'final'):
                     con['constraint_path'] = f'boundary_vals.{var}'
                 else:
                     con['constraint_path'] = f'timeseries.{prefix}{var}'
@@ -1001,7 +891,7 @@ def _configure_constraint_introspection(phase):
                 con['shape'] = control_shape
                 con['units'] = get_rate_units(control_units, time_units, deriv=2) \
                     if con['units'] is None else con['units']
-                if birkhoff and constraint_type in ('initial', 'final'):
+                if has_boundary_ode and constraint_type in ('initial', 'final'):
                     con['constraint_path'] = f'boundary_vals.{var}'
                 else:
                     con['constraint_path'] = f'timeseries.{prefix}{var}'
@@ -1015,7 +905,7 @@ def _configure_constraint_introspection(phase):
                 con['shape'] = meta['shape']
                 con['units'] = meta['units']
 
-                if birkhoff and constraint_type in ('initial', 'final'):
+                if has_boundary_ode and constraint_type in ('initial', 'final'):
                     con['constraint_path'] = f'boundary_vals.{var}'
                 else:
                     con['constraint_path'] = f'timeseries.{con["constraint_name"]}'
