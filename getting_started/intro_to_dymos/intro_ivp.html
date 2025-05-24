@@ -835,13 +835,13 @@ Dynamic systems are typically defined by some set of ordinary
 differential equations (the ODE) which governs their behavior.</p>
 <p>Consider a simple damped harmonic oscillator.</p>
 <p><img alt="Damped harmonic oscillator free-body diagram" src="../../_images/spring_mass_damper.png" /></p>
-<div class="amsmath math notranslate nohighlight" id="equation-94e5c7b1-4e6d-44cd-98cc-58cd3ede8352">
-<span class="eqno">(11)<a class="headerlink" href="#equation-94e5c7b1-4e6d-44cd-98cc-58cd3ede8352" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-4cfa22c2-421d-45c4-a5e3-c0ed2c8312bb">
+<span class="eqno">(11)<a class="headerlink" href="#equation-4cfa22c2-421d-45c4-a5e3-c0ed2c8312bb" title="Permalink to this equation">#</a></span>\[\begin{align}
     \ddot{x} &amp;= -\frac{kx}{m} - \frac{c \dot{x}}{m}
 \end{align}\]</div>
 <p>Converting this to a first order system results in an ODE system with two states:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-a5c15668-4215-48c1-9ef5-960189c910d6">
-<span class="eqno">(12)<a class="headerlink" href="#equation-a5c15668-4215-48c1-9ef5-960189c910d6" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-9b4f2095-2c0c-48e4-bfcd-386894498d94">
+<span class="eqno">(12)<a class="headerlink" href="#equation-9b4f2095-2c0c-48e4-bfcd-386894498d94" title="Permalink to this equation">#</a></span>\[\begin{align}
     \dot{x} &amp;= v \\
     \dot{v} &amp;= -\frac{kx}{m} - \frac{c \dot{x}}{m}
 \end{align}\]</div>
@@ -1111,7 +1111,7 @@ Otherwise, we can pass it only to certain states as an argument to <code class="
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/transcriptions/transcription_base.py:436: OpenMDAOWarning:&#39;traj.phases.phase0&#39; &lt;class Phase&gt;
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/dymos/transcriptions/transcription_base.py:439: OpenMDAOWarning:&#39;traj.phases.phase0&#39; &lt;class Phase&gt;
   Non-default solvers are required
     implicit parameters: False
     solved segments: True
@@ -1214,7 +1214,7 @@ Even though the initial time and duration of the phase are fixed, we provide the
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/driver.py:1239: DriverWarning:ScipyOptimizeDriver: objective(s) [&#39;traj.phase0.t&#39;] do not depend on any design variables. Please check your problem formulation.
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/driver.py:1240: DriverWarning:ScipyOptimizeDriver: objective(s) [&#39;traj.phase0.t&#39;] do not depend on any design variables. Please check your problem formulation.
 /usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/total_jac.py:1731: DerivativesWarning:Constraints or objectives [(&#39;traj.phase0.t&#39;, inds=[15])] cannot be impacted by the design variables of the problem.
 </pre></div>
 </div>
