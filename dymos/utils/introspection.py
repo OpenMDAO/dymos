@@ -142,6 +142,7 @@ def get_targets(ode, name, user_targets):
             return user_targets
     return []
 
+
 def configure_controls_introspection(control_options, ode, time_units='s'):
     """
     Modify control options in-place using introspection of the user-provided ODE.
