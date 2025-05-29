@@ -504,12 +504,14 @@ def make_timeseries_report(prob, solution_record_file=None, simulation_record_fi
                                 sources[f'{var_name}[{str_idxs}]'] = s = f'{var_name}_{str_idxs.replace(",", "_")}'
                                 sol_data_column = sol_data[var_name][(slice(None), *idxs)]
                                 sol_data[s] = sol_data_column
-                                sim_data_column = sim_data[var_name][(slice(None), *idxs)]
-                                sim_data[s] = sim_data_column
+                                if sim_data:
+                                    sim_data_column = sim_data[var_name][(slice(None), *idxs)]
+                                    sim_data[s] = sim_data_column
                         else:
                             sources = {var_name: var_name}
                         sol_source = ColumnDataSource(sol_data)
-                        sim_source = ColumnDataSource(sim_data)
+                        if sim_data:
+                            sim_source = ColumnDataSource(sim_data)
 
                         for var_name_with_idxs, _source in sources.items():
                             legend_items = []

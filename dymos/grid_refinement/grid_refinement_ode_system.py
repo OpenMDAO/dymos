@@ -4,6 +4,7 @@ import openmdao.api as om
 from ..phase.options import TimeOptionsDictionary
 from ..utils.misc import get_rate_units
 from ..utils.introspection import get_targets, _get_targets_metadata
+from ..utils.ode_utils import _make_ode_system
 from ..transcriptions.grid_data import GridData
 
 
@@ -56,6 +57,9 @@ class GridRefinementODESystem(om.Group):
         self.options.declare('ode_init_kwargs', types=dict, default={},
                              desc='Keyword arguments provided when initializing the ODE System')
 
+        self.options.declare('calc_exprs', types=dict, default={},
+                             desc='Calculation expressions from the parent phase.')
+
     def setup(self):
         """
         Add the ODE subsystem.
@@ -64,12 +68,16 @@ class GridRefinementODESystem(om.Group):
         num_nodes = grid_data.num_nodes
         ode_class = self.options['ode_class']
         ode_init_kwargs = self.options['ode_init_kwargs']
+        calc_exprs = self.options['calc_exprs']
 
         # The ODE System
         if ode_class is not None:
-            self.add_subsystem('ode',
-                               subsys=self.options['ode_class'](num_nodes=num_nodes,
-                                                                **ode_init_kwargs))
+            ode_sys = _make_ode_system(ode_class=ode_class,
+                                       num_nodes=num_nodes,
+                                       ode_init_kwargs=ode_init_kwargs,
+                                       calc_exprs=calc_exprs,
+                                       parameter_options=self.options['parameters'])
+            self.add_subsystem('ode', subsys=ode_sys)
 
     def configure(self):
         """

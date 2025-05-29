@@ -59,7 +59,7 @@ class TestBrachistochroneRefineGrid(unittest.TestCase):
         phase.add_objective('time_phase', loc='final', scaler=10)
 
         p.model.linear_solver = om.DirectSolver()
-        p.setup(check=['unconnected_inputs'])
+        p.setup()
 
         phase.set_time_val(initial=0.0, duration=2.0)
 
@@ -105,12 +105,12 @@ class TestBrachistochroneRefineGrid(unittest.TestCase):
 
     def test_refine_brachistochrone_radau_compressed(self):
         p = self.make_problem(transcription='radau-ps', num_segments=5, transcription_order=3, compressed=True)
-        dm.run_problem(p)
+        dm.run_problem(p, refine_iteration_limit=3)
         self.run_asserts(self.p)
 
     def test_refine_brachistochrone_gauss_lobatto_compressed(self):
         p = self.make_problem(transcription='gauss-lobatto', num_segments=5, transcription_order=3, compressed=True)
-        dm.run_problem(p)
+        dm.run_problem(p, refine_iteration_limit=3)
         self.run_asserts(self.p)
 
     def test_refine_brachistochrone_birkhoff_compressed(self):

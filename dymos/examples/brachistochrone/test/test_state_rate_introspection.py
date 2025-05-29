@@ -4,7 +4,7 @@ import numpy as np
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
-from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
+from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
 from dymos.utils.misc import om_version
@@ -232,7 +232,6 @@ class TestIntegrateControl(unittest.TestCase):
         assert_timeseries_near_equal(t_sol, int_theta_sol, t_sol, theta_sol, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
         assert_timeseries_near_equal(t_sim, int_theta_sim, t_sim, theta_sim, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
 
-    @require_pyoptsparse(optimizer='SLSQP')
     def _test_integrate_control_rate2(self, transcription):
         #
         # Define the OpenMDAO problem
@@ -250,7 +249,7 @@ class TestIntegrateControl(unittest.TestCase):
         # Define a Dymos Phase object with GaussLobatto Transcription
         #
         phase = dm.Phase(ode_class=BrachistochroneODE,
-                         transcription=transcription(num_segments=15, order=3))
+                         transcription=transcription(num_segments=5, order=3))
 
         traj.add_phase(name='phase0', phase=phase)
 
@@ -292,13 +291,13 @@ class TestIntegrateControl(unittest.TestCase):
         # Note we have to add theta_rate to the timeseries outputs here because
         # linkages get boundary values from that output.
         phase.add_timeseries_output('theta_rate')
+        phase.add_timeseries_output('theta_rate2')
 
         # Minimize final time.
         phase.add_objective('time', loc='final')
 
         # Set the driver.
-        p.driver = om.pyOptSparseDriver(optimizer='SLSQP')
-        p.driver.opt_settings['ACC'] = 1e-9
+        p.driver = om.ScipyOptimizeDriver()
 
         # Allow OpenMDAO to automatically determine our sparsity pattern.
         # Doing so can significant speed up the execution of Dymos.
@@ -599,7 +598,6 @@ class TestIntegratePolynomialControl(unittest.TestCase):
 
         assert_timeseries_near_equal(t_sol, int_theta_sol, t_sol, theta_sol, rel_tolerance=4.0E-3, abs_tolerance=1.0E-2)
 
-    @require_pyoptsparse(optimizer='SLSQP')
     def _test_integrate_polynomial_control_rate2(self, transcription):
         #
         # Define the OpenMDAO problem
@@ -665,7 +663,7 @@ class TestIntegratePolynomialControl(unittest.TestCase):
         phase.add_objective('time', loc='final')
 
         # Set the driver.
-        p.driver = om.pyOptSparseDriver(optimizer='SLSQP')
+        p.driver = om.ScipyOptimizeDriver()
 
         # Allow OpenMDAO to automatically determine our sparsity pattern.
         # Doing so can significant speed up the execution of Dymos.
@@ -945,3 +943,7 @@ class TestInvalidStateRateSource(unittest.TestCase):
 
         expected = 'Error during configure_states_introspection in phase traj0.phases.phase0.'
         self.assertEqual(str(ctx.exception), expected)
+
+
+if __name__ == '__main__':
+    unittest.main()

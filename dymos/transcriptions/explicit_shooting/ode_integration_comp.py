@@ -38,6 +38,8 @@ class ODEIntegrationComp(om.ExplicitComponent):
         If True, assume this component is being run as its own system. As part of the Dymos
         ShootingPhase, this system needs to be setup during the Phase configure process and setting this
         to False will enable that behavior.
+    calc_exprs : dict
+        ODE Expressions provided by the controlling phase.
     **kwargs : dict
         Additional keyword arguments passed to Group.
 
@@ -47,7 +49,7 @@ class ODEIntegrationComp(om.ExplicitComponent):
     theta:  U+03B8
     """
     def __init__(self, input_grid_data, time_options, state_options, parameter_options=None, control_options=None,
-                 output_grid_data=None, reports=False, standalone_mode=True, **kwargs):
+                 output_grid_data=None, reports=False, standalone_mode=True, calc_exprs=None, **kwargs):
         super().__init__(**kwargs)
         self.time_options = time_options
         self.state_options = state_options
@@ -74,6 +76,8 @@ class ODEIntegrationComp(om.ExplicitComponent):
 
         self._no_check_partials = not dymos_options['include_check_partials']
         self._num_control_input_nodes = input_grid_data.subset_num_nodes['control_input']
+
+        self._calc_exprs = {} if calc_exprs is None else calc_exprs
 
     def initialize(self):
         """
@@ -108,9 +112,13 @@ class ODEIntegrationComp(om.ExplicitComponent):
                                                  ode_init_kwargs=self.options['ode_init_kwargs'],
                                                  input_grid_data=self._input_grid_data,
                                                  compute_derivs=self.options['propagate_derivs'],
-                                                 control_interp=self.options['control_interp']),
+                                                 control_interp=self.options['control_interp'],
+                                                 calc_exprs=self._calc_exprs),
                               promotes_inputs=['*'],
                               promotes_outputs=['*'])
+
+        # Support model options
+        p.model_options = self._problem_meta['model_options']
 
         if om_version()[0] <= (3, 34, 2):
             p.setup(check=None)
@@ -717,8 +725,8 @@ class ODEIntegrationComp(om.ExplicitComponent):
             state_initial_val = inputs[self._state_input_names[state_name]]
             x0[self.state_idxs[state_name]] = state_initial_val.ravel()
 
-        theta[0] = t_initial = inputs['t_initial']
-        theta[1] = t_duration = inputs['t_duration']
+        theta[0] = t_initial = inputs['t_initial'].ravel()[0]
+        theta[1] = t_duration = inputs['t_duration'].ravel()[0]
 
         for param_name in self.parameter_options:
             param_val = inputs[self._param_input_names[param_name]]

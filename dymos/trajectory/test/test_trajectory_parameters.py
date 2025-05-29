@@ -390,7 +390,7 @@ class TestTrajectoryParametersDefinition(unittest.TestCase):
 
                 p = om.Problem(model=om.Group())
 
-                p.driver = om.pyOptSparseDriver()
+                p.driver = om.pyOptSparseDriver(print_results=False)
                 OPT, OPTIMIZER = set_pyoptsparse_opt(optimizer, fallback=True)
                 p.driver.options['optimizer'] = OPTIMIZER
                 p.driver.declare_coloring()
@@ -440,13 +440,12 @@ class TestTrajectoryParametersDefinition(unittest.TestCase):
 
                 p.setup()
 
-                p['traj.t_initial'] = 0.0
-                p['traj.t_duration'] = 2.0
-
-                p['traj.phase0.states:x'] = phase.interp('x', ys=[0, 10])
-                p['traj.phase0.states:y'] = phase.interp('y', ys=[10, 5])
-                p['traj.phase0.states:v'] = phase.interp('v', ys=[0, 9.9])
-                p['traj.phase0.controls:theta'] = phase.interp('theta', ys=[0.9, 101.5])
+                phase.set_time_val(initial=0.0, duration=2.0)
+                phase.set_state_val('x', [0, 10])
+                phase.set_state_val('y', [10, 5])
+                phase.set_state_val('v', [0, 9.9])
+                phase.set_control_val('theta', [5, 100])
+                phase.set_parameter_val('g', 9.80665)
 
                 # Solve for the optimal trajectory
                 p.run_driver()

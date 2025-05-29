@@ -43,7 +43,7 @@ def birkhoff_matrix(tau, w, grid_type):
             alpha[N, j] = pol(N, tau[j]) * w[j] / 2
 
     if grid_type[0] == 'l':
-        for i in range(0, N + 1):
+        for i in range(1, N + 1):  # The first row is exactly zero.
             S[i, 0] = (tau[i] - tau[0]) / 2
 
             for n in range(1, N+1):
@@ -53,7 +53,7 @@ def birkhoff_matrix(tau, w, grid_type):
 
     elif grid_type[0] == 'c':
         gamma = np.pi / 2
-        for i in range(0, N+1):
+        for i in range(1, N+1):  # The first row is exactly zero.
             # chebyshev polynomial of order 0: 1
             S[i, 0] = (tau[i] - tau[0]) / np.pi
 

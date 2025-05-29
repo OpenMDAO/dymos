@@ -397,19 +397,17 @@ def timeseries_plots(solution_recorder_filename, simulation_record_file=None, pl
                 break
         # get the time units first so they can be associated with all the variables
         for timeseries_node_child in timeseries_node['children']:
-            for timeseries_node_g_child in timeseries_node_child['children']:
-                if timeseries_node_g_child['name'] == 'time':
-                    units_for_time = timeseries_node_g_child['units']
-                    break
+            if timeseries_node_child['name'] == 'time':
+                units_for_time = timeseries_node_child['units']
+                break
         for timeseries_node_child in timeseries_node['children']:
             # plot everything in the timeseries except input_values. Also not time since that
             #   is the independent variable in these plot
-            for timeseries_node_g_child in timeseries_node_child['children']:
-                if not timeseries_node_g_child['name'].startswith("input_values:")\
-                        and not timeseries_node_g_child['name'] == 'time':
-                    varname = timeseries_node_g_child['name']
-                    var_units[varname] = timeseries_node_g_child['units']
-                    time_units[varname] = units_for_time
+            if not timeseries_node_child['name'].startswith("input_values:")\
+                    and not timeseries_node_child['name'] == 'time':
+                varname = timeseries_node_child['name']
+                var_units[varname] = timeseries_node_child['units']
+                time_units[varname] = units_for_time
 
     # Check to see if there is anything to plot
     if len(var_units) == 0:

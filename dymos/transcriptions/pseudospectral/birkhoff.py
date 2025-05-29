@@ -3,11 +3,11 @@ import numpy as np
 import openmdao.api as om
 
 from ..transcription_base import TranscriptionBase
-from ..common import TimeComp, TimeseriesOutputGroup, TimeseriesOutputComp
+from ..common import TimeComp, TimeseriesOutputComp
 from .components import BirkhoffIterGroup, BirkhoffBoundaryGroup
 
 from ..grid_data import BirkhoffGrid
-from dymos.utils.misc import get_rate_units
+from dymos.utils.misc import get_rate_units, _format_phase_constraint_alias
 from dymos.utils.introspection import get_promoted_vars, get_source_metadata
 from dymos.utils.indexing import get_constraint_flat_idxs, get_src_indices_by_row
 
@@ -29,6 +29,7 @@ class Birkhoff(TranscriptionBase):
     def __init__(self, **kwargs):
         super(Birkhoff, self).__init__(**kwargs)
         self._rhs_source = 'ode_iter_group.ode_all'
+        self._has_boundary_ode = True
 
     def initialize(self):
         """
@@ -171,29 +172,28 @@ class Birkhoff(TranscriptionBase):
         super().configure_controls(phase)
 
         if phase.control_options:
-            phase.control_group.configure_io()
-            phase.promotes('control_group',
-                           any=['*controls:*', '*control_values:*', '*control_rates:*'])
+            phase.control_comp.configure_io()
+            phase.promotes('control_comp',
+                           any=['*controls:*', 'control_values:*', 'control_rates:*', 'control_boundary*'])
 
-            phase.connect('dt_dstau', 'control_group.dt_dstau')
+            phase.connect('dt_dstau', 'control_comp.dt_dstau')
 
         for name, options in phase.control_options.items():
             if options['targets']:
                 phase.connect(f'control_values:{name}', [f'ode_all.{t}' for t in options['targets']])
-                phase.connect(f'control_values:{name}', [f'boundary_vals.{t}' for t in options['targets']],
-                              src_indices=om.slicer[[0, -1], ...])
+                phase.connect(f'control_boundary_values:{name}', [f'boundary_vals.{t}' for t in options['targets']])
 
             if options['rate_targets']:
                 phase.connect(f'control_rates:{name}_rate',
                               [f'ode_all.{t}' for t in options['rate_targets']])
-                phase.connect(f'control_rates:{name}_rate',
+                phase.connect(f'control_boundary_rates:{name}_rate',
                               [f'boundary_vals.{t}' for t in options['rate_targets']],
                               src_indices=om.slicer[[0, -1], ...])
 
             if options['rate2_targets']:
                 phase.connect(f'control_rates:{name}_rate2',
                               [f'ode_all.{t}' for t in options['rate2_targets']])
-                phase.connect(f'control_rates:{name}_rate2',
+                phase.connect(f'control_boundary_rates:{name}_rate2',
                               [f'boundary_vals.{t}' for t in options['rate2_targets']],
                               src_indices=om.slicer[[0, -1], ...])
 
@@ -211,23 +211,22 @@ class Birkhoff(TranscriptionBase):
         grid_data = self.grid_data
 
         ode_init_kwargs = phase.options['ode_init_kwargs']
-        ibcs = phase._initial_boundary_constraints
-        fbcs = phase._final_boundary_constraints
 
         phase.add_subsystem('ode_iter_group',
                             subsys=BirkhoffIterGroup(grid_data=grid_data, state_options=phase.state_options,
                                                      time_options=phase.time_options,
+                                                     parameter_options=phase.parameter_options,
                                                      ode_class=ODEClass,
-                                                     ode_init_kwargs=ode_init_kwargs),
+                                                     ode_init_kwargs=ode_init_kwargs,
+                                                     calc_exprs=phase._calc_exprs),
                             promotes=['*'])
 
         phase.add_subsystem('boundary_vals',
                             subsys=BirkhoffBoundaryGroup(grid_data=grid_data,
                                                          ode_class=ODEClass,
                                                          ode_init_kwargs=ode_init_kwargs,
-                                                         initial_boundary_constraints=ibcs,
-                                                         final_boundary_constraints=fbcs,
-                                                         objectives=phase._objectives),
+                                                         calc_exprs=phase._calc_exprs,
+                                                         parameter_options=phase.parameter_options),
                             promotes_inputs=['initial_states:*', 'final_states:*'])
 
     def configure_ode(self, phase):
@@ -274,28 +273,6 @@ class Birkhoff(TranscriptionBase):
             if rate_source_type not in ('state', 'ode'):
                 phase.connect(rate_src_path, f'f_computed:{name}', src_indices=src_idxs)
 
-    def setup_duration_balance(self, phase):
-        """
-        Setup the implicit computation of the phase duration.
-
-        Parameters
-        ----------
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
-        """
-        pass
-
-    def configure_duration_balance(self, phase):
-        """
-        Configure the implicit computation of the phase duration.
-
-        Parameters
-        ----------
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
-        """
-        pass
-
     def setup_solvers(self, phase):
         """
         Setup the solvers.
@@ -337,7 +314,7 @@ class Birkhoff(TranscriptionBase):
             The phase object to which this transcription instance applies.
         """
         for timeseries_name, timeseries_options in phase._timeseries.items():
-            timeseries_comp = phase._get_subsystem(f'{timeseries_name}.timeseries_comp')
+            timeseries_comp = phase._get_subsystem(timeseries_name)
             ts_inputs_to_promote = []
             for input_name, src, src_idxs in timeseries_comp._configure_io(timeseries_options):
                 # If the src was added, promote it if it was a state,
@@ -363,12 +340,6 @@ class Birkhoff(TranscriptionBase):
         gd = self.grid_data
 
         for name, options in phase._timeseries.items():
-            has_expr = False
-            for _, output_options in options['outputs'].items():
-                if output_options['is_expr']:
-                    has_expr = True
-                    break
-
             if options['transcription'] is None:
                 ogd = None
             else:
@@ -378,8 +349,7 @@ class Birkhoff(TranscriptionBase):
                                                    output_grid_data=ogd,
                                                    output_subset=options['subset'],
                                                    time_units=phase.time_options['units'])
-            timeseries_group = TimeseriesOutputGroup(has_expr=has_expr, timeseries_output_comp=timeseries_comp)
-            phase.add_subsystem(name, subsys=timeseries_group)
+            phase.add_subsystem(name, subsys=timeseries_comp)
 
             phase.connect('dt_dstau', f'{name}.dt_dstau', flat_src_indices=True)
 
@@ -406,10 +376,9 @@ class Birkhoff(TranscriptionBase):
         num_nodes = self._get_num_timeseries_nodes()
 
         constraint_kwargs = {key: options for key, options in options.items()}
-        con_name = constraint_kwargs.pop('constraint_name')
 
         # Determine the path to the variable which we will be constraining
-        var = con_name if options['is_expr'] else options['name']
+        var = options['name']
         var_type = phase.classify_var(var)
 
         # These are the flat indices at a single point in time used
@@ -445,31 +414,28 @@ class Birkhoff(TranscriptionBase):
 
                 constraint_kwargs['indices'] = path_idxs
 
-        alias_map = {'path': 'path_constraint',
-                     'initial': 'initial_boundary_constraint',
-                     'final': 'final_boundary_constraint'}
-
-        str_idxs = '' if options['indices'] is None else f'{options["indices"]}'
-
-        constraint_kwargs['alias'] = f'{phase.pathname}->{alias_map[constraint_type]}->{con_name}{str_idxs}'
-        constraint_kwargs.pop('name')
         con_path = constraint_kwargs.pop('constraint_path')
+        con_name = constraint_kwargs.pop('constraint_name')
+
+        constraint_kwargs['alias'] = _format_phase_constraint_alias(phase, con_name,
+                                                                    constraint_type,
+                                                                    options['indices'])
+        constraint_kwargs.pop('name')
         constraint_kwargs.pop('shape')
         constraint_kwargs['flat_indices'] = True
-        constraint_kwargs.pop('is_expr')
 
         return con_path, constraint_kwargs
 
-    def _get_objective_src(self, var, loc, phase, ode_outputs=None):
+    def _get_response_src(self, var, loc, phase, ode_outputs=None):
         """
-        Return the path to the variable that will be used as the objective.
+        Return the path to the variable that will be used as a response..
 
         Parameters
         ----------
         var : str
-            Name of the variable to be used as the objective.
+            Name of the variable to be used as the response.
         loc : str
-            The location of the objective in the phase ['initial', 'final'].
+            The location of the response in the phase ['initial', 'final'].
         phase : dymos.Phase
             Phase object containing in which the objective resides.
         ode_outputs : dict or None
@@ -484,7 +450,7 @@ class Birkhoff(TranscriptionBase):
         units : str
             Source units.
         linear : bool
-            True if the objective quantity1 is linear.
+            True if the objective quantity is linear.
         """
         time_units = phase.time_options['units']
         var_type = phase.classify_var(var)
@@ -507,22 +473,7 @@ class Birkhoff(TranscriptionBase):
             units = phase.state_options[var]['units']
             linear = False
             constraint_path = f'boundary_vals.{var}'
-        elif var_type == 'indep_control':
-            shape = phase.control_options[var]['shape']
-            units = phase.control_options[var]['units']
-            linear = True
-            constraint_path = f'control_values:{var}'
-        elif var_type == 'input_control':
-            shape = phase.control_options[var]['shape']
-            units = phase.control_options[var]['units']
-            linear = False
-            constraint_path = f'control_values:{var}'
-        elif var_type == 'indep_polynomial_control':
-            shape = phase.control_options[var]['shape']
-            units = phase.control_options[var]['units']
-            linear = True
-            constraint_path = f'control_values:{var}'
-        elif var_type == 'input_polynomial_control':
+        elif var_type == 'control':
             shape = phase.control_options[var]['shape']
             units = phase.control_options[var]['units']
             linear = False
@@ -541,20 +492,6 @@ class Birkhoff(TranscriptionBase):
             units = control_rate_units
             linear = False
             constraint_path = f'control_rates:{var}'
-        elif var_type in ('polynomial_control_rate', 'polynomial_control_rate2'):
-            control_var = var[:-5]
-            shape = phase.control_options[control_var]['shape']
-            control_units = phase.control_options[control_var]['units']
-            d = 2 if var_type == 'polynomial_control_rate2' else 1
-            control_rate_units = get_rate_units(control_units, time_units, deriv=d)
-            units = control_rate_units
-            linear = False
-            constraint_path = f'control_rates:{var}'
-        elif var_type == 'timeseries_exec_comp_output':
-            shape = (1,)
-            units = None
-            constraint_path = f'timeseries.timeseries_exec_comp.{var}'
-            linear = False
         else:
             # Failed to find variable, assume it is in the ODE. This requires introspection.
             constraint_path = f'boundary_vals.{var}'
@@ -610,24 +547,12 @@ class Birkhoff(TranscriptionBase):
             rate_path = 't_phase'
         elif var_type == 'state':
             rate_path = f'states:{var}'
-        elif var_type == 'indep_control':
-            rate_path = f'control_values:{var}'
-        elif var_type == 'input_control':
+        elif var_type == 'control':
             rate_path = f'control_values:{var}'
         elif var_type == 'control_rate':
             control_name = var[:-5]
             rate_path = f'control_rates:{control_name}_rate'
         elif var_type == 'control_rate2':
-            control_name = var[:-6]
-            rate_path = f'control_rates:{control_name}_rate2'
-        elif var_type == 'indep_polynomial_control':
-            rate_path = f'control_values:{var}'
-        elif var_type == 'input_polynomial_control':
-            rate_path = f'control_values:{var}'
-        elif var_type == 'polynomial_control_rate':
-            control_name = var[:-5]
-            rate_path = f'control_rates:{control_name}_rate'
-        elif var_type == 'polynomial_control_rate2':
             control_name = var[:-6]
             rate_path = f'control_rates:{control_name}_rate2'
         elif var_type == 'parameter':
@@ -703,7 +628,7 @@ class Birkhoff(TranscriptionBase):
                                                                  dtype=int), repeats=repeat_idxs)
                 # Now select the subset of nodes we want to use.
                 node_idxs = map_input_node_idxs_to_all[gd.subset_node_indices['all']]
-        elif var_type in ['indep_control', 'input_control']:
+        elif var_type == 'control':
             path = f'control_values:{var}'
             src_units = phase.control_options[var]['units']
             src_shape = phase.control_options[var]['shape']
@@ -718,22 +643,6 @@ class Birkhoff(TranscriptionBase):
             path = f'control_rates:{control_name}_rate2'
             src_units = get_rate_units(phase.control_options[control_name]['units'], time_units, deriv=2)
             src_shape = phase.control_options[control_name]['shape']
-        elif var_type in ['indep_polynomial_control', 'input_polynomial_control']:
-            path = f'control_values:{var}'
-            src_units = phase.control_options[var]['units']
-            src_shape = phase.control_options[var]['shape']
-        elif var_type == 'polynomial_control_rate':
-            control_name = var[:-5]
-            path = f'control_rates:{control_name}_rate'
-            control = phase.control_options[control_name]
-            src_units = get_rate_units(control['units'], time_units, deriv=1)
-            src_shape = control['shape']
-        elif var_type == 'polynomial_control_rate2':
-            control_name = var[:-6]
-            path = f'control_rates:{control_name}_rate2'
-            control = phase.control_options[control_name]
-            src_units = get_rate_units(control['units'], time_units, deriv=2)
-            src_shape = control['shape']
         elif var_type == 'parameter':
             path = f'parameter_vals:{var}'
             # Timeseries are never a static_target

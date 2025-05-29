@@ -72,13 +72,12 @@ class TestGridRefinement(unittest.TestCase):
         #
         # Set the initial values
         #
-        p['traj.phase0.t_initial'] = 0.0
-        p['traj.phase0.t_duration'] = 1.0
+        phase.set_time_val(initial=0, duration=1)
 
-        p.set_val('traj.phase0.states:x', phase.interp('x', ys=[0, 0]))
-        p.set_val('traj.phase0.states:v', phase.interp('v', ys=[1, -1]))
-        p.set_val('traj.phase0.states:J', phase.interp('J', ys=[0, 1]))
-        p.set_val('traj.phase0.controls:u', np.sin(phase.interp('u', ys=[0, 0])))
+        phase.set_state_val('x', [0, 0])
+        phase.set_state_val('v', [1, -1])
+        phase.set_state_val('J', [0, 1])
+        phase.set_control_val('u', [0, 0])
 
         #
         # Solve for the optimal trajectory

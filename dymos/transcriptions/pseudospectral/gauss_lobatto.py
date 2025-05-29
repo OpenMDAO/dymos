@@ -8,6 +8,7 @@ from ..common import GaussLobattoContinuityComp
 from ...utils.misc import get_rate_units
 from ...utils.introspection import get_promoted_vars, get_targets, get_source_metadata
 from ...utils.indexing import get_src_indices_by_row
+from ...utils.ode_utils import _make_ode_system
 from ..grid_data import GridData, make_subset_map
 
 
@@ -186,9 +187,16 @@ class GaussLobatto(PseudospectralBase):
         grid_data = self.grid_data
         ode_class = phase.options['ode_class']
 
-        kwargs = phase.options['ode_init_kwargs']
-        rhs_disc = ode_class(num_nodes=grid_data.subset_num_nodes['state_disc'], **kwargs)
-        rhs_col = ode_class(num_nodes=grid_data.subset_num_nodes['col'], **kwargs)
+        rhs_disc = _make_ode_system(ode_class=ode_class,
+                                    num_nodes=grid_data.subset_num_nodes['state_disc'],
+                                    ode_init_kwargs=phase.options['ode_init_kwargs'],
+                                    calc_exprs=phase._calc_exprs,
+                                    parameter_options=phase.parameter_options)
+        rhs_col = _make_ode_system(ode_class=ode_class,
+                                   num_nodes=grid_data.subset_num_nodes['col'],
+                                   ode_init_kwargs=phase.options['ode_init_kwargs'],
+                                   calc_exprs=phase._calc_exprs,
+                                   parameter_options=phase.parameter_options)
 
         phase.add_subsystem('rhs_disc', rhs_disc)
 
@@ -297,7 +305,7 @@ class GaussLobatto(PseudospectralBase):
 
         for timeseries_name, timeseries_options in phase._timeseries.items():
             for ts_output_name, ts_output in timeseries_options['outputs'].items():
-                name = ts_output['name'] if not ts_output['is_expr'] else ts_output_name
+                name = ts_output['name']
                 var_type = phase.classify_var(name)
                 if var_type == 'ode':
                     units = ts_output['units']
@@ -401,10 +409,7 @@ class GaussLobatto(PseudospectralBase):
                 rate_path = f'states:{var}'
                 node_idxs = make_subset_map(gd.subset_node_indices['state_input'],
                                             gd.subset_node_indices[nodes])
-        elif var_type == 'indep_control':
-            rate_path = f'control_values:{var}'
-            node_idxs = gd.subset_node_indices[nodes]
-        elif var_type == 'input_control':
+        elif var_type == 'control':
             rate_path = f'control_values:{var}'
             node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'control_rate':
@@ -412,20 +417,6 @@ class GaussLobatto(PseudospectralBase):
             rate_path = f'control_rates:{control_name}_rate'
             node_idxs = gd.subset_node_indices[nodes]
         elif var_type == 'control_rate2':
-            control_name = var[:-6]
-            rate_path = f'control_rates:{control_name}_rate2'
-            node_idxs = gd.subset_node_indices[nodes]
-        elif var_type == 'indep_polynomial_control':
-            rate_path = f'control_values:{var}'
-            node_idxs = gd.subset_node_indices[nodes]
-        elif var_type == 'input_polynomial_control':
-            rate_path = f'control_values:{var}'
-            node_idxs = gd.subset_node_indices[nodes]
-        elif var_type == 'polynomial_control_rate':
-            control_name = var[:-5]
-            rate_path = f'control_rates:{control_name}_rate'
-            node_idxs = gd.subset_node_indices[nodes]
-        elif var_type == 'polynomial_control_rate2':
             control_name = var[:-6]
             rate_path = f'control_rates:{control_name}_rate2'
             node_idxs = gd.subset_node_indices[nodes]
@@ -494,7 +485,7 @@ class GaussLobatto(PseudospectralBase):
             path = f'interleave_comp.all_values:states:{var}'
             src_units = phase.state_options[var]['units']
             src_shape = phase.state_options[var]['shape']
-        elif var_type in ['indep_control', 'input_control']:
+        elif var_type == 'control':
             path = f'control_values:{var}'
             src_units = phase.control_options[var]['units']
             src_shape = phase.control_options[var]['shape']
@@ -509,22 +500,6 @@ class GaussLobatto(PseudospectralBase):
             path = f'control_rates:{control_name}_rate2'
             src_units = get_rate_units(phase.control_options[control_name]['units'], time_units, deriv=2)
             src_shape = phase.control_options[control_name]['shape']
-        elif var_type in ['indep_polynomial_control', 'input_polynomial_control']:
-            path = f'control_values:{var}'
-            src_units = phase.control_options[var]['units']
-            src_shape = phase.control_options[var]['shape']
-        elif var_type == 'polynomial_control_rate':
-            control_name = var[:-5]
-            path = f'control_rates:{control_name}_rate'
-            control = phase.control_options[control_name]
-            src_units = get_rate_units(control['units'], time_units, deriv=1)
-            src_shape = control['shape']
-        elif var_type == 'polynomial_control_rate2':
-            control_name = var[:-6]
-            path = f'control_rates:{control_name}_rate2'
-            control = phase.control_options[control_name]
-            src_units = get_rate_units(control['units'], time_units, deriv=2)
-            src_shape = control['shape']
         elif var_type == 'parameter':
             path = f'parameter_vals:{var}'
             node_idxs = np.zeros(gd.subset_num_nodes['all'], dtype=int)

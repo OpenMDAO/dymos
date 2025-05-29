@@ -8,7 +8,6 @@ import numpy as np
 from scipy import interpolate
 
 import openmdao.api as om
-from openmdao.utils.mpi import MPI
 from openmdao.utils.om_warnings import issue_warning
 from openmdao.core.system import System
 from openmdao.recorders.case import Case
@@ -21,12 +20,12 @@ from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
     TimeseriesOutputOptionsDictionary, PhaseTimeseriesOptionsDictionary
 
 from ..transcriptions.transcription_base import TranscriptionBase
-from ..transcriptions.grid_data import GaussLobattoGrid, RadauGrid, UniformGrid, BirkhoffGrid
+from ..transcriptions.grid_data import ChebyshevGaussLobattoGrid, GaussLobattoGrid, RadauGrid, UniformGrid, BirkhoffGrid
 from ..transcriptions import ExplicitShooting, GaussLobatto, Radau
 from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_time_introspection, _configure_constraint_introspection, \
     configure_controls_introspection, configure_parameters_introspection, \
-    configure_timeseries_output_introspection, classify_var, configure_timeseries_expr_introspection
+    configure_timeseries_output_introspection, classify_var
 from ..utils.misc import _unspecified, create_subprob, om_version
 from ..utils.lgl import lgl
 
@@ -84,6 +83,9 @@ class Phase(om.Group):
                                            'outputs': {}}}
         self._objectives = {}
         self.sim_prob = None
+
+        # Expressions to be computed along with the ODE.
+        self._calc_exprs = {}
 
         super(Phase, self).__init__(**_kwargs)
 
@@ -194,6 +196,8 @@ class Phase(om.Group):
                              desc='Options for each parameter in this phase.')
         self.options.declare('control_options', types=dict, default={},
                              desc='Options for each control in this phase.')
+        self.options.declare('boundary_balance_options', types=dict, default={},
+                             desc='Options specifying boundary conditions to be satisfied with a solver.')
 
     @property
     def time_options(self):
@@ -223,6 +227,10 @@ class Phase(om.Group):
     @property
     def control_options(self):
         return self.options['control_options']
+
+    @property
+    def boundary_balance_options(self):
+        return self.options['boundary_balance_options']
 
     def add_state(self, name, units=_unspecified, shape=_unspecified,
                   rate_source=_unspecified, targets=_unspecified,
@@ -1291,27 +1299,21 @@ class Phase(om.Group):
             raise ValueError(f'Invalid boundary constraint location "{loc}". Must be '
                              '"initial" or "final".')
 
-        expr_operators = ['(', '+', '-', '/', '*', '&', '%', '@']
         if '=' in name:
-            is_expr = True
-        elif '=' not in name and any(opr in name for opr in expr_operators):
-            raise ValueError(f'The expression provided `{name}` has invalid format. '
-                             'Expression may be a single variable or an equation '
-                             'of the form `constraint_name = func(vars)`')
-        else:
-            is_expr = False
-
-        if is_expr:
-            constraint_name = name.split('=')[0].strip()
+            _name = constraint_name = name.split('=')[0].strip()
+            self.add_calc_expr(name)
         elif constraint_name is None:
+            _name = name
             constraint_name = name.rpartition('.')[-1]
+        else:
+            _name = name
 
         bc_list = self._initial_boundary_constraints if loc == 'initial' else self._final_boundary_constraints
 
-        existing_bc = [bc for bc in bc_list if bc['name'] == name and bc['indices'] is None and indices is None]
+        existing_bc = [bc for bc in bc_list if bc['name'] == _name and bc['indices'] is None and indices is None]
 
         if existing_bc:
-            raise ValueError(f'Cannot add new {loc} boundary constraint for variable `{name}` and indices {indices}. '
+            raise ValueError(f'Cannot add new {loc} boundary constraint for variable `{_name}` and indices {indices}. '
                              f'One already exists.')
 
         existing_bc_name = [bc for bc in bc_list if bc['name'] == constraint_name and
@@ -1325,7 +1327,7 @@ class Phase(om.Group):
         bc = ConstraintOptionsDictionary()
         bc_list.append(bc)
 
-        bc['name'] = name
+        bc['name'] = _name
         bc['constraint_name'] = constraint_name
         bc['lower'] = lower
         bc['upper'] = upper
@@ -1339,7 +1341,6 @@ class Phase(om.Group):
         bc['linear'] = linear
         bc['units'] = units
         bc['flat_indices'] = flat_indices
-        bc['is_expr'] = is_expr
 
         # Automatically add the requested variable to the timeseries outputs if it's an ODE output.
         var_type = self.classify_var(name)
@@ -1404,26 +1405,20 @@ class Phase(om.Group):
             If True, treat indices as flattened C-ordered indices of elements to constrain at each given point in time.
             Otherwise, indices should be a tuple or list giving the elements to constrain at each point in time.
         """
-        expr_operators = ['(', '+', '-', '/', '*', '&', '%', '@']
         if '=' in name:
-            is_expr = True
-        elif '=' not in name and any(opr in name for opr in expr_operators):
-            raise ValueError(f'The expression provided `{name}` has invalid format. '
-                             'Expression may be a single variable or an equation '
-                             'of the form `constraint_name = func(vars)`')
-        else:
-            is_expr = False
-
-        if is_expr:
-            constraint_name = name.split('=')[0].strip()
+            _name = constraint_name = name.split('=')[0].strip()
+            self.add_calc_expr(name)
         elif constraint_name is None:
+            _name = name
             constraint_name = name.rpartition('.')[-1]
+        else:
+            _name = name
 
         existing_pc = [pc for pc in self._path_constraints
                        if pc['name'] == name and pc['indices'] == indices and pc['flat_indices'] == flat_indices]
 
         if existing_pc:
-            raise ValueError(f'Cannot add new path constraint for variable `{name}` and indices {indices}. '
+            raise ValueError(f'Cannot add new path constraint for variable `{_name}` and indices {indices}. '
                              f'One already exists.')
 
         existing_bc_name = [pc for pc in self._path_constraints
@@ -1437,7 +1432,7 @@ class Phase(om.Group):
         pc = ConstraintOptionsDictionary()
         self._path_constraints.append(pc)
 
-        pc['name'] = name
+        pc['name'] = _name
         pc['constraint_name'] = constraint_name
         pc['lower'] = lower
         pc['upper'] = upper
@@ -1451,7 +1446,6 @@ class Phase(om.Group):
         pc['linear'] = linear
         pc['units'] = units
         pc['flat_indices'] = flat_indices
-        pc['is_expr'] = is_expr
 
         # Automatically add the requested variable to the timeseries outputs if it's an ODE output.
         var_type = self.classify_var(name)
@@ -1496,7 +1490,6 @@ class Phase(om.Group):
         """
         if type(name) is list:
             for i, name_i in enumerate(name):
-                expr = True if '=' in name_i else False
                 if type(units) is dict:  # accept dict for units when using array of name
                     unit = units.get(name_i, None)
                 elif type(units) is list:  # allow matching list for units
@@ -1504,26 +1497,40 @@ class Phase(om.Group):
                 else:
                     unit = units
 
-                oname = self._add_timeseries_output(name_i, output_name=output_name,
-                                                    units=unit,
-                                                    shape=shape,
-                                                    timeseries=timeseries,
-                                                    rate=False,
-                                                    expr=expr)
+                if '=' in name_i:
+                    output_i = name.split('=')[0].strip()
+                    self.add_calc_expr(name, add_timeseries=True, units=unit, shape=shape, **kwargs)
+                    oname = self._add_timeseries_output(output_i,
+                                                        units=unit,
+                                                        shape=shape,
+                                                        timeseries=timeseries,
+                                                        rate=False)
+                else:
+                    oname = self._add_timeseries_output(name_i, output_name=output_name,
+                                                        units=unit,
+                                                        shape=shape,
+                                                        timeseries=timeseries,
+                                                        rate=False)
 
                 # Handle specific units for wildcard names.
                 if oname is not None and '*' in name_i:
                     self._timeseries[timeseries]['outputs'][oname]['wildcard_units'] = units
 
         else:
-            expr = True if '=' in name else False
-            self._add_timeseries_output(name, output_name=output_name,
+            if '=' in name:
+                output = name.split('=')[0].strip()
+                _kwargs = {k: v for k, v in kwargs.items()}
+                if units is not _unspecified:
+                    if output not in _kwargs:
+                        _kwargs[output] = {'units': units}
+                self.add_calc_expr(name, add_timeseries=False, **_kwargs)
+            else:
+                output = name
+            self._add_timeseries_output(output, output_name=output_name,
                                         units=units,
                                         shape=shape,
                                         timeseries=timeseries,
-                                        rate=False,
-                                        expr=expr,
-                                        expr_kwargs=kwargs)
+                                        rate=False)
 
     def add_timeseries_rate_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
                                    timeseries='timeseries'):
@@ -1581,7 +1588,7 @@ class Phase(om.Group):
                                         rate=True)
 
     def _add_timeseries_output(self, name, output_name=None, units=_unspecified, shape=_unspecified,
-                               timeseries='timeseries', rate=False, expr=False, expr_kwargs=None):
+                               timeseries='timeseries', rate=False):
         r"""
         Add a single variable or rate to the timeseries outputs of the phase.
 
@@ -1611,11 +1618,6 @@ class Phase(om.Group):
         rate : bool
             If True, add the rate of change of the named variable to the timeseries outputs of the
             phase.  The rate variable will be named f'{name}_rate'.  Defaults to False.
-        expr : bool
-            True if the given name is an expression for an ExecComp.
-        expr_kwargs : dict
-            Keyword arguments for the expression.
-
 
         Returns
         -------
@@ -1626,9 +1628,7 @@ class Phase(om.Group):
             raise ValueError(f'Timeseries {timeseries} does not exist in phase {self.pathname}')
 
         if output_name is None:
-            if expr:
-                output_name = name.split('=')[0].strip()
-            elif '*' in name:
+            if '*' in name:
                 output_name = name
             elif output_name is None:
                 output_name = name.rpartition('.')[-1]
@@ -1644,8 +1644,6 @@ class Phase(om.Group):
             ts_output['units'] = units
             ts_output['shape'] = shape
             ts_output['is_rate'] = rate
-            ts_output['is_expr'] = expr
-            ts_output['expr_kwargs'] = expr_kwargs
 
             self._timeseries[timeseries]['outputs'][output_name] = ts_output
 
@@ -1709,17 +1707,11 @@ class Phase(om.Group):
             If specified, this design var will be grouped for parallel derivative
             calculations with other variables sharing the same parallel_deriv_color.
         """
-        expr_operators = ['(', '+', '-', '/', '*', '&', '%', '@']
         if '=' in name:
-            is_expr = True
-        elif '=' not in name and any(opr in name for opr in expr_operators):
-            raise ValueError(f'The expression provided `{name}` has invalid format. '
-                             'Expression may be a single variable or an equation '
-                             'of the form `constraint_name = func(vars)`')
+            obj_name = name.split('=')[0].strip()
+            self.add_calc_expr(name)
         else:
-            is_expr = False
-
-        obj_name = name.split('=')[0].strip() if is_expr else name
+            obj_name = name
 
         obj_dict = {'name': name,
                     'loc': loc,
@@ -1730,11 +1722,47 @@ class Phase(om.Group):
                     'ref0': ref0,
                     'adder': adder,
                     'scaler': scaler,
-                    'parallel_deriv_color': parallel_deriv_color,
-                    'is_expr': is_expr}
+                    'parallel_deriv_color': parallel_deriv_color}
         self._objectives[obj_name] = obj_dict
-        if is_expr and obj_name not in self._timeseries['timeseries']['outputs']:
-            self.add_timeseries_output(name, output_name=obj_name, units=units, shape=shape)
+
+    def add_calc_expr(self, expr, add_timeseries=True, **kwargs):
+        """
+        Adds an expression to be computed immediately after the user-given ODE.
+
+        Internally, dymos will wrap the user-given ODE in a group along with
+        an ExecComp that evalutes the expressions given.
+
+        Unlike standard OpenMDAO ExecComp expressions, those specified here
+        may use the ODE-relative path of variables (if they are not promoted
+        to the top of the ODE).
+
+        This function may be called more than one time with the same expression. In that case, any
+        new info from kwargs will be updated.
+
+        Parameters
+        ----------
+        expr : str
+            The expression to be computed.
+        add_timeseries : bool
+            If True, add the output of the expression to the timeseries.
+        **kwargs : dict
+            Any arguments to be forwarded to the ExecComp when the expression in added.
+        """
+        if expr in self._calc_exprs:
+            self._calc_exprs[expr].update(kwargs)
+        else:
+            self._calc_exprs[expr] = kwargs
+
+        output_name = expr.split('=')[0].strip()
+        if add_timeseries and output_name not in self._timeseries['timeseries']['outputs']:
+            output = expr.split('=')[0].strip()
+            if 'units' in kwargs:
+                units = kwargs['units']
+            elif output in kwargs:
+                units = kwargs[output]['units']
+            else:
+                units = None
+            self.add_timeseries_output(output_name, units=units)
 
     def set_time_options(self, units=_unspecified, fix_initial=_unspecified,
                          fix_duration=_unspecified, input_initial=_unspecified,
@@ -2064,6 +2092,49 @@ class Phase(om.Group):
             units = self.parameter_options[name]['units']
         self.set_val(f'parameters:{name}', val=val, units=units)
 
+    def add_boundary_balance(self, param, name, tgt_val=0.0, loc='final', index=0, **kwargs):
+        """
+        Turn param into an implicit output in the phase when using shooting methods.
+
+        This capability requires the variable specified by `name` to be dependent upon the given `param` name, and
+        thus won't work with purely implicit transcriptions.
+        The transcription must be one of ExplicitShooting, PicardShooting, Analytic, or Pseudospectral with `solve_segments=True`.
+
+        Param will be output by a BalanceComp at the end of the phase. with a residual defined by `name - val` at either
+        the initial or final point in the phase (specified by 'loc').
+
+        Param is the name of the implicit variable within the phase. Typically one of 't_initial', 't_duration',
+        'initial_states:{state_name}', 'final_states:{state_name}', or 'parameters:{param_name}'.
+
+        Parameters
+        ----------
+        param : str
+            The dymos phase variable whose value is being set to satisfy the residual.
+        name : str
+            The state or time-dependent phase output that provides the residual value for param.
+        tgt_val : float or array-like, optional
+            The target value for `name`. Default is 0.0.
+        loc : str, optional
+            Whether the value given by name is being evaluated at the 'initial' or 'final'
+            point in the phase. Default is 'final'.
+        index : int or slice, optional
+            If the variable given by name is an array at each point in time, C-order index into
+            that variable at the intiial or final time. Default is 0.
+        **kwargs : dict
+            Additional keyword arguments forwarded to the `add_balance` call of an OpenMDAO
+            BalanceComp used to define the residual.
+        """
+        bbos = self.boundary_balance_options
+        if param in bbos:
+            name = bbos[param]['name']
+            tgt_val = bbos[param]['tgt_val']
+            loc = bbos[param]['loc']
+            raise ValueError(f'Phase variable {param} is already an implicit output for a boundary balance.\n'
+                             f'R({param}) = {name}[{loc}] - {tgt_val} = 0')
+
+        bbos[param] = {'param': param, 'name': name, 'tgt_val': tgt_val, 'loc': loc, 'index': index}
+        bbos[param].update(kwargs)
+
     def set_duration_balance(self, name, val=0.0, index=None, units=None, mult_val=None, normalize=False):
         """
         Adds a condition for the duration of the phase. This is satisfied using a nonlinear solver.
@@ -2080,50 +2151,19 @@ class Phase(om.Group):
             If variable is an array at each point in time, this indicates which index is to be
             used as the objective, assuming C-ordered flattening.
         units : str, optional
-            The units of the objective function.  If None, use the units associated with the target.
-            If provided, must be compatible with the target units.
+            The units of the duration residual.
         mult_val : float, optional
             Default value for the LHS multiplier.
         normalize : bool, optional
             Specifies whether the resulting residual should be normalized by a quadratic
             function of the RHS.
         """
-        if self.time_options['fix_duration']:
-            raise ValueError('Cannot implicitly solve for phase duration when fix_duration is True')
-        elif self.time_options['input_duration']:
-            raise ValueError('Cannot implicitly solve for phase duration when input_duration is True')
-
-        if isinstance(self.options['transcription'], ExplicitShooting):
-            raise NotImplementedError('Transcription ExplicitShooting does not implement method setup_duration_balance')
-
-        options = {'name': name,
-                   'val': val,
-                   'index': index,
-                   'units': units,
-                   'mult_val': mult_val,
-                   'normalize': normalize}
-
-        expr_operators = ['(', '+', '-', '/', '*', '&', '%', '@']
-        if '=' in name:
-            is_expr = True
-        elif '=' not in name and any(opr in name for opr in expr_operators):
-            raise ValueError(f'The expression provided `{name}` has invalid format. '
-                             'Expression may be a single variable or an equation '
-                             'of the form `constraint_name = func(vars)`')
-        else:
-            is_expr = False
-
-        balance_name = name.split('=')[0].strip() if is_expr else name
-
-        options['is_expr'] = is_expr
-        options['balance_name'] = balance_name
-
-        self.time_options['t_duration_balance_options'] = options
-
-        var_type = self.classify_var(name)
-        if var_type == 'ode':
-            if balance_name not in self._timeseries['timeseries']['outputs']:
-                self.add_timeseries_output(name, output_name=balance_name, units=units)
+        issue_warning("phase.set_duration_balance is deprecated. "
+                      "In the futurec use phase.add_boundary_balance('t_duration', ...",
+                      category=om.OMDeprecationWarning)
+        idx = 0 if index is None else index
+        self.add_boundary_balance('t_duration', name=name, tgt_val=val, loc='final', index=idx,
+                                  eq_units=units, mult_val=mult_val, normalize=normalize)
 
     def classify_var(self, var):
         """
@@ -2199,7 +2239,7 @@ class Phase(om.Group):
 
         transcription.setup_timeseries_outputs(self)
 
-        transcription.setup_duration_balance(self)
+        transcription.setup_boundary_balance(self)
 
         transcription.setup_defects(self)
         transcription.setup_solvers(self)
@@ -2239,9 +2279,8 @@ class Phase(om.Group):
 
         _configure_constraint_introspection(self)
 
-        configure_timeseries_expr_introspection(self)
-
         transcription.configure_boundary_constraints(self)
+        transcription.configure_boundary_balance(self)
 
         transcription.configure_path_constraints(self)
 
@@ -2254,8 +2293,6 @@ class Phase(om.Group):
                 from val_err
 
         transcription.configure_timeseries_outputs(self)
-
-        transcription.configure_duration_balance(self)
 
         transcription.configure_solvers(self)
 
@@ -2527,8 +2564,8 @@ class Phase(om.Group):
         elif isinstance(self_tx, Radau):
             grid = RadauGrid(num_segments=num_seg, nodes_per_seg=seg_order + 1, segment_ends=seg_ends,
                              compressed=compressed)
-        elif isinstance(self_tx.grid_data, GaussLobattoGrid) or \
-                isinstance(self_tx.grid_data, RadauGrid) or isinstance(self_tx.grid_data, BirkhoffGrid):
+        elif isinstance(self_tx.grid_data, (GaussLobattoGrid, RadauGrid,
+                                            BirkhoffGrid, ChebyshevGaussLobattoGrid)):
             grid = self_tx.grid_data
         else:
             raise RuntimeError(f'Unexpected grid class for {self_tx.grid_data}. Only phases with GaussLobatto '
@@ -2581,73 +2618,9 @@ class Phase(om.Group):
         sim_phase.simulate_options = deepcopy(self.simulate_options)
         sim_phase.timeseries_options = deepcopy(self.timeseries_options)
 
+        sim_phase._calc_exprs = deepcopy(self._calc_exprs)
+
         return sim_phase
-
-    def initialize_values_from_phase(self, prob, from_phase, phase_path='', skip_params=None):
-        """
-        Initializes values in the Phase using the phase from which it was created.
-
-        Parameters
-        ----------
-        prob : Problem
-            The problem instance to set values taken from the from_phase instance.
-        from_phase : Phase
-            The Phase instance from which the values in this phase are being initialized.
-        phase_path : str
-            The pathname of the system in prob that contains the phases.
-        skip_params : None or set
-            Parameter names that will be skipped because they have already been initialized at the
-            trajectory level (Deprecated).
-        """
-        phs = from_phase
-
-        if skip_params is not None:
-            om.issue_warning(f'{self.pathname}: Option `skip_params` to Phase.initialize_values_from_phase` is '
-                             f'deprecated and will be removed dymos 2.0.0', category=om.OMDeprecationWarning)
-
-        op_dict = dict([(name, options) for (name, options) in phs.list_outputs(units=True,
-                                                                                list_autoivcs=True,
-                                                                                out_stream=None)])
-        ip_dict = dict([(name, options) for (name, options) in phs.list_inputs(units=True,
-                                                                               out_stream=None)])
-
-        if self.pathname.partition('.')[0] == self.name:
-            self_path = self.name + '.'
-        else:
-            self_path = self.pathname.partition('.')[0] + '.' + self.name + '.'
-
-        if MPI:
-            op_dict = MPI.COMM_WORLD.bcast(op_dict, root=0)
-
-        # Set the integration times
-        time_name = phs.time_options['name']
-        op = op_dict[f'timeseries.timeseries_comp.{time_name}']
-        prob.set_val(f'{self_path}t_initial', op['val'][0, ...])
-        prob.set_val(f'{self_path}t_duration', op['val'][-1, ...] - op['val'][0, ...])
-
-        # Assign initial state values
-        for name in phs.state_options:
-            op = op_dict[f'timeseries.timeseries_comp.states:{name}']
-            prob[f'{self_path}initial_states:{name}'][...] = op['val'][0, ...]
-
-        # Assign control values
-        for name, options in phs.control_options.items():
-            ip = ip_dict[f'control_group.control_interp_comp.controls:{name}']
-            prob[f'{self_path}controls:{name}'][...] = ip['val']
-
-        # Assign parameter values
-        for name in phs.parameter_options:
-            units = phs.parameter_options[name]['units']
-
-            # We use this private function to grab the correctly sized variable from the
-            # auto_ivc source.
-            val = phs.get_val(f'parameters:{name}', units=units)
-
-            if phase_path:
-                prob_path = f'{phase_path}.{self.name}.parameters:{name}'
-            else:
-                prob_path = f'{self.name}.parameters:{name}'
-            prob.set_val(prob_path, val)
 
     def simulate(self, times_per_seg=None, method=_unspecified, atol=_unspecified, rtol=_unspecified,
                  first_step=_unspecified, max_step=_unspecified, record_file=None, reports=False,
@@ -2948,7 +2921,7 @@ class Phase(om.Group):
             return self.is_time_fixed(loc)
         elif var_type == 'state':
             return self.is_state_fixed(var_name, loc)
-        elif var_type in {'input_control', 'indep_control'}:
+        elif var_type in {'control'}:
             return self.is_control_fixed(var_name, loc)
         elif var_type in {'control_rate', 'control_rate2'}:
             return self.is_control_rate_fixed(var_name, loc)
@@ -3007,7 +2980,7 @@ class Phase(om.Group):
         integration_name = self.time_options['name']
 
         try:
-            prev_time_path = prev_vars_abs2prom[f'{self.pathname}.timeseries.timeseries_comp.{integration_name}']
+            prev_time_path = prev_vars_abs2prom[f'{self.pathname}.timeseries.{integration_name}']
         except KeyError:
             om.issue_warning(f'load_case for phase {self.name} failed - phase not found in case data.')
             return

@@ -98,7 +98,7 @@ def _is_fixed(var_name: str, class_name: str, phase, loc: str):
         fixed = phase.is_time_fixed(loc)
     elif class_name == 'state':
         fixed = phase.is_state_fixed(var_name, loc)
-    elif class_name in {'input_control', 'indep_control'}:
+    elif class_name == 'control':
         fixed = phase.is_control_fixed(var_name, loc)
     else:
         fixed = True

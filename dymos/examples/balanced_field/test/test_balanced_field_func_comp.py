@@ -88,17 +88,18 @@ def wrap_ode_func(num_nodes, mode, grad_method='jax', jax_jit=True):
     ode_func = runway_ode if mode == 'runway' else climb_ode
 
     meta = (omf.wrap(ode_func)
-            .add_input('rho', val=1.225, desc='atmospheric density at runway', units='kg/m**3')
-            .add_input('S', val=124.7, desc='aerodynamic reference area', units='m**2')
-            .add_input('CD0', val=0.03, desc='zero-lift drag coefficient', units=None)
-            .add_input('CL0', val=0.5, desc='zero-alpha lift coefficient', units=None)
-            .add_input('CL_max', val=2.0, desc='maximum lift coefficient for linear fit', units=None)
-            .add_input('alpha_max', val=np.radians(10), desc='angle of attack at CL_max', units='rad')
-            .add_input('h_w', val=1.0, desc='height of the wing above the CG', units='m')
-            .add_input('AR', val=9.45, desc='wing aspect ratio', units=None)
-            .add_input('e', val=0.801, desc='Oswald span efficiency factor', units=None)
-            .add_input('span', val=35.7, desc='Wingspan', units='m')
-            .add_input('T', val=1.0, desc='thrust', units='N')
+            .defaults(shape=(1,))
+            .add_input('rho', val=1.225, desc='atmospheric density at runway', units='kg/m**3', shape=(1, ))
+            .add_input('S', val=124.7, desc='aerodynamic reference area', units='m**2', shape=(1, ))
+            .add_input('CD0', val=0.03, desc='zero-lift drag coefficient', units=None, shape=(1, ))
+            .add_input('CL0', val=0.5, desc='zero-alpha lift coefficient', units=None, shape=(1, ))
+            .add_input('CL_max', val=2.0, desc='maximum lift coefficient for linear fit', units=None, shape=(1, ))
+            .add_input('alpha_max', val=np.radians(10), desc='angle of attack at CL_max', units='rad', shape=(1, ))
+            .add_input('h_w', val=1.0, desc='height of the wing above the CG', units='m', shape=(1, ))
+            .add_input('AR', val=9.45, desc='wing aspect ratio', units=None, shape=(1, ))
+            .add_input('e', val=0.801, desc='Oswald span efficiency factor', units=None, shape=(1, ))
+            .add_input('span', val=35.7, desc='Wingspan', units='m', shape=(1, ))
+            .add_input('T', val=1.0, desc='thrust', units='N', shape=(1, ))
 
             # Dynamic inputs (can assume a different value at every node)
             .add_input('m', shape=(nn,), desc='aircraft mass', units='kg')
@@ -123,7 +124,7 @@ def wrap_ode_func(num_nodes, mode, grad_method='jax', jax_jit=True):
             )
 
     if mode == 'runway':
-        meta.add_input('mu_r', val=0.05, desc='runway friction coefficient', units=None)
+        meta.add_input('mu_r', val=0.05, desc='runway friction coefficient', units=None, shape=(1,))
     else:
         meta.add_input('gam', shape=(nn,), desc='flight path angle', units='rad')
         meta.add_output('gam_dot', shape=(nn,), desc='rate of change of flight path angle',

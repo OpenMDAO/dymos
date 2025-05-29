@@ -5,8 +5,9 @@ from ..transcription_base import TranscriptionBase
 from ...utils.introspection import configure_analytic_states_introspection, get_promoted_vars, \
     get_source_metadata, configure_analytic_states_discovery
 from ...utils.indexing import get_src_indices_by_row
+from ...utils.ode_utils import _make_ode_system
 from ..grid_data import GridData
-from ..common import TimeComp, TimeseriesOutputGroup, TimeseriesOutputComp
+from ..common import TimeComp, TimeseriesOutputComp
 
 
 class Analytic(TranscriptionBase):
@@ -206,13 +207,15 @@ class Analytic(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        ODEClass = phase.options['ode_class']
         grid_data = self.grid_data
 
-        kwargs = phase.options['ode_init_kwargs']
-        phase.add_subsystem('rhs',
-                            subsys=ODEClass(num_nodes=grid_data.subset_num_nodes['all'],
-                                            **kwargs))
+        rhs = _make_ode_system(ode_class=phase.options['ode_class'],
+                               num_nodes=grid_data.subset_num_nodes['all'],
+                               ode_init_kwargs=phase.options['ode_init_kwargs'],
+                               calc_exprs=phase._calc_exprs,
+                               parameter_options=phase.parameter_options)
+
+        phase.add_subsystem('rhs', rhs)
 
     def configure_ode(self, phase):
         """
@@ -228,28 +231,6 @@ class Analytic(TranscriptionBase):
     def setup_defects(self, phase):
         """
         Setup the defects for this transcription. The AnalyticTranscription has no defect constraints.
-
-        Parameters
-        ----------
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
-        """
-        pass
-
-    def setup_duration_balance(self, phase):
-        """
-        Setup the implicit computation of the phase duration.
-
-        Parameters
-        ----------
-        phase : dymos.Phase
-            The phase object to which this transcription instance applies.
-        """
-        pass
-
-    def configure_duration_balance(self, phase):
-        """
-        Configure the implicit computation of the phase duration.
 
         Parameters
         ----------
@@ -292,11 +273,6 @@ class Analytic(TranscriptionBase):
         gd = self.grid_data
 
         for name, options in phase._timeseries.items():
-            has_expr = False
-            for _, output_options in options['outputs'].items():
-                if output_options['is_expr']:
-                    has_expr = True
-                    break
             if options['transcription'] is None:
                 ogd = None
             else:
@@ -307,8 +283,7 @@ class Analytic(TranscriptionBase):
                                                    output_subset=options['subset'],
                                                    time_units=phase.time_options['units'])
 
-            timeseries_group = TimeseriesOutputGroup(has_expr=has_expr, timeseries_output_comp=timeseries_comp)
-            phase.add_subsystem(name, subsys=timeseries_group)
+            phase.add_subsystem(name, subsys=timeseries_comp)
 
             phase.connect('dt_dstau', f'{name}.dt_dstau', flat_src_indices=True)
 
@@ -467,16 +442,16 @@ class Analytic(TranscriptionBase):
         """
         return self.options['order']
 
-    def _get_objective_src(self, var, loc, phase, ode_outputs=None):
+    def _get_response_src(self, var, loc, phase, ode_outputs=None):
         """
-        Return the path to the variable that will be used as the objective.
+        Return the path to the variable that will be used as a response..
 
         Parameters
         ----------
         var : str
-            Name of the variable to be used as the objective.
+            Name of the variable to be used as the response.
         loc : str
-            The location of the objective in the phase ['initial', 'final'].
+            The location of the response in the phase ['initial', 'final'].
         phase : dymos.Phase
             Phase object containing in which the objective resides.
         ode_outputs : dict or None
@@ -491,7 +466,7 @@ class Analytic(TranscriptionBase):
         units : str
             Source units.
         linear : bool
-            True if the objective quantity1 is linear.
+            True if the objective quantity is linear.
         """
         time_units = phase.time_options['units']
         var_type = phase.classify_var(var)

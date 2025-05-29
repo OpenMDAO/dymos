@@ -70,12 +70,42 @@ def reshape_val(val, shape, num_input_nodes):
         The given value of the correct shape.
     """
     if np.isscalar(val) or np.prod(np.asarray(val).shape) == 1:
-        shaped_val = float(val) * np.ones((num_input_nodes,) + shape)
+        shaped_val = float(np.asarray(val).ravel()[0]) * np.ones((num_input_nodes,) + shape)
     elif np.asarray(val).shape == shape:
         shaped_val = np.repeat(val[np.newaxis, ...], num_input_nodes, axis=0)
     else:
         shaped_val = np.reshape(val, (num_input_nodes,) + shape)
     return shaped_val
+
+
+def _format_phase_constraint_alias(phase, con_name, con_type, indices=None):
+    """
+    Get an alias for a constraint of the given type on the given path in the given phase.
+
+    Parameters
+    ----------
+    phase : Phase
+        The dymos phase to which the constraint belongs.
+    con_name : str
+        The name or path of the constraint.
+    con_type : str
+        One of 'initial', 'final', or 'path'.
+    indices : tuple or None
+        The indices of the constraint variable to be constrained. These indices
+        ignore the num_nodes dimension in path constraints.
+
+    Returns
+    -------
+    str
+        The alias of the constraint.
+    """
+    str_idxs = '' if indices is None else f'[{indices}]'
+    if f'.phases.{phase.name}' in phase.pathname:
+        phase_path = phase.pathname.replace(f'.phases.{phase.name}', f'.{phase.name}')
+    else:
+        phase_path = phase.pathname
+    # return f'{phase_path}->{con_type}->{con_name}{str_idxs}'
+    return f'{phase_path}.{con_name}[{con_type}]{str_idxs}'
 
 
 class CoerceDesvar(object):

@@ -2,12 +2,10 @@ import warnings
 from collections import OrderedDict
 from collections.abc import Sequence
 import itertools
-import sys
 
 from openmdao.utils.om_warnings import warn_deprecation
 from openmdao.utils.units import unit_conversion
 
-import numpy as np
 import networkx as nx
 
 import openmdao.api as om
@@ -22,7 +20,7 @@ from ..phase.options import TrajParameterOptionsDictionary
 from ..transcriptions.common import ParameterComp
 from ..utils.misc import create_subprob, get_rate_units, om_version, \
     _unspecified, _none_or_unspecified
-from ..utils.introspection import get_promoted_vars, get_source_metadata, _get_common_metadata
+from ..utils.introspection import get_source_metadata, _get_common_metadata
 
 
 class Trajectory(om.Group):
@@ -623,7 +621,7 @@ class Trajectory(om.Group):
                 sources[i] = f'timeseries.{prefix}{vars[i]}'
                 units[i] = phases[i].state_options[vars[i]]['units']
                 shapes[i] = phases[i].state_options[vars[i]]['shape']
-            elif classes[i] in {'indep_control', 'input_control'}:
+            elif classes[i] in {'control'}:
                 prefix = 'controls:' if use_prefix[i] else ''
                 sources[i] = f'timeseries.{prefix}{vars[i]}'
                 units[i] = phases[i].control_options[vars[i]]['units']
@@ -635,20 +633,6 @@ class Trajectory(om.Group):
                 units[i] = phases[i].control_options[control_name]['units']
                 deriv = 1 if classes[i].endswith('rate') else 2
                 units[i] = get_rate_units(units[i], phases[i].time_options['units'], deriv=deriv)
-                shapes[i] = phases[i].control_options[control_name]['shape']
-            elif classes[i] in {'indep_polynomial_control', 'input_polynomial_control'}:
-                prefix = 'controls:' if use_prefix[i] else ''
-                sources[i] = f'timeseries.{prefix}{vars[i]}'
-                units[i] = phases[i].control_options[vars[i]]['units']
-                shapes[i] = phases[i].control_options[vars[i]]['shape']
-            elif classes[i] in {'polynomial_control_rate', 'polynomial_control_rate2'}:
-                prefix = 'control_rates:' if use_prefix[i] else ''
-                sources[i] = f'timeseries.{prefix}{vars[i]}'
-                control_name = vars[i][:-5] if classes[i] == 'polynomial_control_rate' else vars[i][:-6]
-                control_units = phases[i].control_options[control_name]['units']
-                time_units = phases[i].time_options['units']
-                deriv = 1 if classes[i].endswith('rate') else 2
-                units[i] = get_rate_units(control_units, time_units, deriv=deriv)
                 shapes[i] = phases[i].control_options[control_name]['shape']
             elif classes[i] == 'parameter':
                 sources[i] = f'parameter_vals:{vars[i]}'
@@ -798,14 +782,9 @@ class Trajectory(om.Group):
                     't_phase': '',
                     'state': 'states:',
                     'parameter': 'parameters:',
-                    'input_control': 'controls:',
-                    'indep_control': 'controls:',
+                    'control': 'controls:',
                     'control_rate': 'control_rates:',
                     'control_rate2': 'control_rates:',
-                    'input_polynomial_control': 'controls:',
-                    'indep_polynomial_control': 'controls:',
-                    'polynomial_control_rate': 'control_rates:',
-                    'polynomial_control_rate2': 'control_rates:',
                     'ode': ''
                     }
 
@@ -1076,8 +1055,6 @@ class Trajectory(om.Group):
 
         self._configure_solvers()
 
-        self._constraint_report(outstream=sys.stdout)
-
         # promote everything else out of phases
         self.promotes('phases', inputs=['*'], outputs=['*'])
 
@@ -1328,87 +1305,6 @@ class Trajectory(om.Group):
                                             scaler=scaler, adder=adder, ref0=ref0, ref=ref,
                                             linear=linear)
 
-    def _constraint_report(self, outstream=sys.stdout):
-        if self.options['sim_mode']:
-            return
-
-        if self.comm.rank == 0:
-            printer = print
-        else:
-            def printer(*args, **kwargs):
-                pass
-
-        float_fmt = '6.4e'
-        printer(f'\n--- Constraint Report [{self.pathname}] ---')
-        indent = '    '
-
-        def _print_constraints(phase, outstream):
-            tx = phase.options['transcription']
-
-            ode_outputs = get_promoted_vars(tx._get_ode(phase), 'output')
-
-            ds = {'initial': phase._initial_boundary_constraints,
-                  'final': phase._final_boundary_constraints,
-                  'path': phase._path_constraints}
-
-            if not (
-                    phase._initial_boundary_constraints or phase._final_boundary_constraints or phase._path_constraints):
-                printer(f'{2 * indent}None', file=outstream)
-
-            for loc, d in ds.items():
-                str_loc = f'[{loc}]'
-                for options in d:
-                    if options['is_expr']:
-                        name = options['constraint_name']
-                    else:
-                        name = options['name']
-                    _, _, units, _ = tx._get_objective_src(name, loc, phase, ode_outputs=ode_outputs)
-
-                    equals = options['equals']
-                    lower = options['lower']
-                    upper = options['upper']
-
-                    if options['units']:
-                        str_units = options['units']
-                    elif units is not None:
-                        str_units = units
-                    else:
-                        str_units = 'None'
-
-                    if equals is not None and np.prod(np.asarray(equals).shape) != 1:
-                        str_equals = f'array<{"x".join([str(i) for i in np.asarray(equals).shape])}>'
-                    elif equals is not None:
-                        str_equals = f'{equals:{float_fmt}}'
-
-                    if lower is not None and np.prod(np.asarray(lower).shape) != 1:
-                        str_lower = f'array<{"x".join([str(i) for i in np.asarray(lower).shape])}> <='
-                    elif lower is not None:
-                        str_lower = f'{lower:{float_fmt}} <='
-                    else:
-                        str_lower = 12 * ''
-
-                    if upper is not None and np.prod(np.asarray(upper).shape) != 1:
-                        str_upper = f'<= array<{"x".join([str(i) for i in np.asarray(upper).shape])}> '
-                    elif upper is not None:
-                        str_upper = f'<= {upper:{float_fmt}} '
-                    else:
-                        str_upper = ''
-
-                    if equals is not None:
-                        printer(f'{2 * indent}{str_loc:<10s}{str_equals} == {name} [{str_units}]',
-                                file=outstream)
-                    else:
-                        printer(
-                            f'{2 * indent}{str_loc:<10s}{str_lower} {name} {str_upper} [{str_units}]',
-                            file=outstream)
-
-        for phase_name, phs in self._phases.items():
-            printer(f'{indent}--- {phase_name} ---', file=outstream)
-            if phs._is_local:
-                _print_constraints(phs, outstream)
-
-        printer('', file=outstream)
-
     def simulate(self, times_per_seg=_unspecified, method=_unspecified, atol=_unspecified, rtol=_unspecified,
                  first_step=_unspecified, max_step=_unspecified, record_file=None, case_prefix=None,
                  reset_iter_counts=True, reports=False, interpolant='cubic'):
@@ -1477,6 +1373,9 @@ class Trajectory(om.Group):
             sim_prob.add_recorder(rec)
             # record_outputs is needed to capture the timeseries outputs
             sim_prob.recording_options['record_outputs'] = True
+
+        # Support model options
+        sim_prob.model_options = self._problem_meta['model_options']
 
         with warnings.catch_warnings():
             # Some timeseries options are duplicated (expression options may be provide duplicate shape)

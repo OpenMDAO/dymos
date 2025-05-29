@@ -299,14 +299,12 @@ class TestCollocationBalanceApplyNL(unittest.TestCase):
 
         p.setup(force_alloc_complex=True)
 
-        p['traj0.phase0.t_initial'] = 0.0
-        p['traj0.phase0.t_duration'] = 2.0
-
-        p['traj0.phase0.states:x'] = phase.interp('x', [0, 10])
-        p['traj0.phase0.states:y'] = phase.interp('y', [10, 5])
-        p['traj0.phase0.states:v'] = phase.interp('v', [0, 9.9])
-        p['traj0.phase0.controls:theta'] = phase.interp('theta', [5, 100])
-        p['traj0.phase0.parameters:g'] = 9.80665
+        phase.set_time_val(initial=0.0, duration=2.0)
+        phase.set_state_val('x', [0, 10])
+        phase.set_state_val('y', [10, 5])
+        phase.set_state_val('v', [0, 9.9])
+        phase.set_control_val('theta', [5, 100])
+        phase.set_parameter_val('g', 9.80665)
 
         return p
 

@@ -72,14 +72,12 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
         p.model.linear_solver = om.DirectSolver()
         p.setup(check=['unconnected_inputs'])
 
-        p['traj0.phase0.t_initial'] = 0.0
-        p['traj0.phase0.t_duration'] = 2.0
-
-        p['traj0.phase0.states:x'] = phase.interp('x', [0, 10])
-        p['traj0.phase0.states:y'] = phase.interp('y', [10, 5])
-        p['traj0.phase0.states:v'] = phase.interp('v', [0, 9.9])
-        p['traj0.phase0.controls:theta'] = phase.interp('theta', [5, 100])
-        p['traj0.phase0.parameters:g'] = 9.80665
+        phase.set_time_val(initial=0.0, duration=2.0)
+        phase.set_state_val('x', [0, 10])
+        phase.set_state_val('y', [10, 5])
+        phase.set_state_val('v', [0, 9.9])
+        phase.set_control_val('theta', [5, 100])
+        phase.set_parameter_val('g', 9.80665)
 
         p.setup()
 
@@ -289,41 +287,33 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
         p.setup(check=True)
 
         # Set Initial Guesses
+        burn1.set_time_val(initial=0.0, duration=2.25)
+        burn1.set_state_val('r', [1, 1.5])
+        burn1.set_state_val('theta', [0, 1.7])
+        burn1.set_state_val('vr', [0, 0])
+        burn1.set_state_val('vt', [1, 1])
+        burn1.set_state_val('accel', [0.1, 0])
+        burn1.set_state_val('deltav', [0, 0.1])
+        burn1.set_control_val('u1', [-3.5, 13.0])
+        burn1.set_parameter_val('c', 1.5)
 
-        p.set_val('burn1.t_initial', val=0.0)
-        p.set_val('burn1.t_duration', val=2.25)
+        coast.set_time_val(initial=2.25, duration=3.0)
+        coast.set_state_val('r', [1.3, 1.5])
+        coast.set_state_val('theta', [2.1767, 1.7])
+        coast.set_state_val('vr', [0.3285, 0.0])
+        coast.set_state_val('vt', [0.97, 1])
+        coast.set_state_val('accel', [0.0, 0.0])
+        coast.set_parameter_val('c', 1.5)
 
-        p.set_val('burn1.states:r', val=burn1.interp('r', [1, 1.5]))
-        p.set_val('burn1.states:theta', val=burn1.interp('theta', [0, 1.7]))
-        p.set_val('burn1.states:vr', val=burn1.interp('vr', [0, 0]))
-        p.set_val('burn1.states:vt', val=burn1.interp('vt', [1, 1]))
-        p.set_val('burn1.states:accel', val=burn1.interp('accel', [0.1, 0]))
-        p.set_val('burn1.states:deltav', val=burn1.interp('deltav', [0, 0.1]))
-        p.set_val('burn1.controls:u1', val=burn1.interp('u1', [-3.5, 13.0]))
-        p.set_val('burn1.parameters:c', val=1.5)
-
-        p.set_val('coast.t_initial', val=2.25)
-        p.set_val('coast.t_duration', val=3.0)
-
-        p.set_val('coast.states:r', val=coast.interp('r', [1.3, 1.5]))
-        p.set_val('coast.states:theta', val=coast.interp('theta', [2.1767, 1.7]))
-        p.set_val('coast.states:vr', val=coast.interp('vr', [0.3285, 0]))
-        p.set_val('coast.states:vt', val=coast.interp('vt', [0.97, 1]))
-        p.set_val('coast.states:accel', val=coast.interp('accel', [0, 0]))
-        p.set_val('coast.controls:u1', val=coast.interp('u1', [0, 0]))
-        p.set_val('coast.parameters:c', val=1.5)
-
-        p.set_val('burn2.t_initial', val=5.25)
-        p.set_val('burn2.t_duration', val=1.75)
-
-        p.set_val('burn2.states:r', val=burn2.interp('r', [1, 3]))
-        p.set_val('burn2.states:theta', val=burn2.interp('theta', [0, 4.0]))
-        p.set_val('burn2.states:vr', val=burn2.interp('vr', [0, 0]))
-        p.set_val('burn2.states:vt', val=burn2.interp('vt', [1, np.sqrt(1 / 3)]))
-        p.set_val('burn2.states:accel', val=burn2.interp('accel', [0.1, 0]))
-        p.set_val('burn2.states:deltav', val=burn2.interp('deltav', [0.1, 0.2]))
-        p.set_val('burn2.controls:u1', val=burn2.interp('u1', [1, 1]))
-        p.set_val('burn2.parameters:c', val=1.5)
+        burn2.set_time_val(initial=5.25, duration=1.75)
+        burn2.set_state_val('r', [1, 3])
+        burn2.set_state_val('theta', [0, 4])
+        burn2.set_state_val('vr', [0, 0])
+        burn2.set_state_val('vt', [1, np.sqrt(1./3.)])
+        burn2.set_state_val('accel', [0.1, 0])
+        burn2.set_state_val('deltav', [0.1, 0.2])
+        burn2.set_control_val('u1', [1.0, 1.0])
+        burn2.set_parameter_val('c', 1.5)
 
         dm.run_problem(p, simulate=True, make_plots=False,
                        simulation_record_file='simulation_record_file.db')
@@ -420,17 +410,11 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
 
         prob.setup()
 
-        prob['traj.phase0.t_initial'] = 0
-        prob['traj.phase0.t_duration'] = 1.0*3600
-
-        prob['traj.phase1.t_initial'] = 1.0*3600
-        prob['traj.phase1.t_duration'] = 1.0*3600
-
-        prob['traj.phase1_bfail.t_initial'] = 1.0*3600
-        prob['traj.phase1_bfail.t_duration'] = 1.0*3600
-
-        prob['traj.phase1_mfail.t_initial'] = 1.0*3600
-        prob['traj.phase1_mfail.t_duration'] = 1.0*3600
+        phase0.set_time_val(initial=0.0, duration=3600)
+        phase1.set_time_val(initial=3600.0, duration=3600.0)
+        phase1_bfail.set_time_val(initial=3600.0, duration=3600.0)
+        phase1_mfail.set_time_val(initial=3600.0, duration=3600.0)
+        phase0.set_state_val('state_of_charge', 1.0)
 
         prob.set_solver_print(level=0)
         dm.run_problem(prob, simulate=True, make_plots=False,
@@ -561,39 +545,33 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
         p.setup(check=True)
 
         # Set Initial Guesses
-        p.set_val('burn1.t_initial', val=0.0)
-        p.set_val('burn1.t_duration', val=2.25)
+        burn1.set_time_val(initial=0.0, duration=2.25)
+        burn1.set_state_val('r', [1, 1.5])
+        burn1.set_state_val('theta', [0, 1.7])
+        burn1.set_state_val('vr', [0, 0])
+        burn1.set_state_val('vt', [1, 1])
+        burn1.set_state_val('accel', [0.1, 0])
+        burn1.set_state_val('deltav', [0, 0.1])
+        burn1.set_control_val('u1', [-3.5, 13.0])
+        burn1.set_parameter_val('c', 1.5)
 
-        p.set_val('burn1.states:r', val=burn1.interp('r', [1, 1.5]))
-        p.set_val('burn1.states:theta', val=burn1.interp('theta', [0, 1.7]))
-        p.set_val('burn1.states:vr', val=burn1.interp('vr', [0, 0]))
-        p.set_val('burn1.states:vt', val=burn1.interp('vt', [1, 1]))
-        p.set_val('burn1.states:accel', val=burn1.interp('accel', [0.1, 0]))
-        p.set_val('burn1.states:deltav', val=burn1.interp('deltav', [0, 0.1]))
-        p.set_val('burn1.controls:u1', val=burn1.interp('u1', [-3.5, 13.0]))
-        p.set_val('burn1.parameters:c', val=1.5)
+        coast.set_time_val(initial=2.25, duration=3.0)
+        coast.set_state_val('r', [1.3, 1.5])
+        coast.set_state_val('theta', [2.1767, 1.7])
+        coast.set_state_val('vr', [0.3285, 0.0])
+        coast.set_state_val('vt', [0.97, 1])
+        coast.set_state_val('accel', [0.0, 0.0])
+        coast.set_parameter_val('c', 1.5)
 
-        p.set_val('coast.t_initial', val=2.25)
-        p.set_val('coast.t_duration', val=3.0)
-
-        p.set_val('coast.states:r', val=coast.interp('r', [1.3, 1.5]))
-        p.set_val('coast.states:theta', val=coast.interp('theta', [2.1767, 1.7]))
-        p.set_val('coast.states:vr', val=coast.interp('vr', [0.3285, 0]))
-        p.set_val('coast.states:vt', val=coast.interp('vt', [0.97, 1]))
-        p.set_val('coast.states:accel', val=coast.interp('accel', [0, 0]))
-        p.set_val('coast.parameters:c', val=1.5)
-
-        p.set_val('burn2.t_initial', val=5.25)
-        p.set_val('burn2.t_duration', val=1.75)
-
-        p.set_val('burn2.states:r', val=burn2.interp('r', [1, 3]))
-        p.set_val('burn2.states:theta', val=burn2.interp('theta', [0, 4.0]))
-        p.set_val('burn2.states:vr', val=burn2.interp('vr', [0, 0]))
-        p.set_val('burn2.states:vt', val=burn2.interp('vt', [1, np.sqrt(1 / 3)]))
-        p.set_val('burn2.states:accel', val=burn2.interp('accel', [0.1, 0]))
-        p.set_val('burn2.states:deltav', val=burn2.interp('deltav', [0.1, 0.2]))
-        p.set_val('burn2.controls:u1', val=burn2.interp('u1', [1, 1]))
-        p.set_val('burn2.parameters:c', val=1.5)
+        burn2.set_time_val(initial=5.25, duration=1.75)
+        burn2.set_state_val('r', [1, 3])
+        burn2.set_state_val('theta', [0, 4])
+        burn2.set_state_val('vr', [0, 0])
+        burn2.set_state_val('vt', [1, np.sqrt(1./3.)])
+        burn2.set_state_val('accel', [0.1, 0])
+        burn2.set_state_val('deltav', [0.1, 0.2])
+        burn2.set_control_val('u1', [1.0, 1.0])
+        burn2.set_parameter_val('c', 1.5)
 
         dm.run_problem(p, simulate=True, make_plots=False,
                        simulation_record_file='simulation_record_file.db')

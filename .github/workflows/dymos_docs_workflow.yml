@@ -9,12 +9,16 @@ on:
   pull_request:
     branches: [ master, develop ]
 
+  # Trigger on release, to publish release versioned docs to openmdao.org
+  release:
+    types: [published]
+
   # Trigger via workflow_dispatch event
   workflow_dispatch:
 
 jobs:
 
-  test_ubuntu:
+  docs_ubuntu:
     runs-on: ubuntu-22.04
 
     timeout-minutes: 90
@@ -31,7 +35,7 @@ jobs:
             SCIPY: '1.13'
             PETSc: '3.19'
             PYOPTSPARSE: 'v2.11.0'
-            OPENMDAO: 'latest'
+            OPENMDAO: 'dev'
             OPTIONAL: '[docs]'
             JAX: '0.4.28'
             PUBLISH_DOCS: 1
@@ -43,7 +47,7 @@ jobs:
             PY: '3.12'
             NUMPY: 1
             SCIPY: 1
-            PETSc: 3.22.2
+            PETSc: 3.21.0
             PYOPTSPARSE: 'latest'
             SNOPT: 7.7
             OPENMDAO: 'dev'
@@ -262,8 +266,7 @@ jobs:
 
       - name: Publish docs to github.io
         if: |
-          github.event_name == 'push' && github.ref == 'refs/heads/master' &&
-          matrix.PUBLISH_DOCS == '1'
+          github.event_name == 'push' && matrix.PUBLISH_DOCS == '1'
         shell: bash -l {0}
         run: |
           echo "============================================================="
@@ -275,7 +278,7 @@ jobs:
 
       - name: Publish docs to openmdao.org
         if: |
-          github.event_name == 'push' && github.ref == 'refs/heads/master' &&
+          (github.event_name == 'push' || github.event_name == 'release') &&
           matrix.PUBLISH_DOCS == '1'
         env:
           DOCS_LOCATION: ${{ secrets.DOCS_LOCATION }}

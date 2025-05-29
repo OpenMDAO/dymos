@@ -60,19 +60,13 @@ class TestBrachistochroneExample(unittest.TestCase):
 
         p.setup()
 
-        p['traj0.phase0.t_initial'] = 0.0
-        p['traj0.phase0.t_duration'] = 2.0
+        phase.set_time_val(0, 2)
 
-        p.set_val('traj0.phase0.states:x', phase.interp('x', [0, 10]), units='m')
-        p.set_val('traj0.phase0.states:y', phase.interp('y', [10, 5]), units='m')
-        p.set_val('traj0.phase0.states:v', phase.interp('v', [0, 5]), units='m/s')
-        if control_type == 'control':
-            p.set_val('traj0.phase0.controls:theta', phase.interp('theta', [90, 90]), units='deg')
-        else:
-            p.set_val('traj0.phase0.controls:theta',
-                      phase.interp('theta', [5, 100]), units='deg')
-
-        p['traj0.phase0.parameters:g'] = g
+        phase.set_state_val('x', [0, 10], units='m')
+        phase.set_state_val('y', [10, 5], units='m')
+        phase.set_state_val('v', [0, 5], units='m/s')
+        phase.set_control_val('theta', [5, 90], units='deg')
+        phase.set_parameter_val('g', g)
 
         return p
 

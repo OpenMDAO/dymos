@@ -544,14 +544,12 @@ class TestExplicitShooting(unittest.TestCase):
 
             phase.add_objective('time', loc='final')
 
-            msg = "phase0: The following timeseries outputs were requested but not found in the " \
-                  "ODE: foo"
+            msg = "Unable to find the source 'foo' in the ODE."
 
-            with warnings.catch_warnings(record=True) as ctx:
-                warnings.simplefilter('always')
-                prob.setup(force_alloc_complex=True)
+            with self.assertRaises(ValueError) as e:
+                prob.setup()
 
-            self.assertIn(msg, [str(w.message) for w in ctx])
+            self.assertIn(msg, str(e.exception))
 
     def test_brachistochrone_static_gravity_explicit_shooting(self):
         import openmdao.api as om
