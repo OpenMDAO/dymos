@@ -6,8 +6,7 @@ from .hp_adaptive.hp_adaptive import HPAdaptive
 from .write_iteration import write_error, write_refine_iter
 
 from dymos.grid_refinement.error_estimation import check_error
-from dymos.load_case import load_case, find_phases
-from dymos.utils.misc import om_version
+from dymos.load_case import find_phases
 
 import numpy as np
 import sys
@@ -61,24 +60,17 @@ def _refine_iter(problem, refine_iteration_limit=0, refine_method='hp', case_pre
                 for stream in f, sys.stdout:
                     write_refine_iter(stream, i, phases, refine_results)
 
-                if om_version()[0] < (3, 27, 1):
-                    prev_soln = {'inputs': problem.model.list_inputs(out_stream=None, units=True, prom_name=True),
-                                 'outputs': problem.model.list_outputs(out_stream=None, units=True, prom_name=True)}
+                prev_soln = {
+                    'inputs': problem.model.list_inputs(out_stream=None, return_format='dict',
+                                                        units=True, prom_name=True),
+                    'outputs': problem.model.list_outputs(out_stream=None, return_format='dict',
+                                                          units=True, prom_name=True)
+                }
 
-                    problem.setup()
-                    load_case(problem, prev_soln, deprecation_warning=False)
-                else:
-                    prev_soln = {
-                        'inputs': problem.model.list_inputs(out_stream=None, return_format='dict',
-                                                            units=True, prom_name=True),
-                        'outputs': problem.model.list_outputs(out_stream=None, return_format='dict',
-                                                              units=True, prom_name=True)
-                    }
-
-                    problem.setup()
-                    for phase_path in refined_phases:
-                        phs = problem.model._get_subsystem(phase_path)
-                        phs.load_case(prev_soln)
+                problem.setup()
+                for phase_path in refined_phases:
+                    phs = problem.model._get_subsystem(phase_path)
+                    phs.load_case(prev_soln)
 
                 failed = problem.run_driver(case_prefix=f'{_case_prefix}{refine_method}_{i}_')
 

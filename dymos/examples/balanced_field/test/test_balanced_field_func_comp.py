@@ -2,7 +2,6 @@ import unittest
 
 import openmdao.api as om
 import openmdao.func_api as omf
-from dymos.utils.misc import om_version
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 import dymos as dm
@@ -135,10 +134,7 @@ def wrap_ode_func(num_nodes, mode, grad_method='jax', jax_jit=True):
     meta.declare_coloring('*', method=grad_method)
     meta.declare_partials(of='*', wrt='*', method=grad_method)
 
-    if om_version()[0] > (3, 35, 0):
-        return om.ExplicitFuncComp(meta, derivs_method=grad_method, use_jit=jax_jit)
-    else:
-        return om.ExplicitFuncComp(meta, use_jax=grad_method == 'jax', use_jit=jax_jit)
+    return om.ExplicitFuncComp(meta, derivs_method=grad_method, use_jit=jax_jit)
 
 
 @use_tempdirs

@@ -9,7 +9,6 @@ import openmdao.api as om
 import dymos as dm
 from dymos.examples.cannonball.size_comp import CannonballSizeComp
 from dymos.examples.cannonball.cannonball_ode import CannonballODE
-from dymos.utils.misc import om_version
 
 
 @use_tempdirs
@@ -166,16 +165,11 @@ class TestTwoPhaseCannonballLoadCase(unittest.TestCase):
         descent.set_state_val('v', [150, 200])
         descent.set_state_val('gam', [0, -45], units='deg')
 
-        sol_db = 'dymos_solution.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = p_ascent_only.get_outputs_dir() / sol_db
+        sol_db = p_ascent_only.get_outputs_dir() / 'dymos_solution.db'
 
         case = om.CaseReader(sol_db).get_case('final')
 
-        if om_version()[0] < (3, 26, 1):
-            dm.load_case(p, previous_solution=case)
-        else:
-            p.load_case(case)
+        p.load_case(case)
 
         p.run_model()
 

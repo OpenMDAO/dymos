@@ -11,7 +11,6 @@ from openmdao.utils.assert_utils import assert_near_equal
 import dymos as dm
 from dymos.examples.balanced_field.balanced_field_ode import BalancedFieldODEComp
 from dymos.examples.balanced_field.balanced_field_length import make_balanced_field_length_problem
-from dymos.utils.misc import om_version
 
 
 @use_tempdirs
@@ -31,9 +30,7 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
         p = make_balanced_field_length_problem(ode_class=BalancedFieldODEComp, tx=dm.Radau(num_segments=3))
         dm.run_problem(p, run_driver=True, simulate=False)
 
-        sol_db = 'dymos_solution.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = p.get_outputs_dir() / sol_db
+        sol_db = p.get_outputs_dir() / 'dymos_solution.db'
 
         sol_results = om.CaseReader(sol_db).get_case('final')
 
@@ -41,11 +38,8 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
 
         dm.run_problem(p, run_driver=True, simulate=True, restart=sol_db)
 
-        sol_db = 'dymos_solution.db'
-        sim_db = 'dymos_simulation.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = p.get_outputs_dir() / sol_db
-            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+        sol_db = p.get_outputs_dir() / 'dymos_solution.db'
+        sim_db = p.model.traj.sim_prob.get_outputs_dir() / 'dymos_simulation.db'
 
         sol_results = om.CaseReader(sol_db).get_case('final')
         sim_results = om.CaseReader(sim_db).get_case('final')
@@ -63,11 +57,8 @@ class TestBalancedFieldLengthRestart(unittest.TestCase):
         p = make_balanced_field_length_problem(ode_class=BalancedFieldODEComp, tx=dm.Radau(num_segments=3))
         dm.run_problem(p, run_driver=True, simulate=True)
 
-        sol_db = 'dymos_solution.db'
-        sim_db = 'dymos_simulation.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = p.get_outputs_dir() / sol_db
-            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+        sol_db = p.get_outputs_dir() / 'dymos_solution.db'
+        sim_db = p.model.traj.sim_prob.get_outputs_dir() / 'dymos_simulation.db'
 
         sol_results = om.CaseReader(sol_db).get_case('final')
 

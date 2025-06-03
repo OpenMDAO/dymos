@@ -20,7 +20,6 @@ import dymos as dm
 from dymos.examples.hyper_sensitive.hyper_sensitive_ode import HyperSensitiveODE
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 from dymos.examples.brachistochrone.brachistochrone_vector_states_ode import BrachistochroneVectorStatesODE
-from dymos.utils.misc import om_version
 from dymos.utils.testing_utils import _get_reports_dir
 
 _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
@@ -265,11 +264,8 @@ class TestRunProblem(unittest.TestCase):
         dm.run_problem(p, simulate=True, simulate_kwargs={'times_per_seg': 100})
 
         # Assert the results are what we expect.
-        sol_db = 'dymos_solution.db'
-        sim_db = 'dymos_simulation.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = p.get_outputs_dir() / sol_db
-            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+        sol_db = p.get_outputs_dir() / 'dymos_solution.db'
+        sim_db = p.model.traj.sim_prob.get_outputs_dir() / 'dymos_simulation.db'
 
         sol_case = om.CaseReader(sol_db).get_case('final')
         sim_case = om.CaseReader(sim_db).get_case('final')
@@ -381,11 +377,8 @@ class TestRunProblem(unittest.TestCase):
 
         dm.run_problem(p, refine_iteration_limit=20)
 
-        sol_db = 'dymos_solution.db'
-        driver_db = 'brach_driver_rec.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = p.get_outputs_dir() / sol_db
-            driver_db = p.get_outputs_dir() / driver_db
+        sol_db = p.get_outputs_dir() / 'dymos_solution.db'
+        driver_db = p.get_outputs_dir() / 'brach_driver_rec.db'
 
         self.assertTrue(os.path.exists(sol_db))
         # Assert the results are what we expect.
@@ -440,11 +433,8 @@ class TestRunProblem(unittest.TestCase):
 
         dm.run_problem(p, refine_iteration_limit=20, case_prefix='brach_test')
 
-        sol_db = 'dymos_solution.db'
-        driver_db = 'brach_driver_rec.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = p.get_outputs_dir() / sol_db
-            driver_db = p.get_outputs_dir() / driver_db
+        sol_db = p.get_outputs_dir() / 'dymos_solution.db'
+        driver_db = p.get_outputs_dir() / 'brach_driver_rec.db'
 
         self.assertTrue(os.path.exists(sol_db))
         # Assert the results are what we expect.
@@ -537,9 +527,7 @@ class TestRunProblem(unittest.TestCase):
 
         dm.run_problem(p, simulate=True)
 
-        sol_db = 'dymos_solution.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = p.get_outputs_dir() / sol_db
+        sol_db = p.get_outputs_dir() / 'dymos_solution.db'
 
         self.assertTrue(os.path.exists(sol_db))
 
@@ -560,18 +548,14 @@ class TestRunProblem(unittest.TestCase):
         dm.run_problem(p, run_driver=False, simulate=True)
 
         # Run the model
-        sim_db = 'dymos_simulation.db'
-        if om_version()[0] > (3, 34, 2):
-            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+        sim_db = p.model.traj.sim_prob.get_outputs_dir() / 'dymos_simulation.db'
 
         # create a new problem for restart to simulate a different command line execution
         q = vanderpol(transcription='gauss-lobatto', num_segments=75)
 
         run_problem(q, run_driver=False, simulate=False, restart=sim_db)
 
-        sol_db2 = 'dymos_solution.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db2 = q.get_outputs_dir() / sol_db2
+        sol_db2 = q.get_outputs_dir() / 'dymos_solution.db'
         s = om.CaseReader(sol_db2).get_case('final')
 
         # get_val returns data for duplicate time points; remove them before interpolating
@@ -614,15 +598,11 @@ class TestRunProblem(unittest.TestCase):
         q = vanderpol(transcription='gauss-lobatto', num_segments=75)
 
         # Run the model
-        sim_db = 'dymos_simulation.db'
-        if om_version()[0] > (3, 34, 2):
-            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+        sim_db = p.model.traj.sim_prob.get_outputs_dir() / 'dymos_simulation.db'
 
         run_problem(q, run_driver=False, simulate=False, restart=sim_db)
 
-        sol_db2 = 'dymos_solution.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db2 = q.get_outputs_dir() / sol_db2
+        sol_db2 = q.get_outputs_dir() / 'dymos_solution.db'
         s = om.CaseReader(sol_db2).get_case('final')
 
         # get_val returns data for duplicate time points; remove them before interpolating
@@ -773,8 +753,7 @@ class TestRunProblemPlotting(unittest.TestCase):
         sim_db = 'simulation_record_file.db'
         dm.run_problem(self.p, simulate=True, simulation_record_file=sim_db)
 
-        if om_version()[0] > (3, 34, 2):
-            sim_db = self.p.model.traj.sim_prob.get_outputs_dir() / sim_db
+        sim_db = self.p.model.traj.sim_prob.get_outputs_dir() / sim_db
 
         self.assertTrue(os.path.exists(sim_db))
 
@@ -782,8 +761,7 @@ class TestRunProblemPlotting(unittest.TestCase):
         sol_db = 'solution_record_file.db'
         dm.run_problem(self.p, solution_record_file=sol_db)
 
-        if om_version()[0] > (3, 34, 2):
-            sol_db = self.p.get_outputs_dir() / sol_db
+        sol_db = self.p.get_outputs_dir() / sol_db
 
         self.assertTrue(os.path.exists(sol_db))
 
@@ -889,11 +867,8 @@ class TestSimulateArrayParam(unittest.TestCase):
         dm.run_problem(p, simulate=True)
 
         # Test the results
-        sol_db = 'dymos_solution.db'
-        sim_db = 'dymos_simulation.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = p.get_outputs_dir() / sol_db
-            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+        sol_db = p.get_outputs_dir() / 'dymos_solution.db'
+        sim_db = p.model.traj.sim_prob.get_outputs_dir() / 'dymos_simulation.db'
 
         sol_results = om.CaseReader(sol_db).get_case('final')
         sim_results = om.CaseReader(sim_db).get_case('final')

@@ -7,7 +7,6 @@ from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 from openmdao.utils.mpi import MPI, multi_proc_exception_check
 
 from dymos.examples.finite_burn_orbit_raise.finite_burn_orbit_raise_problem import two_burn_orbit_raise_problem
-from dymos.utils.misc import om_version
 from dymos.utils.testing_utils import assert_cases_equal
 
 
@@ -30,11 +29,8 @@ class TestExampleTwoBurnOrbitRaiseConnectedRestart(unittest.TestCase):
                 assert_near_equal(p.get_val('traj.burn2.states:deltav')[0], 0.3995,
                                   tolerance=4.0E-3)
 
-        sol_db = 'dymos_solution.db'
-        sim_db = 'dymos_simulation.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = p.get_outputs_dir() / sol_db
-            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+        sol_db = p.get_outputs_dir() / 'dymos_solution.db'
+        sim_db = p.model.traj.sim_prob.get_outputs_dir() / 'dymos_simulation.db'
 
         sim_case1 = om.CaseReader(sim_db).get_case('final')
 
@@ -46,9 +42,7 @@ class TestExampleTwoBurnOrbitRaiseConnectedRestart(unittest.TestCase):
 
         p.run_model()
 
-        sim_db = 'dymos_simulation.db'
-        if om_version()[0] > (3, 34, 2):
-            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+        sim_db = p.model.traj.sim_prob.get_outputs_dir() / 'dymos_simulation.db'
 
         sim_case2 = om.CaseReader(sim_db).get_case('final')
 
@@ -61,11 +55,8 @@ class TestExampleTwoBurnOrbitRaiseConnectedRestart(unittest.TestCase):
         p = two_burn_orbit_raise_problem(transcription='radau', transcription_order=3,
                                          compressed=False, optimizer=optimizer, show_output=False)
 
-        sol_db = 'dymos_solution.db'
-        sim_db = 'dymos_simulation.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = p.get_outputs_dir() / sol_db
-            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+        sol_db = p.get_outputs_dir() / 'dymos_solution.db'
+        sim_db = p.model.traj.sim_prob.get_outputs_dir() / 'dymos_simulation.db'
 
         sim_case1 = om.CaseReader(sim_db).get_case('final')
 
@@ -74,14 +65,12 @@ class TestExampleTwoBurnOrbitRaiseConnectedRestart(unittest.TestCase):
                 assert_near_equal(p.get_val('traj.burn2.states:deltav')[-1], 0.3995,
                                   tolerance=2.0E-3)
 
-        # Run again without an actual optimzier
+        # Run again without an optimzier
         two_burn_orbit_raise_problem(transcription='radau', transcription_order=3,
                                      compressed=False, optimizer=optimizer, run_driver=False,
                                      show_output=False, restart=sol_db)
 
-        sim_db = 'dymos_simulation.db'
-        if om_version()[0] > (3, 34, 2):
-            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+        sim_db = p.model.traj.sim_prob.get_outputs_dir() / 'dymos_simulation.db'
 
         sim_case2 = om.CaseReader(sim_db).get_case('final')
 
@@ -126,11 +115,8 @@ class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
                 assert_near_equal(p.get_val('traj.burn2.states:deltav')[0], 0.3995,
                                   tolerance=4.0E-3)
 
-        sol_db = 'dymos_solution.db'
-        sim_db = 'dymos_simulation.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = p.get_outputs_dir() / sol_db
-            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+        sol_db = p.get_outputs_dir() / 'dymos_solution.db'
+        sim_db = p.model.traj.sim_prob.get_outputs_dir() / 'dymos_simulation.db'
 
         case1 = om.CaseReader(sol_db).get_case('final')
         sim_case1 = om.CaseReader(sim_db).get_case('final')
@@ -142,11 +128,8 @@ class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
                                          connected=True, solution_record_file='dymos_solution2.db',
                                          simulation_record_file='dymos_simulation2.db')
 
-        sol_db = 'dymos_solution2.db'
-        sim_db = 'dymos_simulation2.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = p.get_outputs_dir() / sol_db
-            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+        sol_db = p.get_outputs_dir() / 'dymos_solution2.db'
+        sim_db = p.model.traj.sim_prob.get_outputs_dir() / 'dymos_simulation2.db'
 
         case2 = om.CaseReader(sol_db).get_case('final')
         sim_case2 = om.CaseReader(sim_db).get_case('final')
@@ -168,11 +151,8 @@ class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
                 assert_near_equal(p.get_val('traj.burn2.states:deltav')[0], 0.3995,
                                   tolerance=4.0E-3)
 
-        sol_db = 'dymos_solution.db'
-        sim_db = 'dymos_simulation.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = p.get_outputs_dir() / sol_db
-            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+        sol_db = p.get_outputs_dir() / 'dymos_solution.db'
+        sim_db = p.model.traj.sim_prob.get_outputs_dir() / 'dymos_simulation.db'
 
         case1 = om.CaseReader(sol_db).get_case('final')
         sim_case1 = om.CaseReader(sim_db).get_case('final')
@@ -184,11 +164,8 @@ class TestExampleTwoBurnOrbitRaiseConnected(unittest.TestCase):
                                           connected=True, solution_record_file='dymos_solution2.db',
                                           simulation_record_file='dymos_simulation2.db')
 
-        sol_db = 'dymos_solution2.db'
-        sim_db = 'dymos_simulation2.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = p2.get_outputs_dir() / sol_db
-            sim_db = p2.model.traj.sim_prob.get_outputs_dir() / sim_db
+        sol_db = p2.get_outputs_dir() / 'dymos_solution2.db'
+        sim_db = p2.model.traj.sim_prob.get_outputs_dir() / 'dymos_simulation2.db'
 
         case2 = om.CaseReader(sol_db).get_case('final')
         sim_case2 = om.CaseReader(sim_db).get_case('final')
