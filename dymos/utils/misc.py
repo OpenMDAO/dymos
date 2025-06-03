@@ -47,6 +47,7 @@ def get_rate_units(units, time_units, deriv=1):
     else:  # Explicitly return None if both units and time_units are None or 'unitless'
         return None
 
+
 def reshape_val(val, shape, num_input_nodes):
     """
     Return the given value reshaped to (num_input_nodes,) + shape.
