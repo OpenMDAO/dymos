@@ -6,7 +6,6 @@ from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 import dymos as dm
 from dymos.utils.lgl import lgl
-from dymos.utils.misc import om_version
 from dymos.examples.aircraft_steady_flight.aircraft_ode import AircraftODE
 
 
@@ -130,7 +129,6 @@ class TestExSteadyAircraftFlight(unittest.TestCase):
                           726.85, tolerance=1.0E-2)
 
     @require_pyoptsparse(optimizer='IPOPT')
-    @unittest.skipIf(om_version()[0] < (3, 32, 2), 'Test requires OpenMDAO 3.32.2 or later')
     def test_ex_aircraft_steady_flight_opt_birkhoff(self):
 
         tx = dm.Birkhoff(num_nodes=50, grid_type='cgl',

@@ -5,7 +5,7 @@ import numpy as np
 import openmdao.api as om
 from openmdao.utils.testing_utils import use_tempdirs
 
-from dymos.utils.misc import om_version, is_unspecified
+from dymos.utils.misc import is_unspecified
 
 
 class BrachistochroneODE(om.ExplicitComponent):
@@ -146,9 +146,7 @@ class TestBrachistochroneSimulate(unittest.TestCase):
                 # Run the driver to simulate the problem
                 dm.run_problem(p, run_driver=False, simulate=True)
 
-                sim_db = 'dymos_simulation.db'
-                if om_version()[0] > (3, 34, 2):
-                    sim_db = traj.sim_prob.get_outputs_dir() / sim_db
+                sim_db = traj.sim_prob.get_outputs_dir() / 'dymos_simulation.db'
 
                 sim = om.CaseReader(sim_db).get_case('final')
                 t = sim.get_val('traj.phase0.timeseries.time')
@@ -163,9 +161,7 @@ class TestBrachistochroneSimulate(unittest.TestCase):
 
                 dm.run_problem(p, run_driver=False, simulate=True, simulate_kwargs={'times_per_seg': 7})
 
-                sim_db = 'dymos_simulation.db'
-                if om_version()[0] > (3, 34, 2):
-                    sim_db = traj.sim_prob.get_outputs_dir() / sim_db
+                sim_db = traj.sim_prob.get_outputs_dir() / 'dymos_simulation.db'
 
                 sim = om.CaseReader(sim_db).get_case('final')
                 t = sim.get_val('traj.phase0.timeseries.time')

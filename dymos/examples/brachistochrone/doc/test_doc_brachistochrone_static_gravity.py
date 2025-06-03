@@ -12,7 +12,6 @@ except ImportError:
 
 
 from openmdao.utils.testing_utils import use_tempdirs
-from dymos.utils.misc import om_version
 
 
 @use_tempdirs
@@ -144,9 +143,8 @@ class TestBrachistochroneStaticGravity(unittest.TestCase):
                           tolerance=1.0E-3)
 
         # Load the explicitly simulated trajectory
-        sim_db = 'dymos_simulation.db'
-        if om_version()[0] > (3, 34, 2):
-            sim_db = traj.sim_prob.get_outputs_dir() / sim_db
+        sim_db = p.model.traj.sim_prob.get_outputs_dir() / 'dymos_simulation.db'
+
         exp_out = om.CaseReader(sim_db).get_case('final')
 
         # Extract the timeseries from the implicit solution and the explicit simulation

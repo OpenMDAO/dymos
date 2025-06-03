@@ -5,7 +5,6 @@ import openmdao.api as om
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 from openmdao.utils.assert_utils import assert_near_equal
 import dymos as dm
-from dymos.utils.misc import om_version
 
 
 @use_tempdirs
@@ -95,11 +94,8 @@ class TestBrachExecCompODE(unittest.TestCase):
         return p
 
     def run_asserts(self, c):
-        sol_db = 'dymos_solution.db'
-        sim_db = 'dymos_simulation.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = c.get_outputs_dir() / sol_db
-            sim_db = c.model.traj0.sim_prob.get_outputs_dir() / sim_db
+        sol_db = c.get_outputs_dir() / 'dymos_solution.db'
+        sim_db = c.model.traj0.sim_prob.get_outputs_dir() / 'dymos_simulation.db'
 
         for db in [sol_db, sim_db]:
             c = om.CaseReader(db).get_case('final')
@@ -319,11 +315,8 @@ class TestBrachCallableODE(unittest.TestCase):
         return p
 
     def run_asserts(self, c):
-        sol_db = 'dymos_solution.db'
-        sim_db = 'dymos_simulation.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = c.get_outputs_dir() / sol_db
-            sim_db = c.model.traj0.sim_prob.get_outputs_dir() / sim_db
+        sol_db = c.get_outputs_dir() / 'dymos_solution.db'
+        sim_db = c.model.traj0.sim_prob.get_outputs_dir() / 'dymos_simulation.db'
 
         for db in (sol_db, sim_db):
             c = om.CaseReader(db).get_case('final')
