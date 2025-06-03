@@ -720,8 +720,7 @@ title="Open an issue"
 <span class="kn">from</span><span class="w"> </span><span class="nn">..phase.analytic_phase</span><span class="w"> </span><span class="kn">import</span> <span class="n">AnalyticPhase</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..phase.options</span><span class="w"> </span><span class="kn">import</span> <span class="n">TrajParameterOptionsDictionary</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..transcriptions.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">ParameterComp</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">..utils.misc</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_subprob</span><span class="p">,</span> <span class="n">get_rate_units</span><span class="p">,</span> <span class="n">om_version</span><span class="p">,</span> \
-    <span class="n">_unspecified</span><span class="p">,</span> <span class="n">_none_or_unspecified</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..utils.misc</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_subprob</span><span class="p">,</span> <span class="n">get_rate_units</span><span class="p">,</span> <span class="n">_unspecified</span><span class="p">,</span> <span class="n">_none_or_unspecified</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..utils.introspection</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_source_metadata</span><span class="p">,</span> <span class="n">_get_common_metadata</span>
 
 
@@ -2085,10 +2084,7 @@ title="Open an issue"
             <span class="c1"># fault of the user.</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="n">action</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="n">om</span><span class="o">.</span><span class="n">UnusedOptionWarning</span><span class="p">)</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="n">action</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="n">om</span><span class="o">.</span><span class="n">SetupWarning</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">om_version</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">34</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
-                <span class="n">sim_prob</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">sim_prob</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+            <span class="n">sim_prob</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
             <span class="n">sim_prob</span><span class="o">.</span><span class="n">final_setup</span><span class="p">()</span>
 
         <span class="c1"># Assign trajectory parameter values</span>

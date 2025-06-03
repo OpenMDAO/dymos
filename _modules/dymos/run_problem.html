@@ -708,7 +708,6 @@ title="Open an issue"
 <span class="kn">from</span><span class="w"> </span><span class="nn">openmdao.recorders.case</span><span class="w"> </span><span class="kn">import</span> <span class="n">Case</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._options</span><span class="w"> </span><span class="kn">import</span> <span class="n">options</span> <span class="k">as</span> <span class="n">dymos_options</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dymos.trajectory.trajectory</span><span class="w"> </span><span class="kn">import</span> <span class="n">Trajectory</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dymos.utils.misc</span><span class="w"> </span><span class="kn">import</span> <span class="n">om_version</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dymos.visualization.timeseries_plots</span><span class="w"> </span><span class="kn">import</span> <span class="n">timeseries_plots</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.grid_refinement.refinement</span><span class="w"> </span><span class="kn">import</span> <span class="n">_refine_iter</span>
@@ -786,11 +785,7 @@ title="Open an issue"
     <span class="n">problem</span><span class="o">.</span><span class="n">final_setup</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="n">restart</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">om_version</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">27</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
-            <span class="kn">from</span><span class="w"> </span><span class="nn">dymos.load_case</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_case</span>
-            <span class="n">load_case</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">case</span><span class="p">,</span> <span class="n">deprecation_warning</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">problem</span><span class="o">.</span><span class="n">load_case</span><span class="p">(</span><span class="n">case</span><span class="p">)</span>
+        <span class="n">problem</span><span class="o">.</span><span class="n">load_case</span><span class="p">(</span><span class="n">case</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">traj</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">system_iter</span><span class="p">(</span><span class="n">include_self</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">recurse</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">typ</span><span class="o">=</span><span class="n">Trajectory</span><span class="p">):</span>
         <span class="n">traj</span><span class="o">.</span><span class="n">_check_phase_graph</span><span class="p">()</span>
@@ -824,24 +819,20 @@ title="Open an issue"
                 <span class="n">sims</span><span class="p">[</span><span class="n">subsys</span><span class="o">.</span><span class="n">pathname</span><span class="p">]</span> <span class="o">=</span> <span class="n">sim_prob</span>
 
     <span class="k">if</span> <span class="n">make_plots</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">om_version</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">34</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
-            <span class="n">outputs_dir</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">get_outputs_dir</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">solution_record_file</span><span class="p">):</span>
-                <span class="n">_sol_record_file</span> <span class="o">=</span> <span class="n">solution_record_file</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">_sol_record_file</span> <span class="o">=</span> <span class="n">outputs_dir</span> <span class="o">/</span> <span class="n">solution_record_file</span>
-
-            <span class="k">if</span> <span class="n">simulate</span><span class="p">:</span>
-                <span class="n">sim_outputs_dir</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">sims</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_outputs_dir</span><span class="p">()</span>
-                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">simulation_record_file</span><span class="p">):</span>
-                    <span class="n">_sim_record_file</span> <span class="o">=</span> <span class="n">simulation_record_file</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">_sim_record_file</span> <span class="o">=</span> <span class="n">sim_outputs_dir</span> <span class="o">/</span> <span class="n">simulation_record_file</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">_sim_record_file</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">else</span><span class="p">:</span>
+        <span class="n">outputs_dir</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">get_outputs_dir</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">solution_record_file</span><span class="p">):</span>
             <span class="n">_sol_record_file</span> <span class="o">=</span> <span class="n">solution_record_file</span>
-            <span class="n">_sim_record_file</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">simulate</span> <span class="k">else</span> <span class="n">simulation_record_file</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_sol_record_file</span> <span class="o">=</span> <span class="n">outputs_dir</span> <span class="o">/</span> <span class="n">solution_record_file</span>
+
+        <span class="k">if</span> <span class="n">simulate</span><span class="p">:</span>
+            <span class="n">sim_outputs_dir</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">sims</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_outputs_dir</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">simulation_record_file</span><span class="p">):</span>
+                <span class="n">_sim_record_file</span> <span class="o">=</span> <span class="n">simulation_record_file</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">_sim_record_file</span> <span class="o">=</span> <span class="n">sim_outputs_dir</span> <span class="o">/</span> <span class="n">simulation_record_file</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_sim_record_file</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="n">_plot_kwargs</span> <span class="o">=</span> <span class="n">plot_kwargs</span> <span class="k">if</span> <span class="n">plot_kwargs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
 
