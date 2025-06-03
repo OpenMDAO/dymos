@@ -5,7 +5,11 @@ import openmdao.api as om
 from openmdao.utils.array_utils import evenly_distrib_idxs
 from openmdao.utils.assert_utils import assert_near_equal
 import dymos as dm
-from mpi4py import MPI
+
+try:
+    from mpi4py import MPI
+except:
+    MPI = None
 
 from dymos.transcriptions.explicit_shooting.explicit_shooting import ExplicitShooting
 
@@ -79,6 +83,7 @@ class TestDistributedODEOutputsToTimeseries(unittest.TestCase):
 
     N_PROC = 3
 
+    @unittest.skipIf(MPI is None, 'this test requires MPI')
     def test_ditrib_ode_output_to_timeseries(self):
         transcriptions = {'GaussLobatto': dm.GaussLobatto(num_segments=15, order=7, compressed=True),
                           'Radau': dm.Radau(num_segments=15, order=7, compressed=True),
