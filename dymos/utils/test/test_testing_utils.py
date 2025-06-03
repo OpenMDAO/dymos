@@ -5,7 +5,6 @@ import numpy as np
 import openmdao.api as om
 from openmdao.utils.testing_utils import use_tempdirs
 
-from dymos.utils.misc import om_version
 from dymos.utils.testing_utils import assert_cases_equal, assert_timeseries_near_equal
 
 
@@ -357,11 +356,8 @@ class TestAssertCasesEqual(unittest.TestCase):
         p2.record('final')
         p2.cleanup()
 
-        p1_db = 'p1.db'
-        p2_db = 'p2.db'
-        if om_version()[0] > (3, 34, 2):
-            p1_db = p1.get_outputs_dir() / p1_db
-            p2_db = p2.get_outputs_dir() / p2_db
+        p1_db = p1.get_outputs_dir() / 'p1.db'
+        p2_db = p2.get_outputs_dir() / 'p2.db'
 
         c1 = om.CaseReader(p1_db).get_case('final')
         c2 = om.CaseReader(p2_db).get_case('final')
@@ -403,11 +399,8 @@ class TestAssertCasesEqual(unittest.TestCase):
         p2.record('final')
         p2.cleanup()
 
-        p1_db = 'p1.db'
-        p2_db = 'p2.db'
-        if om_version()[0] > (3, 34, 2):
-            p1_db = p1.get_outputs_dir() / p1_db
-            p2_db = p2.get_outputs_dir() / p2_db
+        p1_db = p1.get_outputs_dir() / 'p1.db'
+        p2_db = p2.get_outputs_dir() / 'p2.db'
 
         c1 = om.CaseReader(p1_db).get_case('final')
         c2 = om.CaseReader(p2_db).get_case('final')
@@ -441,11 +434,8 @@ class TestAssertCasesEqual(unittest.TestCase):
         p2.record('final')
         p2.cleanup()
 
-        p1_db = 'p1.db'
-        p2_db = 'p2.db'
-        if om_version()[0] > (3, 34, 2):
-            p1_db = p1.get_outputs_dir() / p1_db
-            p2_db = p2.get_outputs_dir() / p2_db
+        p1_db = p1.get_outputs_dir() / 'p1.db'
+        p2_db = p2.get_outputs_dir() / 'p2.db'
 
         c1 = om.CaseReader(p1_db).get_case('final')
         c2 = om.CaseReader(p2_db).get_case('final')
@@ -486,11 +476,8 @@ class TestAssertCasesEqual(unittest.TestCase):
         p2.record('final')
         p2.cleanup()
 
-        p1_db = 'p1.db'
-        p2_db = 'p2.db'
-        if om_version()[0] > (3, 34, 2):
-            p1_db = p1.get_outputs_dir() / p1_db
-            p2_db = p2.get_outputs_dir() / p2_db
+        p1_db = p1.get_outputs_dir() / 'p1.db'
+        p2_db = p2.get_outputs_dir() / 'p2.db'
 
         c1 = om.CaseReader(p1_db).get_case('final')
         c2 = om.CaseReader(p2_db).get_case('final')

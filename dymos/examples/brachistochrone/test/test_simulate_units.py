@@ -8,7 +8,6 @@ from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneOD
 
 from openmdao.utils.testing_utils import use_tempdirs
 from openmdao.utils.assert_utils import assert_near_equal
-from dymos.utils.misc import om_version
 
 
 @use_tempdirs
@@ -86,11 +85,8 @@ class TestBrachistochroneSimulate_units(unittest.TestCase):
         # Run the driver to solve the problem
         dm.run_problem(p, simulate=True)
 
-        sol_db = 'dymos_solution.db'
-        sim_db = 'dymos_simulation.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = p.get_outputs_dir() / sol_db
-            sim_db = traj.sim_prob.get_outputs_dir() / sim_db
+        sol_db = p.get_outputs_dir() / 'dymos_solution.db'
+        sim_db = traj.sim_prob.get_outputs_dir() / 'dymos_simulation.db'
 
         sol_case = om.CaseReader(sol_db).get_case('final')
         sim_case = om.CaseReader(sim_db).get_case('final')

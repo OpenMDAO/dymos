@@ -18,8 +18,7 @@ from .phase_linkage_comp import PhaseLinkageComp
 from ..phase.analytic_phase import AnalyticPhase
 from ..phase.options import TrajParameterOptionsDictionary
 from ..transcriptions.common import ParameterComp
-from ..utils.misc import create_subprob, get_rate_units, om_version, \
-    _unspecified, _none_or_unspecified
+from ..utils.misc import create_subprob, get_rate_units, _unspecified, _none_or_unspecified
 from ..utils.introspection import get_source_metadata, _get_common_metadata
 
 
@@ -1383,10 +1382,7 @@ class Trajectory(om.Group):
             # fault of the user.
             warnings.filterwarnings(action='ignore', category=om.UnusedOptionWarning)
             warnings.filterwarnings(action='ignore', category=om.SetupWarning)
-            if om_version()[0] <= (3, 34, 2):
-                sim_prob.setup(check=False)
-            else:
-                sim_prob.setup(check=False, parent=self)
+            sim_prob.setup(check=False, parent=self)
             sim_prob.final_setup()
 
         # Assign trajectory parameter values

@@ -26,7 +26,7 @@ from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_time_introspection, _configure_constraint_introspection, \
     configure_controls_introspection, configure_parameters_introspection, \
     configure_timeseries_output_introspection, classify_var
-from ..utils.misc import _unspecified, create_subprob, om_version
+from ..utils.misc import _unspecified, create_subprob
 from ..utils.lgl import lgl
 
 
@@ -2671,10 +2671,7 @@ class Phase(om.Group):
             rec = om.SqliteRecorder(record_file)
             sim_prob.add_recorder(rec)
 
-        if om_version()[0] <= (3, 42, 2):
-            sim_prob.setup(check=True)
-        else:
-            sim_prob.setup(check=True, parent=self)
+        sim_prob.setup(check=True, parent=self)
         sim_prob.final_setup()
 
         sim_phase.set_vals_from_phase(from_phase=self)

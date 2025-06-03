@@ -7,7 +7,6 @@ from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs
 
 import dymos as dm
-from dymos.utils.misc import om_version
 from dymos.utils.testing_utils import assert_timeseries_near_equal
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -87,11 +86,8 @@ class TestIntegrateControl(unittest.TestCase):
         # Run the driver to solve the problem
         dm.run_problem(p, simulate=True, make_plots=False)
 
-        sol_db = 'dymos_solution.db'
-        sim_db = 'dymos_simulation.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = p.get_outputs_dir() / sol_db
-            sim_db = traj.sim_prob.get_outputs_dir() / sim_db
+        sol_db = p.get_outputs_dir() / 'dymos_solution.db'
+        sim_db = traj.sim_prob.get_outputs_dir() / 'dymos_simulation.db'
 
         sol = om.CaseReader(sol_db).get_case('final')
         sim = om.CaseReader(sim_db).get_case('final')
@@ -197,11 +193,8 @@ class TestIntegrateControl(unittest.TestCase):
         # Run the driver to solve the problem
         dm.run_problem(p, simulate=True, make_plots=False)
 
-        sol_db = 'dymos_solution.db'
-        sim_db = 'dymos_simulation.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = p.get_outputs_dir() / sol_db
-            sim_db = traj.sim_prob.get_outputs_dir() / sim_db
+        sol_db = p.get_outputs_dir() / 'dymos_solution.db'
+        sim_db = traj.sim_prob.get_outputs_dir() / 'dymos_simulation.db'
 
         sol = om.CaseReader(sol_db).get_case('final')
         sim = om.CaseReader(sim_db).get_case('final')
@@ -320,11 +313,8 @@ class TestIntegrateControl(unittest.TestCase):
         dm.run_problem(p, simulate=True, make_plots=False, simulate_kwargs={'atol': 1.0E-9, 'rtol': 1.0E-9,
                                                                             'times_per_seg': 10})
 
-        sol_db = 'dymos_solution.db'
-        sim_db = 'dymos_simulation.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = p.get_outputs_dir() / sol_db
-            sim_db = traj.sim_prob.get_outputs_dir() / sim_db
+        sol_db = p.get_outputs_dir() / 'dymos_solution.db'
+        sim_db = traj.sim_prob.get_outputs_dir() / 'dymos_simulation.db'
 
         sol = om.CaseReader(sol_db).get_case('final')
         sim = om.CaseReader(sim_db).get_case('final')
@@ -450,11 +440,8 @@ class TestIntegratePolynomialControl(unittest.TestCase):
         # Run the driver to solve the problem
         dm.run_problem(p, simulate=True, make_plots=True)
 
-        sol_db = 'dymos_solution.db'
-        sim_db = 'dymos_simulation.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = p.get_outputs_dir() / sol_db
-            sim_db = traj.sim_prob.get_outputs_dir() / sim_db
+        sol_db = p.get_outputs_dir() / 'dymos_solution.db'
+        sim_db = traj.sim_prob.get_outputs_dir() / 'dymos_simulation.db'
 
         sol = om.CaseReader(sol_db).get_case('final')
         sim = om.CaseReader(sim_db).get_case('final')
@@ -563,11 +550,8 @@ class TestIntegratePolynomialControl(unittest.TestCase):
         dm.run_problem(p, simulate=True, make_plots=False,
                        simulate_kwargs={'times_per_seg': 10})
 
-        sol_db = 'dymos_solution.db'
-        sim_db = 'dymos_simulation.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = p.get_outputs_dir() / sol_db
-            sim_db = traj.sim_prob.get_outputs_dir() / sim_db
+        sol_db = p.get_outputs_dir() / 'dymos_solution.db'
+        sim_db = traj.sim_prob.get_outputs_dir() / 'dymos_simulation.db'
 
         sol = om.CaseReader(sol_db).get_case('final')
         sim = om.CaseReader(sim_db).get_case('final')
@@ -686,11 +670,8 @@ class TestIntegratePolynomialControl(unittest.TestCase):
         # Run the driver to solve the problem
         dm.run_problem(p, simulate=True, make_plots=True)
 
-        sol_db = 'dymos_solution.db'
-        sim_db = 'dymos_simulation.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = p.get_outputs_dir() / sol_db
-            sim_db = traj.sim_prob.get_outputs_dir() / sim_db
+        sol_db = p.get_outputs_dir() / 'dymos_solution.db'
+        sim_db = traj.sim_prob.get_outputs_dir() / 'dymos_simulation.db'
 
         sol = om.CaseReader(sol_db).get_case('final')
         sim = om.CaseReader(sim_db).get_case('final')

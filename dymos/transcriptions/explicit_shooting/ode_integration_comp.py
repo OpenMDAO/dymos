@@ -6,7 +6,7 @@ import openmdao.api as om
 from ..._options import options as dymos_options
 
 from .ode_evaluation_group import ODEEvaluationGroup
-from dymos.utils.misc import create_subprob, om_version
+from dymos.utils.misc import create_subprob
 
 
 class ODEIntegrationComp(om.ExplicitComponent):
@@ -120,10 +120,7 @@ class ODEIntegrationComp(om.ExplicitComponent):
         # Support model options
         p.model_options = self._problem_meta['model_options']
 
-        if om_version()[0] <= (3, 34, 2):
-            p.setup(check=None)
-        else:
-            p.setup(check=None, parent=self)
+        p.setup(check=None, parent=self)
         p.final_setup()
 
     def _set_segment_index(self, idx):

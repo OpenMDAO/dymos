@@ -8,7 +8,6 @@ from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 import dymos as dm
 from dymos.examples.double_integrator.double_integrator_ode import DoubleIntegratorODE
 from dymos.utils.testing_utils import assert_timeseries_near_equal
-from dymos.utils.misc import om_version
 
 
 @require_pyoptsparse(optimizer='SLSQP')
@@ -79,11 +78,8 @@ class TestDoubleIntegratorExample(unittest.TestCase):
     def test_timeseries_units_gl(self):
         p = double_integrator_direct_collocation(dm.GaussLobatto, compressed=True)
 
-        sol_db = 'dymos_solution.db'
-        sim_db = 'dymos_simulation.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = p.get_outputs_dir() / sol_db
-            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+        sol_db = p.get_outputs_dir() / 'dymos_solution.db'
+        sim_db = p.model.traj.sim_prob.get_outputs_dir() / 'dymos_simulation.db'
 
         sol_case = om.CaseReader(sol_db).get_case('final')
         sim_case = om.CaseReader(sim_db).get_case('final')
@@ -100,11 +96,8 @@ class TestDoubleIntegratorExample(unittest.TestCase):
     def test_timeseries_units_radau(self):
         p = double_integrator_direct_collocation(dm.Radau, compressed=True)
 
-        sol_db = 'dymos_solution.db'
-        sim_db = 'dymos_simulation.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = p.get_outputs_dir() / sol_db
-            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+        sol_db = p.get_outputs_dir() / 'dymos_solution.db'
+        sim_db = p.model.traj.sim_prob.get_outputs_dir() / 'dymos_simulation.db'
 
         sol_case = om.CaseReader(sol_db).get_case('final')
         sim_case = om.CaseReader(sim_db).get_case('final')

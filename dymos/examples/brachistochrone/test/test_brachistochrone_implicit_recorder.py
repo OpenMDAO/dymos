@@ -7,7 +7,6 @@ except ImportError:
     matplotlib = None
 
 from openmdao.utils.testing_utils import use_tempdirs
-from dymos.utils.misc import om_version
 
 
 @use_tempdirs
@@ -67,9 +66,7 @@ class TestBrachistochroneRecordingExample(unittest.TestCase):
         # Test the results
         assert_near_equal(p.get_val('phase0.timeseries.time')[-1], 1.8016, tolerance=1.0E-3)
 
-        sol_db = 'dymos_solution.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = p.get_outputs_dir() / sol_db
+        sol_db = p.get_outputs_dir() / 'dymos_solution.db'
         case = om.CaseReader(sol_db).get_case('final')
 
         assert_near_equal(p['phase0.control_values:theta'],
