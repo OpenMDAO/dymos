@@ -16,7 +16,6 @@ from dymos.examples.finite_burn_orbit_raise.finite_burn_eom import FiniteBurnODE
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 from dymos.examples.battery_multibranch.battery_multibranch_ode import BatteryODE
 from dymos.utils.lgl import lgl
-from dymos.utils.misc import om_version
 from dymos.utils.testing_utils import _get_reports_dir
 from dymos.visualization.timeseries_plots import timeseries_plots
 
@@ -88,9 +87,7 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
         with dm.options.temporary(plots='matplotlib'):
             dm.run_problem(self.p, make_plots=False)
 
-            sol_db = 'dymos_solution.db'
-            if om_version()[0] > (3, 34, 2):
-                sol_db = self.p.get_outputs_dir() / sol_db
+            sol_db = self.p.get_outputs_dir() / 'dymos_solution.db'
 
             timeseries_plots(sol_db, problem=self.p)
             plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath('plots')
@@ -110,9 +107,7 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
         # records to the default file 'dymos_simulation.db'
         dm.run_problem(self.p, make_plots=False, solution_record_file='solution_record_file.db')
 
-        sol_db = 'solution_record_file.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = self.p.get_outputs_dir() / sol_db
+        sol_db = self.p.get_outputs_dir() / 'solution_record_file.db'
 
         timeseries_plots(sol_db, problem=self.p)
         plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath('plots')
@@ -134,11 +129,8 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
         dm.run_problem(self.p, simulate=True, make_plots=False,
                        simulation_record_file='simulation_record_file.db')
 
-        sol_db = 'dymos_solution.db'
-        sim_db = 'simulation_record_file.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = self.p.get_outputs_dir() / sol_db
-            sim_db = self.p.model.traj0.sim_prob.get_outputs_dir() / sim_db
+        sol_db = self.p.get_outputs_dir() / 'dymos_solution.db'
+        sim_db = self.p.model.traj0.sim_prob.get_outputs_dir() / 'simulation_record_file.db'
 
         timeseries_plots(sol_db,
                          simulation_record_file=sim_db,
@@ -162,9 +154,7 @@ class TestTimeSeriesPlotsBasics(unittest.TestCase):
 
         dm.run_problem(self.p, make_plots=False)
 
-        sol_db = 'dymos_solution.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = self.p.get_outputs_dir() / sol_db
+        sol_db = self.p.get_outputs_dir() / 'dymos_solution.db'
 
         plot_dir = pathlib.Path(_get_reports_dir(self.p)).joinpath("test_plot_dir").resolve()
         timeseries_plots(sol_db, plot_dir=plot_dir)
@@ -318,11 +308,8 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
         dm.run_problem(p, simulate=True, make_plots=False,
                        simulation_record_file='simulation_record_file.db')
 
-        sol_db = 'dymos_solution.db'
-        sim_db = 'simulation_record_file.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = self.p.get_outputs_dir() / sol_db
-            sim_db = self.p.model.sim_prob.get_outputs_dir() / sim_db
+        sol_db = self.p.get_outputs_dir() / 'dymos_solution.db'
+        sim_db = self.p.model.sim_prob.get_outputs_dir() / 'simulation_record_file.db'
 
         timeseries_plots(sol_db,
                          simulation_record_file=sim_db,
@@ -420,11 +407,8 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
         dm.run_problem(prob, simulate=True, make_plots=False,
                        simulation_record_file='simulation_record_file.db')
 
-        sol_db = 'dymos_solution.db'
-        sim_db = 'simulation_record_file.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = prob.get_outputs_dir() / sol_db
-            sim_db = prob.model.traj.sim_prob.get_outputs_dir() / sim_db
+        sol_db = prob.get_outputs_dir() / 'dymos_solution.db'
+        sim_db = prob.model.traj.sim_prob.get_outputs_dir() / 'simulation_record_file.db'
 
         plot_dir = pathlib.Path(_get_reports_dir(prob)).joinpath("plots")
 
@@ -576,11 +560,8 @@ class TestTimeSeriesPlotsMultiPhase(unittest.TestCase):
         dm.run_problem(p, simulate=True, make_plots=False,
                        simulation_record_file='simulation_record_file.db')
 
-        sol_db = 'dymos_solution.db'
-        sim_db = 'simulation_record_file.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = p.get_outputs_dir() / sol_db
-            sim_db = p.model.sim_prob.get_outputs_dir() / sim_db
+        sol_db = p.get_outputs_dir() / 'dymos_solution.db'
+        sim_db = p.model.sim_prob.get_outputs_dir() / 'simulation_record_file.db'
 
         timeseries_plots(sol_db, sim_db, problem=p)
         plot_dir = pathlib.Path(_get_reports_dir(p)).joinpath("plots")

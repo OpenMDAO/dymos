@@ -16,7 +16,6 @@ from dymos.utils.introspection import get_promoted_vars
 
 import dymos as dm
 from dymos.examples.min_time_climb.min_time_climb_ode import MinTimeClimbODE
-from dymos.utils.misc import om_version
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse, set_env_vars_context
 
 
@@ -179,14 +178,11 @@ class TestMinTimeClimb(unittest.TestCase):
         ts = {k: v for k, v in output_dict.items() if 'timeseries.' in k}
         self.assertTrue('traj.phase0.timeseries.mach_rate' in ts)
 
-        sol_db = 'dymos_solution.db'
-        sim_db = 'dymos_simulation.db'
-        if om_version()[0] > (3, 34, 2):
-            sol_db = p.get_outputs_dir() / sol_db
-            sim_db = p.model.traj.sim_prob.get_outputs_dir() / sim_db
+        sol_db = p.get_outputs_dir() / 'dymos_solution.db'
+        sim_db = p.model.traj.sim_prob.get_outputs_dir() / 'dymos_simulation.db'
 
         case = om.CaseReader(sol_db).get_case('final')
-        sim_case = om.CaseReader(sol_db).get_case('final')
+        sim_case = om.CaseReader(sim_db).get_case('final')
 
         time = case[f'traj.phase0.timeseries.{time_name}'][:, 0]
         mach = case['traj.phase0.timeseries.mach'][:, 0]
@@ -281,7 +277,6 @@ class TestMinTimeClimb(unittest.TestCase):
         self._test_mach_rate(p, plot=False)
 
     @require_pyoptsparse(optimizer='IPOPT')
-    @unittest.skipIf(om_version()[0] < (3, 32, 2), 'Test requires OpenMDAO 3.32.2 or later')
     def test_results_birkhoff(self):
         NUM_SEG = 1
         ORDER = 30

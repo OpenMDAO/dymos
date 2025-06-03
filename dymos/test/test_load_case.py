@@ -4,7 +4,6 @@ import unittest
 from openmdao.utils.testing_utils import use_tempdirs
 import openmdao.api as om
 import dymos as dm
-from dymos.utils.misc import om_version
 
 
 def setup_problem(trans=dm.GaussLobatto(num_segments=10), polynomial_control=False,
@@ -69,10 +68,7 @@ class TestLoadCase(unittest.TestCase):
         dm.run_problem(p)
 
         # Load the solution
-        if om_version()[0] > (3, 34, 2):
-            sol_file = p.get_outputs_dir() / 'dymos_solution.db'
-        else:
-            sol_file = 'dymos_solution.db'
+        sol_file = p.get_outputs_dir() / 'dymos_solution.db'
 
         case = om.CaseReader(sol_file).get_case('final')
 
@@ -102,10 +98,7 @@ class TestLoadCase(unittest.TestCase):
         dm.run_problem(p)
 
         # Load the solution
-        if om_version()[0] > (3, 34, 2):
-            sol_file = p.get_outputs_dir() / 'dymos_solution.db'
-        else:
-            sol_file = 'dymos_solution.db'
+        sol_file = p.get_outputs_dir() / 'dymos_solution.db'
 
         case = om.CaseReader(sol_file).get_case('final')
 
@@ -134,10 +127,7 @@ class TestLoadCase(unittest.TestCase):
         dm.run_problem(p)
 
         # Load the solution
-        if om_version()[0] > (3, 34, 2):
-            sol_file = p.get_outputs_dir() / 'dymos_solution.db'
-        else:
-            sol_file = 'dymos_solution.db'
+        sol_file = p.get_outputs_dir() / 'dymos_solution.db'
 
         case = om.CaseReader(sol_file).get_case('final')
 
@@ -175,10 +165,7 @@ class TestLoadCase(unittest.TestCase):
         dm.run_problem(p)
 
         # Load the solution
-        if om_version()[0] > (3, 34, 2):
-            sol_file = p.get_outputs_dir() / 'dymos_solution.db'
-        else:
-            sol_file = 'dymos_solution.db'
+        sol_file = p.get_outputs_dir() / 'dymos_solution.db'
 
         case = om.CaseReader(sol_file).get_case('final')
 
@@ -219,10 +206,7 @@ class TestLoadCase(unittest.TestCase):
         dm.run_problem(p)
 
         # Load the solution
-        if om_version()[0] > (3, 34, 2):
-            sol_file = p.get_outputs_dir() / 'dymos_solution.db'
-        else:
-            sol_file = 'dymos_solution.db'
+        sol_file = p.get_outputs_dir() / 'dymos_solution.db'
 
         case = om.CaseReader(sol_file).get_case('final')
 
@@ -300,10 +284,7 @@ class TestLoadCase(unittest.TestCase):
         dm.run_problem(p)
 
         # Load the solution
-        if om_version()[0] > (3, 34, 2):
-            sol_file = p.get_outputs_dir() / 'dymos_solution.db'
-        else:
-            sol_file = 'dymos_solution.db'
+        sol_file = p.get_outputs_dir() / 'dymos_solution.db'
 
         case = om.CaseReader(sol_file).get_case('final')
 
@@ -331,10 +312,7 @@ class TestLoadCase(unittest.TestCase):
         dm.run_problem(p)
 
         # Load the solution
-        if om_version()[0] > (3, 34, 2):
-            sol_file = p.get_outputs_dir() / 'dymos_solution.db'
-        else:
-            sol_file = 'dymos_solution.db'
+        sol_file = p.get_outputs_dir() / 'dymos_solution.db'
 
         case = om.CaseReader(sol_file).get_case('final')
 
@@ -357,10 +335,7 @@ class TestLoadCase(unittest.TestCase):
         dm.run_problem(p)
 
         # Load the solution
-        if om_version()[0] > (3, 34, 2):
-            sol_file = p.get_outputs_dir() / 'dymos_solution.db'
-        else:
-            sol_file = 'dymos_solution.db'
+        sol_file = p.get_outputs_dir() / 'dymos_solution.db'
 
         case = om.CaseReader(sol_file).get_case('final')
 
