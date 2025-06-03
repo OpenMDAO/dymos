@@ -1186,7 +1186,7 @@ class Trajectory(om.Group):
         if connected:
             invalid_options = []
             for arg in ['lower', 'upper', 'equals', 'scaler', 'adder', 'ref0', 'ref', 'units']:
-                if locals()[arg] is not None and is_unspecified(locals()[arg]):
+                if locals()[arg] is not None and not is_unspecified(locals()[arg]):
                     invalid_options.append(arg)
             if locals()['linear']:
                 invalid_options.append('linear')
