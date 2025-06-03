@@ -3,7 +3,7 @@ from numbers import Number
 import numpy as np
 
 import openmdao.api as om
-from ..utils.misc import _unspecified, _none_or_unspecified
+from dymos.utils.misc import is_none_or_unspecified, _unspecified
 
 
 class ControlOptionsDictionary(om.OptionsDictionary):
@@ -145,7 +145,7 @@ def check_valid_shape(name, value):
         Shape to check, should be a Iterable, Number, list, or tuple.
     """
     if name == 'shape':
-        if value not in _none_or_unspecified and not isinstance(value, (Iterable, Number, list, tuple)):
+        if not is_none_or_unspecified(value) and not isinstance(value, (Iterable, Number, list, tuple)):
             raise ValueError(f"Option '{name}' with value {value} is not valid.")
 
 

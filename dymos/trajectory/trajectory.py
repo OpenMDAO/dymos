@@ -19,7 +19,7 @@ from ..phase.analytic_phase import AnalyticPhase
 from ..phase.options import TrajParameterOptionsDictionary
 from ..transcriptions.common import ParameterComp
 from ..utils.misc import create_subprob, get_rate_units, om_version, \
-    _unspecified, _none_or_unspecified
+    _unspecified, is_unspecified, is_none_or_unspecified
 from ..utils.introspection import get_source_metadata, _get_common_metadata
 
 
@@ -506,10 +506,10 @@ class Trajectory(om.Group):
                        for phase_name, phs_params in params_by_phase.items()
                        if phase_name in targets_per_phase and targets_per_phase[phase_name] in phs_params}
 
-            if options['units'] is _unspecified:
+            if is_unspecified(options['units']):
                 options['units'] = _get_common_metadata(targets, metadata_key='units')
 
-            if options['shape'] in _none_or_unspecified:
+            if is_none_or_unspecified(options['shape']):
                 options['shape'] = _get_common_metadata(targets, metadata_key='shape')
 
             param_comp = self._get_subsystem('param_comp')
@@ -655,10 +655,10 @@ class Trajectory(om.Group):
         linkage_options._src_b = sources['b']
         linkage_options['shape'] = shapes['b']
 
-        if linkage_options['units_a'] is _unspecified:
+        if is_unspecified(linkage_options['units_a']):
             linkage_options['units_a'] = units['a']
 
-        if linkage_options['units_b'] is _unspecified:
+        if is_unspecified(linkage_options['units_b']):
             linkage_options['units_b'] = units['b']
 
         if units['a'] is not None and units['b'] is not None:
@@ -667,7 +667,7 @@ class Trajectory(om.Group):
             conversion_scaler, conversion_offset = (1.0, 0.0)
 
         if not linkage_options['connected'] \
-                and linkage_options['units'] is _unspecified \
+                and is_unspecified(linkage_options['units']) \
                 and (abs(conversion_scaler - 1.0) > 1.0E-15 or abs(conversion_offset) > 1.0E-15):
             raise ValueError(f'{info_str}Linkage units were not specified but the units of {phase_name_a}.{var_a} '
                              f'({units["a"]}) and {phase_name_b}.{var_b} ({units["b"]}) are not equivalent. '
@@ -1161,32 +1161,32 @@ class Trajectory(om.Group):
             If True, this constraint is enforced by direct connection rather than a constraint
             for the optimizer. This is only valid for states and time.
         """
-        if sign_a is not _unspecified:
-            if mult_a is not _unspecified:
+        if not is_unspecified(sign_a):
+            if not is_unspecified(mult_a):
                 raise ValueError(
                     "Both the deprecated 'sign_a' option and option 'mult_a' were specified."
                     "Going forward, please use only option mult_a.")
             warn_deprecation("'sign_a' has been deprecated. Use 'mult_a' instead.")
             mult_a = sign_a
-        else:  # sign_a is _unspecified
-            if mult_a is _unspecified:
+        else:
+            if is_unspecified(mult_a):
                 mult_a = 1.0
 
-        if sign_b is not _unspecified:
-            if mult_b is not _unspecified:
+        if not is_unspecified(sign_b):
+            if not is_unspecified(mult_b):
                 raise ValueError(
                     "Both the deprecated 'sign_b' option and option 'mult_b' were specified."
                     "Going forward, please use only option mult_b.")
             warn_deprecation("'sign_b' has been deprecated. Use 'mult_b' instead.")
             mult_b = sign_b
-        else:  # sign_a is _unspecified
-            if mult_b is _unspecified:
+        else:
+            if is_unspecified(mult_b):
                 mult_b = -1.0
 
         if connected:
             invalid_options = []
             for arg in ['lower', 'upper', 'equals', 'scaler', 'adder', 'ref0', 'ref', 'units']:
-                if locals()[arg] is not None and locals()[arg] is not _unspecified:
+                if locals()[arg] is not None and is_unspecified(locals()[arg]):
                     invalid_options.append(arg)
             if locals()['linear']:
                 invalid_options.append('linear')
