@@ -52,6 +52,9 @@ class TranscriptionBase(object):
         # Does this transcription have a separate ODE for the phase boundaries?
         self._has_boundary_ode = False
 
+        # Does this transcription include separate variables for the initial and final states?
+        self._has_initial_final_states = False
+
     def _declare_options(self):
         pass
 

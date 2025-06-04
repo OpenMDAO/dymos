@@ -36,6 +36,9 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', compress
         t = dm.Radau(num_segments=30, order=3, compressed=compressed)
     elif transcription == 'birkhoff':
         t = dm.Birkhoff(num_nodes=51)
+    elif transcription.startswith('picard'):
+        grid_type = transcription.split('-')[-1]
+        t = dm.PicardShooting(num_segments=1, nodes_per_seg=50, grid_type=grid_type)
     else:
         raise ValueError('invalid transcription')
 
@@ -119,6 +122,11 @@ class TestBreakwellExample(unittest.TestCase):
     def test_ex_double_integrator_birkhoff(self):
         p = double_integrator_direct_collocation('birkhoff', optimizer='IPOPT')
         dm.run_problem(p)
+        self._assert_results(p)
+
+    def test_ex_double_integrator_picard_shooting(self):
+        p = double_integrator_direct_collocation('picard-cgl', optimizer='IPOPT')
+        dm.run_problem(p, run_driver=True, simulate=False, make_plots=True)
         self._assert_results(p)
 
     def test_check_partials(self):
