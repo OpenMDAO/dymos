@@ -88,14 +88,12 @@ class TestDistributedODEOutputsToTimeseries(unittest.TestCase):
         transcriptions = {'GaussLobatto': dm.GaussLobatto(num_segments=15, order=7, compressed=True),
                           'Radau': dm.Radau(num_segments=15, order=7, compressed=True),
                           'Birkhoff': dm.Birkhoff(num_nodes=80),
-                          'ExplicitShooting': dm.ExplicitShooting(num_segments=15, order=3), }
-# Skip PicardShooting until the state-as-a-rate-source issue is resolved.
-# 'PicardShooting': dm.PicardShooting(num_segments=15, nodes_per_seg=7),}
+                          'ExplicitShooting': dm.ExplicitShooting(num_segments=15, order=3),
+                          'PicardShooting': dm.PicardShooting(num_segments=15, nodes_per_seg=7),}
 
         for tx_name, tx in transcriptions.items():
 
             with self.subTest(f'{tx_name=}'):
-
                 # define the OpenMDAO problem
                 p = om.Problem(model=om.Group())
 
