@@ -75,7 +75,7 @@ def double_integrator_direct_collocation(transcription='gauss-lobatto', compress
     return p
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestBreakwellExample(unittest.TestCase):
 
     @classmethod
@@ -125,11 +125,9 @@ class TestBreakwellExample(unittest.TestCase):
         self._assert_results(p)
 
     def test_ex_double_integrator_picard_shooting(self):
-        from dymos._options import options as dymos_options
-        with dymos_options.temporary(include_check_partials=True):
-            p = double_integrator_direct_collocation('picard-cgl', optimizer='IPOPT')
-            dm.run_problem(p, run_driver=True, simulate=False, make_plots=True)
-            self._assert_results(p)
+        p = double_integrator_direct_collocation('picard-cgl', optimizer='IPOPT')
+        dm.run_problem(p, run_driver=True, simulate=False, make_plots=True)
+        self._assert_results(p)
 
     def test_check_partials(self):
         p = double_integrator_direct_collocation('birkhoff', optimizer='SLSQP')
