@@ -1,14 +1,5 @@
 import unittest
 
-try:
-    import matplotlib
-    import matplotlib.pyplot as plt
-
-    matplotlib.use('Agg')
-    plt.style.use('ggplot')
-except ImportError:
-    matplotlib = None
-
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 
@@ -16,14 +7,11 @@ from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 class TestDocSSTOLinearTangentGuidance(unittest.TestCase):
 
     @require_pyoptsparse(optimizer='SLSQP')
-    @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     def test_doc_ssto_linear_tangent_guidance(self):
         import numpy as np
-        import matplotlib.pyplot as plt
         import openmdao.api as om
         from openmdao.utils.assert_utils import assert_near_equal
         import dymos as dm
-        from dymos.examples.plotting import plot_results
 
         g = 1.61544  # lunar gravity, m/s**2
 
@@ -273,29 +261,12 @@ class TestDocSSTOLinearTangentGuidance(unittest.TestCase):
         phase.set_parameter_val('a_ctrl', -0.01)
         phase.set_parameter_val('b_ctrl', 3.0)
 
-        dm.run_problem(p)
+        dm.run_problem(p, simulate=True)
 
         #
         # Check the results.
         #
         assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1], 481, tolerance=0.01)
-
-        #
-        # Get the explitly simulated results
-        #
-        exp_out = traj.simulate()
-
-        #
-        # Plot the results
-        #
-        plot_results([('traj.phase0.timeseries.x', 'traj.phase0.timeseries.y',
-                       'range (m)', 'altitude (m)'),
-                      ('traj.phase0.timeseries.time', 'traj.phase0.timeseries.theta',
-                       'range (m)', 'altitude (m)')],
-                     title='Single Stage to Orbit Solution Using Linear Tangent Guidance',
-                     p_sol=p, p_sim=exp_out)
-
-        plt.show()
 
 
 if __name__ == "__main__":

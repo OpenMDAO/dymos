@@ -814,6 +814,8 @@ def _configure_constraint_introspection(phase):
         The phase object whose boundary and path constraints are to be introspected.
     """
     has_boundary_ode = phase.options['transcription']._has_boundary_ode
+    has_initial_final_states = phase.options['transcription']._has_boundary_ode or \
+        phase.options['transcription']._has_initial_final_states
 
     for constraint_type, constraints in [('initial', phase._initial_boundary_constraints),
                                          ('final', phase._final_boundary_constraints),
@@ -847,8 +849,10 @@ def _configure_constraint_introspection(phase):
                 state_units = phase.state_options[var]['units']
                 con['shape'] = state_shape
                 con['units'] = state_units if con['units'] is None else con['units']
-                if has_boundary_ode and constraint_type in ('initial', 'final'):
-                    con['constraint_path'] = f'boundary_vals.{var}'
+                if has_initial_final_states and constraint_type == 'initial':
+                    con['constraint_path'] = f'initial_states:{var}'
+                elif has_initial_final_states and constraint_type == 'final':
+                    con['constraint_path'] = f'final_states:{var}'
                 else:
                     con['constraint_path'] = f'timeseries.{prefix}{var}'
 

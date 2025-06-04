@@ -99,10 +99,12 @@ class BirkhoffPicardIterGroup(om.Group):
                                  "rate_source")
 
             # Note the rate source must be shape-compatible with the state
-            var_type = phase.classify_var(rate_source_var)
+            rate_src_type = phase.classify_var(rate_source_var)
 
-            if var_type == 'ode':
+            if rate_src_type == 'ode':
                 self.connect(f'ode_all.{rate_source}', f'picard_update_comp.f_computed:{name}')
+            elif rate_src_type == 'state':
+                self.connect(f'state_val:{rate_source}', f'picard_update_comp.f_computed:{name}')
 
             promotes = [f'states:{name}']
             if options['solve_segments'] == 'forward':
