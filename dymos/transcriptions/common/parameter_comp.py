@@ -4,8 +4,8 @@
 import numpy as np
 
 from openmdao.core.explicitcomponent import ExplicitComponent
-from ...utils.misc import _none_or_unspecified
-from ..._options import options as dymos_options
+from dymos.utils.misc import is_none_or_unspecified
+from dymos._options import options as dymos_options
 
 
 class ParameterComp(ExplicitComponent):
@@ -133,7 +133,7 @@ class ParameterComp(ExplicitComponent):
 
         _val = np.asarray(val)
 
-        if shape in _none_or_unspecified:
+        if is_none_or_unspecified(shape):
             _shape = (1,)
             size = _val.size
         else:

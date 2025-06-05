@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 
 import numpy as np
 
@@ -11,7 +12,46 @@ from .indexing import get_desvar_indices
 
 # unique object to check if default is given (when None is an allowed value)
 _unspecified = _ReprClass("unspecified")
-_none_or_unspecified = {None, _unspecified}
+
+
+def is_unspecified(obj):
+    """
+    Return True if the object is _unspecified.
+
+    This function should be used instead of `{obj} is _unspecified`, which
+    is not reliable across processes. The use of `{obj} == _unspecified` will
+    fail if `obj` is an array.
+
+    Parameters
+    ----------
+    obj : any
+        Any python object.
+
+    Returns
+    -------
+    bool
+        True if the obj is not an array, and obj == _UNDEFINED.
+    """
+    if isinstance(obj, Iterable):
+        return False
+    return obj == _unspecified
+
+
+def is_none_or_unspecified(obj):
+    """
+    Similar to is_undefined, but also returns True if obj is None.
+
+    Parameters
+    ----------
+    obj : any
+        Any python object.
+
+    Returns
+    -------
+    bool
+        True if the obj is not an array, and obj == _UNDEFINED or obj is None.
+    """
+    return is_unspecified(obj) or obj is None
 
 
 def get_rate_units(units, time_units, deriv=1):
@@ -38,12 +78,14 @@ def get_rate_units(units, time_units, deriv=1):
 
     tu = time_units if deriv == 1 else f'{time_units}**2'
 
-    if units is not None and time_units is not None:
+    if units not in (None, 'unitless') and time_units not in (None, 'unitless'):
         return f'{units}/{tu}'
-    elif units is not None:
+    elif units not in (None, 'unitless'):
         return units
-    elif time_units is not None:
-        return f'1.0/{tu}'
+    elif time_units not in (None, 'unitless'):
+        return f'1/{tu}'
+    else:  # Explicitly return None if both units and time_units are None or 'unitless'
+        return None
 
 
 def reshape_val(val, shape, num_input_nodes):
