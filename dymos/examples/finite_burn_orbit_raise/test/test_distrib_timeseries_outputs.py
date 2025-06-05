@@ -89,7 +89,7 @@ class TestDistributedODEOutputsToTimeseries(unittest.TestCase):
                           'Radau': dm.Radau(num_segments=15, order=7, compressed=True),
                           'Birkhoff': dm.Birkhoff(num_nodes=80),
                           'ExplicitShooting': dm.ExplicitShooting(num_segments=15, order=3),
-                          'PicardShooting': dm.PicardShooting(num_segments=15, nodes_per_seg=7),}
+                          'PicardShooting': dm.PicardShooting(num_segments=15, nodes_per_seg=7)}
 
         for tx_name, tx in transcriptions.items():
 
