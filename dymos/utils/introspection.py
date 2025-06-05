@@ -5,7 +5,7 @@ import openmdao.api as om
 import numpy as np
 from openmdao.utils.units import simplify_unit
 from openmdao.utils.general_utils import ensure_compatible
-from dymos.utils.misc import _unspecified, _none_or_unspecified
+from dymos.utils.misc import _unspecified, is_unspecified, is_none_or_unspecified
 from ..phase.options import StateOptionsDictionary, TimeseriesOutputOptionsDictionary
 from .misc import get_rate_units
 
@@ -132,7 +132,7 @@ def get_targets(ode, name, user_targets):
         ode_inputs = ode
     else:
         ode_inputs = get_promoted_vars(ode, iotypes=('input',))
-    if user_targets is _unspecified:
+    if is_unspecified(user_targets):
         if name in ode_inputs:
             return [name]
     elif user_targets:
@@ -169,10 +169,10 @@ def configure_controls_introspection(control_options, ode, time_units='s'):
 
         options['targets'] = list(targets.keys())
         if targets:
-            if options['units'] is _unspecified:
+            if is_unspecified(options['units']):
                 options['units'] = _get_common_metadata(targets, metadata_key='units')
 
-            if options['shape'] in _none_or_unspecified:
+            if is_none_or_unspecified(options['shape']):
                 shape = _get_common_metadata(targets, metadata_key='shape')
                 if len(shape) == 1:
                     options['shape'] = (1,)
@@ -189,12 +189,12 @@ def configure_controls_introspection(control_options, ode, time_units='s'):
 
         options['rate_targets'] = list(rate_targets.keys())
         if rate_targets:
-            if options['units'] is _unspecified:
+            if is_unspecified(options['units']):
                 rate_target_units = _get_common_metadata(rate_targets, metadata_key='units')
                 options['units'] = time_units if rate_target_units is None else \
                     simplify_unit(f'{rate_target_units}*{time_units}')
 
-            if options['shape'] in _none_or_unspecified:
+            if is_none_or_unspecified(options['shape']):
                 shape = _get_common_metadata(rate_targets, metadata_key='shape')
                 if len(shape) == 1:
                     options['shape'] = (1,)
@@ -211,12 +211,12 @@ def configure_controls_introspection(control_options, ode, time_units='s'):
 
         options['rate2_targets'] = list(rate2_targets.keys())
         if rate2_targets:
-            if options['units'] is _unspecified:
+            if is_unspecified(options['units']):
                 rate2_target_units = _get_common_metadata(rate_targets, metadata_key='units')
                 options['units'] = f'{time_units**2}' if rate2_target_units is None \
                     else simplify_unit(f'{rate2_target_units}*{time_units}**2')
 
-            if options['shape'] in _none_or_unspecified:
+            if is_none_or_unspecified(options['shape']):
                 shape = _get_common_metadata(rate2_targets, metadata_key='shape')
                 if len(shape) == 1:
                     options['shape'] = (1,)
@@ -253,7 +253,7 @@ def configure_parameters_introspection(parameter_options, ode):
         # This is a bit of a hack. Any target with a shape of (1,) is unambiguously static.
         # We may want to consider forcing users to tag these as static for dymos 2.0.0
         shape_1_targets = {tgt for tgt, meta in targets.items() if meta['shape'] == (1,)}
-        if options['static_targets'] is _unspecified:
+        if is_unspecified(options['static_targets']):
             options['static_targets'] = static_tagged_targets.union(shape_1_targets)
         elif options['static_targets']:
             options['static_targets'] = options['targets'].copy()
@@ -265,7 +265,7 @@ def configure_parameters_introspection(parameter_options, ode):
                              f"User has specified 'static_target = False' for parameter `{name}`,\nbut one or more "
                              f"targets is tagged with 'dymos.static_target':\n{static_tagged_targets}")
 
-        if options['units'] is _unspecified:
+        if is_unspecified(options['units']):
             options['units'] = _get_common_metadata(targets, metadata_key='units')
 
         # Check that all targets have the same shape.
@@ -289,7 +289,7 @@ def configure_parameters_introspection(parameter_options, ode):
         else:
             introspected_shape = None
 
-        if options['shape'] in _none_or_unspecified:
+        if is_none_or_unspecified(options['shape']):
             if isinstance(options['val'], Number):
                 options['shape'] = introspected_shape
             else:
@@ -330,7 +330,7 @@ def configure_time_introspection(time_options, ode):
 
     time_options['targets'] = targets
 
-    if time_options['units'] is _unspecified:
+    if is_unspecified(time_options['units']):
         time_options['units'] = _get_common_metadata(targets, 'units')
 
     if any(['dymos.static_target' in meta['tags'] for meta in targets.values()]):
@@ -384,10 +384,10 @@ def configure_states_introspection(state_options, time_options, control_options,
 
         options['targets'] = list(targets.keys())
         if targets:
-            if options['units'] is _unspecified:
+            if is_unspecified(options['units']):
                 options['units'] = _get_common_metadata(targets, metadata_key='units')
 
-            if options['shape'] in _none_or_unspecified:
+            if is_none_or_unspecified(options['shape']):
                 shape = _get_common_metadata(targets, metadata_key='shape')
                 if len(shape) == 1:
                     options['shape'] = (1,)
@@ -432,10 +432,10 @@ def configure_states_introspection(state_options, time_options, control_options,
             rate_src_shape = (1,)
             rate_src_units = None
 
-        if options['shape'] in _none_or_unspecified:
+        if is_none_or_unspecified(options['shape']):
             options['shape'] = rate_src_shape
 
-        if options['units'] is _unspecified:
+        if is_unspecified(options['units']):
             if rate_src_units is None:
                 options['units'] = time_units
             else:
@@ -482,10 +482,10 @@ def configure_analytic_states_introspection(state_options, ode):
             raise RuntimeError(f'ODE output {source} is tagged with `dymos.static_output` and cannot be used as a '
                                f'state variable in an AnalyticPhase.')
 
-        if options['shape'] in _none_or_unspecified:
+        if is_none_or_unspecified(options['shape']):
             options['shape'] = src_shape
 
-        if options['units'] is _unspecified:
+        if is_unspecified(options['units']):
             options['units'] = src_units
 
 
@@ -672,10 +672,10 @@ def configure_timeseries_output_introspection(phase):
             output_options['src'] = output_meta['src']
             output_options['src_idxs'] = output_meta['src_idxs']
 
-            if output_options['shape'] in (None, _unspecified):
+            if is_none_or_unspecified(output_options['shape']):
                 output_options['shape'] = output_meta['shape']
 
-            if output_options['units'] in (None, _unspecified):
+            if is_none_or_unspecified(output_options['units']):
                 output_options['units'] = output_meta['units']
 
         if not_found:
@@ -762,22 +762,22 @@ def _configure_boundary_balance_introspection(phase):
             raise ValueError(f'{phase.msginfo}: For boundary balance, param must be one of t_initial, t_duration, '
                              'a parameter in the phase, initial_states:{name}, or final_states:{name}')
 
-        if options.get('units', _unspecified) is _unspecified:
+        if is_unspecified(options.get('units', _unspecified)):
             options['units'] = param_units
 
-        if options.get('lower', _unspecified) is _unspecified:
+        if is_unspecified(options.get('lower', _unspecified)):
             if param_bounds is None:
                 options['lower'] = None
             else:
                 options['lower'] = param_bounds[0]
 
-        if options.get('upper', _unspecified) is _unspecified:
+        if is_unspecified(options.get('upper', _unspecified)):
             if param_bounds is None:
                 options['upper'] = None
             else:
                 options['upper'] = param_bounds[1]
 
-        if resid_units is _unspecified:
+        if is_unspecified(resid_units):
             if resid_type in ['t', 't_phase']:
                 options['eq_units'] = time_units
             elif resid_type == 'state':
@@ -1044,12 +1044,12 @@ def get_source_metadata(ode, src, user_units=_unspecified, user_shape=_unspecifi
     if src not in ode_outputs:
         raise ValueError(f"Unable to find the source '{src}' in the ODE.")
 
-    if user_units in _none_or_unspecified:
+    if is_none_or_unspecified(user_units):
         meta['units'] = ode_outputs[src]['units']
     else:
         meta['units'] = user_units
 
-    if user_shape in _none_or_unspecified:
+    if is_none_or_unspecified(user_shape):
         ode_shape = ode_outputs[src]['shape']
         meta['shape'] = (1,) if len(ode_shape) == 1 else ode_shape[1:]
     else:

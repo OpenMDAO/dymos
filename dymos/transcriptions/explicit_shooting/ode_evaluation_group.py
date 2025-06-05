@@ -13,7 +13,7 @@ from ...utils.introspection import configure_controls_introspection, \
     configure_time_introspection, configure_parameters_introspection, \
     configure_states_discovery, configure_states_introspection, _get_targets_metadata, \
     _get_common_metadata, get_promoted_vars
-from ...utils.misc import get_rate_units, _unspecified, _none_or_unspecified
+from ...utils.misc import get_rate_units, is_unspecified, is_none_or_unspecified
 from ...utils.ode_utils import _make_ode_system
 
 
@@ -237,12 +237,12 @@ class ODEEvaluationGroup(om.Group):
 
             targets = _get_targets_metadata(ode_inputs, name=name, user_targets=options['targets'])
 
-            if options['units'] is _unspecified:
+            if is_unspecified(options['units']):
                 units = _get_common_metadata(targets, 'units')
             else:
                 units = options['units']
 
-            if options['shape'] in _none_or_unspecified:
+            if is_none_or_unspecified(options['shape']):
                 shape = _get_common_metadata(targets, 'shape')
             else:
                 shape = options['shape']
