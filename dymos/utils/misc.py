@@ -78,12 +78,14 @@ def get_rate_units(units, time_units, deriv=1):
 
     tu = time_units if deriv == 1 else f'{time_units}**2'
 
-    if units is not None and time_units is not None:
+    if units not in (None, 'unitless') and time_units not in (None, 'unitless'):
         return f'{units}/{tu}'
-    elif units is not None:
+    elif units not in (None, 'unitless'):
         return units
-    elif time_units is not None:
-        return f'1.0/{tu}'
+    elif time_units not in (None, 'unitless'):
+        return f'1/{tu}'
+    else:  # Explicitly return None if both units and time_units are None or 'unitless'
+        return None
 
 
 def reshape_val(val, shape, num_input_nodes):
