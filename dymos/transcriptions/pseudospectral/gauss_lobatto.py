@@ -270,7 +270,8 @@ class GaussLobatto(PseudospectralBase):
                               src_indices=om.slicer[map_input_indices_to_disc, ...])
 
                 phase.connect(f'state_interp.state_col:{state_name}',
-                              f'interleave_comp.col_values:states:{state_name}')
+                              f'interleave_comp.col_values:states:{state_name}',
+                              src_indices=om.slicer[...])
 
             # Add the state rates to the interleave comp
 
@@ -318,10 +319,12 @@ class GaussLobatto(PseudospectralBase):
 
                     if src_added:
                         phase.connect(f'rhs_disc.{ts_output["name"]}',
-                                      f'interleave_comp.disc_values:{ts_output_name}')
+                                      f'interleave_comp.disc_values:{ts_output_name}',
+                                      src_indices=om.slicer[...])
 
                         phase.connect(f'rhs_col.{ts_output["name"]}',
-                                      f'interleave_comp.col_values:{ts_output_name}')
+                                      f'interleave_comp.col_values:{ts_output_name}',
+                                      src_indices=om.slicer[...])
 
     def setup_defects(self, phase):
         """

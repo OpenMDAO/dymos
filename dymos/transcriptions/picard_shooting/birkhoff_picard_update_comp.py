@@ -100,17 +100,11 @@ class PicardUpdateComp(om.ExplicitComponent):
             rate_units = get_rate_units(units, time_units)
             var_names = self.var_names[state_name]
 
-            rate_source = options['rate_source']
-            rate_source_type = phase.classify_var(rate_source)
-
-            if rate_source_type == 'state':
-                var_names['f_computed'] = f'state_val:{rate_source}'
-            else:
-                self.add_input(
-                    name=var_names['f_computed'],
-                    shape=(num_nodes,) + shape,
-                    desc=f'Computed derivative of state {state_name} at the polynomial nodes',
-                    units=rate_units)
+            self.add_input(
+                name=var_names['f_computed'],
+                shape=(num_nodes,) + shape,
+                desc=f'Computed derivative of state {state_name} at the polynomial nodes',
+                units=rate_units)
 
             self.add_output(
                 name=var_names['x_hat'],

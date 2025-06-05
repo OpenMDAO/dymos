@@ -249,4 +249,4 @@ class BirkhoffIterGroup(om.Group):
             var_type = phase.classify_var(rate_source_var)
 
             if var_type == 'ode':
-                self.connect(f'ode_all.{rate_source}', f'f_computed:{name}')
+                self.connect(f'ode_all.{rate_source}', f'f_computed:{name}', src_indices=om.slicer[...])
