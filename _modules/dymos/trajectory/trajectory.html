@@ -720,7 +720,8 @@ title="Open an issue"
 <span class="kn">from</span><span class="w"> </span><span class="nn">..phase.analytic_phase</span><span class="w"> </span><span class="kn">import</span> <span class="n">AnalyticPhase</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..phase.options</span><span class="w"> </span><span class="kn">import</span> <span class="n">TrajParameterOptionsDictionary</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..transcriptions.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">ParameterComp</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">..utils.misc</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_subprob</span><span class="p">,</span> <span class="n">get_rate_units</span><span class="p">,</span> <span class="n">_unspecified</span><span class="p">,</span> <span class="n">_none_or_unspecified</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..utils.misc</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_subprob</span><span class="p">,</span> <span class="n">get_rate_units</span><span class="p">,</span> \
+    <span class="n">_unspecified</span><span class="p">,</span> <span class="n">is_unspecified</span><span class="p">,</span> <span class="n">is_none_or_unspecified</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..utils.introspection</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_source_metadata</span><span class="p">,</span> <span class="n">_get_common_metadata</span>
 
 
@@ -1207,10 +1208,10 @@ title="Open an issue"
                        <span class="k">for</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">phs_params</span> <span class="ow">in</span> <span class="n">params_by_phase</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
                        <span class="k">if</span> <span class="n">phase_name</span> <span class="ow">in</span> <span class="n">targets_per_phase</span> <span class="ow">and</span> <span class="n">targets_per_phase</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span> <span class="ow">in</span> <span class="n">phs_params</span><span class="p">}</span>
 
-            <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="n">_unspecified</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_unspecified</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]):</span>
                 <span class="n">options</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_get_common_metadata</span><span class="p">(</span><span class="n">targets</span><span class="p">,</span> <span class="n">metadata_key</span><span class="o">=</span><span class="s1">&#39;units&#39;</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="n">options</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">_none_or_unspecified</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_none_or_unspecified</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">]):</span>
                 <span class="n">options</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_get_common_metadata</span><span class="p">(</span><span class="n">targets</span><span class="p">,</span> <span class="n">metadata_key</span><span class="o">=</span><span class="s1">&#39;shape&#39;</span><span class="p">)</span>
 
             <span class="n">param_comp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_subsystem</span><span class="p">(</span><span class="s1">&#39;param_comp&#39;</span><span class="p">)</span>
@@ -1356,10 +1357,10 @@ title="Open an issue"
         <span class="n">linkage_options</span><span class="o">.</span><span class="n">_src_b</span> <span class="o">=</span> <span class="n">sources</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">]</span>
         <span class="n">linkage_options</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">shapes</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">]</span>
 
-        <span class="k">if</span> <span class="n">linkage_options</span><span class="p">[</span><span class="s1">&#39;units_a&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="n">_unspecified</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">is_unspecified</span><span class="p">(</span><span class="n">linkage_options</span><span class="p">[</span><span class="s1">&#39;units_a&#39;</span><span class="p">]):</span>
             <span class="n">linkage_options</span><span class="p">[</span><span class="s1">&#39;units_a&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">units</span><span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">]</span>
 
-        <span class="k">if</span> <span class="n">linkage_options</span><span class="p">[</span><span class="s1">&#39;units_b&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="n">_unspecified</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">is_unspecified</span><span class="p">(</span><span class="n">linkage_options</span><span class="p">[</span><span class="s1">&#39;units_b&#39;</span><span class="p">]):</span>
             <span class="n">linkage_options</span><span class="p">[</span><span class="s1">&#39;units_b&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">units</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">units</span><span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">units</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1368,7 +1369,7 @@ title="Open an issue"
             <span class="n">conversion_scaler</span><span class="p">,</span> <span class="n">conversion_offset</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">linkage_options</span><span class="p">[</span><span class="s1">&#39;connected&#39;</span><span class="p">]</span> \
-                <span class="ow">and</span> <span class="n">linkage_options</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="n">_unspecified</span> \
+                <span class="ow">and</span> <span class="n">is_unspecified</span><span class="p">(</span><span class="n">linkage_options</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">])</span> \
                 <span class="ow">and</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">conversion_scaler</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1.0E-15</span> <span class="ow">or</span> <span class="nb">abs</span><span class="p">(</span><span class="n">conversion_offset</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1.0E-15</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">info_str</span><span class="si">}</span><span class="s1">Linkage units were not specified but the units of </span><span class="si">{</span><span class="n">phase_name_a</span><span class="si">}</span><span class="s1">.</span><span class="si">{</span><span class="n">var_a</span><span class="si">}</span><span class="s1"> &#39;</span>
                              <span class="sa">f</span><span class="s1">&#39;(</span><span class="si">{</span><span class="n">units</span><span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">) and </span><span class="si">{</span><span class="n">phase_name_b</span><span class="si">}</span><span class="s1">.</span><span class="si">{</span><span class="n">var_b</span><span class="si">}</span><span class="s1"> (</span><span class="si">{</span><span class="n">units</span><span class="p">[</span><span class="s2">&quot;b&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">) are not equivalent. &#39;</span>
@@ -1862,32 +1863,32 @@ title="Open an issue"
 <span class="sd">            If True, this constraint is enforced by direct connection rather than a constraint</span>
 <span class="sd">            for the optimizer. This is only valid for states and time.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">sign_a</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_unspecified</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">mult_a</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_unspecified</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_unspecified</span><span class="p">(</span><span class="n">sign_a</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">is_unspecified</span><span class="p">(</span><span class="n">mult_a</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                     <span class="s2">&quot;Both the deprecated &#39;sign_a&#39; option and option &#39;mult_a&#39; were specified.&quot;</span>
                     <span class="s2">&quot;Going forward, please use only option mult_a.&quot;</span><span class="p">)</span>
             <span class="n">warn_deprecation</span><span class="p">(</span><span class="s2">&quot;&#39;sign_a&#39; has been deprecated. Use &#39;mult_a&#39; instead.&quot;</span><span class="p">)</span>
             <span class="n">mult_a</span> <span class="o">=</span> <span class="n">sign_a</span>
-        <span class="k">else</span><span class="p">:</span>  <span class="c1"># sign_a is _unspecified</span>
-            <span class="k">if</span> <span class="n">mult_a</span> <span class="ow">is</span> <span class="n">_unspecified</span><span class="p">:</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_unspecified</span><span class="p">(</span><span class="n">mult_a</span><span class="p">):</span>
                 <span class="n">mult_a</span> <span class="o">=</span> <span class="mf">1.0</span>
 
-        <span class="k">if</span> <span class="n">sign_b</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_unspecified</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">mult_b</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_unspecified</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_unspecified</span><span class="p">(</span><span class="n">sign_b</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">is_unspecified</span><span class="p">(</span><span class="n">mult_b</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                     <span class="s2">&quot;Both the deprecated &#39;sign_b&#39; option and option &#39;mult_b&#39; were specified.&quot;</span>
                     <span class="s2">&quot;Going forward, please use only option mult_b.&quot;</span><span class="p">)</span>
             <span class="n">warn_deprecation</span><span class="p">(</span><span class="s2">&quot;&#39;sign_b&#39; has been deprecated. Use &#39;mult_b&#39; instead.&quot;</span><span class="p">)</span>
             <span class="n">mult_b</span> <span class="o">=</span> <span class="n">sign_b</span>
-        <span class="k">else</span><span class="p">:</span>  <span class="c1"># sign_a is _unspecified</span>
-            <span class="k">if</span> <span class="n">mult_b</span> <span class="ow">is</span> <span class="n">_unspecified</span><span class="p">:</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_unspecified</span><span class="p">(</span><span class="n">mult_b</span><span class="p">):</span>
                 <span class="n">mult_b</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
 
         <span class="k">if</span> <span class="n">connected</span><span class="p">:</span>
             <span class="n">invalid_options</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;lower&#39;</span><span class="p">,</span> <span class="s1">&#39;upper&#39;</span><span class="p">,</span> <span class="s1">&#39;equals&#39;</span><span class="p">,</span> <span class="s1">&#39;scaler&#39;</span><span class="p">,</span> <span class="s1">&#39;adder&#39;</span><span class="p">,</span> <span class="s1">&#39;ref0&#39;</span><span class="p">,</span> <span class="s1">&#39;ref&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">]:</span>
-                <span class="k">if</span> <span class="nb">locals</span><span class="p">()[</span><span class="n">arg</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">locals</span><span class="p">()[</span><span class="n">arg</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_unspecified</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">locals</span><span class="p">()[</span><span class="n">arg</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_unspecified</span><span class="p">(</span><span class="nb">locals</span><span class="p">()[</span><span class="n">arg</span><span class="p">]):</span>
                     <span class="n">invalid_options</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">locals</span><span class="p">()[</span><span class="s1">&#39;linear&#39;</span><span class="p">]:</span>
                 <span class="n">invalid_options</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;linear&#39;</span><span class="p">)</span>
