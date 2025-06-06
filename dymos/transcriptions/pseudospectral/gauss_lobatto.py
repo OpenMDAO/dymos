@@ -69,7 +69,8 @@ class GaussLobatto(PseudospectralBase):
 
         # The tuples here are (name, user_specified_targets, dynamic)
         for name, usr_tgts in [('t', options['targets']),
-                               ('t_phase', options['time_phase_targets'])]:
+                               ('t_phase', options['time_phase_targets']),
+                               ('dt_dstau', options['dt_dstau_targets'])]:
 
             targets = get_targets(ode_inputs, name=name, user_targets=usr_tgts)
             if targets:

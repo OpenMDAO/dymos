@@ -30,6 +30,8 @@ class _BrachistochroneTestODE(om.ExplicitComponent):
 
         self.add_input('time_phase', val=np.zeros(nn), desc='elapsed time of phase', units='s')
 
+        self.add_input('dt_dstau', val=np.zeros(nn), desc='segment time ratio', units='s')
+
         self.add_input('time', val=np.zeros(nn), desc='time of phase', units='s')
 
         self.add_output('xdot', val=np.zeros(nn), desc='velocity component in x', units='m/s')
@@ -92,7 +94,7 @@ class _BrachistochroneTestODE(om.ExplicitComponent):
 class TestPhaseTimeTargets(unittest.TestCase):
 
     def _make_problem(self, transcription, num_seg, transcription_order=3, input_initial=False,
-                      input_duration=False, time_name='time'):
+                      input_duration=False, time_name='time', dt_dstau_targets=None):
         p = om.Problem(model=om.Group())
 
         p.driver = om.ScipyOptimizeDriver()
@@ -102,7 +104,9 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
         t = {'gauss-lobatto': dm.GaussLobatto(num_segments=num_seg, order=transcription_order),
              'radau-ps': dm.Radau(num_segments=num_seg, order=transcription_order),
-             'explicit-shooting': dm.ExplicitShooting(num_segments=num_seg, grid='radau-ps')}
+             'explicit-shooting': dm.ExplicitShooting(num_segments=num_seg, grid='radau-ps'),
+             'birkhoff': dm.Birkhoff(num_nodes=20),
+             'picard-shooting': dm.PicardShooting(num_segments=1, nodes_per_seg=20)}
 
         phase = dm.Phase(ode_class=_BrachistochroneTestODE, transcription=t[transcription])
 
@@ -110,7 +114,7 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
         phase.set_time_options(initial_bounds=(1, 1), duration_bounds=(.5, 10), units='s',
                                time_phase_targets=['time_phase'], t_duration_targets=['t_duration'],
-                               t_initial_targets=['t_initial'], targets=['time'],
+                               t_initial_targets=['t_initial'], targets=['time'], dt_dstau_targets=dt_dstau_targets,
                                input_initial=input_initial, input_duration=input_duration, name=time_name)
 
         phase.add_state('x', fix_initial=True, rate_source='xdot', units='m')
@@ -134,7 +138,7 @@ class TestPhaseTimeTargets(unittest.TestCase):
         if input_duration:
             p.model.add_design_var('phase0.t_duration', lower=0, upper=3, scaler=1.0)
 
-        p.setup(check=True, force_alloc_complex=True)
+        p.setup(force_alloc_complex=True)
 
         phase.set_time_val(initial=0, duration=2.0)
         phase.set_state_val('x', (0, 10))
@@ -209,53 +213,64 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
     def test_radau(self):
         for time_name in ('time', 'elapsed_time'):
-            with self.subTest():
-                num_seg = 20
-                p = self._make_problem('radau-ps', num_seg, time_name=time_name)
+            for dt_dstau_targets in ('dt_dstau', []):
+                with self.subTest():
+                    num_seg = 20
+                    p = self._make_problem('radau-ps', num_seg, time_name=time_name,
+                                           dt_dstau_targets=dt_dstau_targets)
 
-                # Solve for the optimal trajectory
-                p.run_driver()
+                    # Solve for the optimal trajectory
+                    p.run_driver()
 
-                time_all = p[f'phase0.timeseries.{time_name}'].ravel()
+                    time_all = p[f'phase0.timeseries.{time_name}'].ravel()
 
-                time_phase_all = p[f'phase0.timeseries.{time_name}_phase'].ravel()
+                    time_phase_all = p[f'phase0.timeseries.{time_name}_phase'].ravel()
 
-                assert_near_equal(p['phase0.rhs_all.time_phase'][-1], 1.8016, tolerance=1.0E-3)
+                    assert_near_equal(p['phase0.rhs_all.time_phase'][-1], 1.8016, tolerance=1.0E-3)
 
-                assert_near_equal(p['phase0.rhs_all.t_initial'], p['phase0.t_initial'])
+                    assert_near_equal(p['phase0.rhs_all.t_initial'], p['phase0.t_initial'])
 
-                assert_near_equal(p['phase0.rhs_all.t_duration'], p['phase0.t_duration'])
+                    assert_near_equal(p['phase0.rhs_all.t_duration'], p['phase0.t_duration'])
 
-                assert_near_equal(p['phase0.rhs_all.time_phase'], time_phase_all)
+                    assert_near_equal(p['phase0.rhs_all.time_phase'], time_phase_all)
 
-                assert_near_equal(p['phase0.rhs_all.time'], time_all)
+                    assert_near_equal(p['phase0.rhs_all.time'], time_all)
 
-                exp_out = p.model.phase0.simulate()
+                    if dt_dstau_targets:
+                        assert_near_equal(p['phase0.rhs_all.dt_dstau'], p['phase0.dt_dstau'])
+                        with self.assertRaises(ValueError) as e:
+                            exp_out = p.model.phase0.simulate()
 
-                time_comp = exp_out.model.phase0._get_subsystem('time')
-                integrator_comp = exp_out.model.phase0._get_subsystem('integrator')
-                ode = exp_out.model.phase0._get_subsystem('ode')
-                timeseries_comp = exp_out.model.phase0._get_subsystem('timeseries')
+                        expected = 'dt_dstau_targets in ExplicitShooting are not supported at this time.'
+                        self.assertEqual(expected, str(e.exception))
+                        continue
+                    else:
+                        exp_out = p.model.phase0.simulate()
 
-                time_comp_t_initial = time_comp.get_val('t_initial')
-                integrator_comp_t_initial = integrator_comp.get_val('t_initial')
-                ode_t_initial = ode.get_val('t_initial')
+                    time_comp = exp_out.model.phase0._get_subsystem('time')
+                    integrator_comp = exp_out.model.phase0._get_subsystem('integrator')
+                    ode = exp_out.model.phase0._get_subsystem('ode')
+                    timeseries_comp = exp_out.model.phase0._get_subsystem('timeseries')
 
-                time_comp_t_duration = time_comp.get_val('t_duration')
-                integrator_comp_t_duration = integrator_comp.get_val('t_duration')
-                ode_t_duration = ode.get_val('t_duration')
-                ode_time_phase = ode.get_val('time_phase')
-                timeseries_time_phase = timeseries_comp.get_val(f'{time_name}_phase')
+                    time_comp_t_initial = time_comp.get_val('t_initial')
+                    integrator_comp_t_initial = integrator_comp.get_val('t_initial')
+                    ode_t_initial = ode.get_val('t_initial')
 
-                assert_near_equal(time_comp_t_initial, p['phase0.t_initial'])
-                assert_near_equal(integrator_comp_t_initial, p['phase0.t_initial'])
-                assert_near_equal(ode_t_initial, p['phase0.t_initial'])
+                    time_comp_t_duration = time_comp.get_val('t_duration')
+                    integrator_comp_t_duration = integrator_comp.get_val('t_duration')
+                    ode_t_duration = ode.get_val('t_duration')
+                    ode_time_phase = ode.get_val('time_phase')
+                    timeseries_time_phase = timeseries_comp.get_val(f'{time_name}_phase')
 
-                assert_near_equal(time_comp_t_duration, p['phase0.t_duration'])
-                assert_near_equal(integrator_comp_t_duration, p['phase0.t_duration'])
-                assert_near_equal(ode_t_duration, p['phase0.t_duration'])
+                    assert_near_equal(time_comp_t_initial, p['phase0.t_initial'])
+                    assert_near_equal(integrator_comp_t_initial, p['phase0.t_initial'])
+                    assert_near_equal(ode_t_initial, p['phase0.t_initial'])
 
-                assert_near_equal(ode_time_phase.ravel(), timeseries_time_phase.ravel())
+                    assert_near_equal(time_comp_t_duration, p['phase0.t_duration'])
+                    assert_near_equal(integrator_comp_t_duration, p['phase0.t_duration'])
+                    assert_near_equal(ode_t_duration, p['phase0.t_duration'])
+
+                    assert_near_equal(ode_time_phase.ravel(), timeseries_time_phase.ravel())
 
     def test_explicit_shooting(self):
         num_seg = 5

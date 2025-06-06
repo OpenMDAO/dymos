@@ -4,7 +4,6 @@ import scipy.sparse as sp
 import openmdao.api as om
 
 from dymos.transcriptions.grid_data import GridData
-from dymos.utils.misc import get_rate_units
 from dymos._options import options as dymos_options
 
 
@@ -51,10 +50,6 @@ class MultipleShootingUpdateComp(om.ExplicitComponent):
             'state_options', types=dict,
             desc='Dictionary of state names/options for the phase')
 
-        self.options.declare(
-            'time_units', default=None, allow_none=True, types=str,
-            desc='Units of time')
-
     def configure_io(self, phase):
         """
         I/O creation is delayed until configure so we can determine shape and units.
@@ -67,7 +62,6 @@ class MultipleShootingUpdateComp(om.ExplicitComponent):
         gd = self.options['grid_data']
         num_nodes = gd.subset_num_nodes['all']
         num_segs = gd.num_segments
-        time_units = self.options['time_units']
         state_options = self.options['state_options']
 
         # Construct the forward and backward mapping matrices
@@ -102,14 +96,13 @@ class MultipleShootingUpdateComp(om.ExplicitComponent):
             units = options['units']
             size = np.prod(shape)
 
-            rate_units = get_rate_units(units, time_units)
             var_names = self._var_names[state_name]
 
             self.add_input(
                 name=var_names['x'],
                 shape=(num_nodes,) + shape,
                 desc='State value at the nodes.',
-                units=rate_units)
+                units=units)
 
             if options['solve_segments'] == 'forward':
                 self._M_fwd[state_name] = M_fwd

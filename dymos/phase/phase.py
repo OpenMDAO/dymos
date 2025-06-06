@@ -1774,7 +1774,8 @@ class Phase(om.Group):
                          duration_adder=_unspecified, duration_ref0=_unspecified,
                          duration_ref=_unspecified, targets=_unspecified,
                          time_phase_targets=_unspecified, t_initial_targets=_unspecified,
-                         t_duration_targets=_unspecified, name=_unspecified):
+                         t_duration_targets=_unspecified, name=_unspecified,
+                         dt_dstau_targets=_unspecified):
         """
         Sets options for time in the phase.
 
@@ -1905,6 +1906,12 @@ class Phase(om.Group):
                 self.time_options['t_duration_targets'] = (t_duration_targets,)
             else:
                 self.time_options['t_duration_targets'] = t_duration_targets
+
+        if dt_dstau_targets is not _unspecified:
+            if isinstance(dt_dstau_targets, str):
+                self.time_options['dt_dstau_targets'] = (dt_dstau_targets,)
+            else:
+                self.time_options['dt_dstau_targets'] = dt_dstau_targets
 
         if name is not _unspecified:
             self.time_options['name'] = name
