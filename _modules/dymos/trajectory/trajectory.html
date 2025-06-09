@@ -1060,7 +1060,10 @@ title="Open an issue"
                                   <span class="s1">&#39;targets&#39;</span><span class="p">:</span> <span class="n">tgts</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]}</span>
 
                         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;sim_mode&#39;</span><span class="p">]:</span>
-                            <span class="n">phs</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">phs</span><span class="o">.</span><span class="n">parameter_options</span><span class="p">:</span>
+                                <span class="n">phs</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">phs</span><span class="o">.</span><span class="n">set_parameter_options</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_setup_linkages</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 
