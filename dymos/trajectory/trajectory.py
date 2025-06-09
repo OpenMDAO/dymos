@@ -358,7 +358,10 @@ class Trajectory(om.Group):
                                   'targets': tgts[phase_name]}
 
                         if not self.options['sim_mode']:
-                            phs.add_parameter(name, **kwargs)
+                            if name not in phs.parameter_options:
+                                phs.add_parameter(name, **kwargs)
+                            else:
+                                phs.set_parameter_options(name, **kwargs)
 
     def _setup_linkages(self):
 
