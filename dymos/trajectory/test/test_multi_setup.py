@@ -30,8 +30,8 @@ class TestMultiSetup(unittest.TestCase):
 
         # Add parameters common to multiple phases to the trajectory
         traj.add_parameter('m', val=174200., opt=False, units='lbm',
-                        desc='aircraft mass',
-                        targets={phase: ['m'] for phase in all_phases})
+                           desc='aircraft mass',
+                           targets={phase: ['m'] for phase in all_phases})
 
         p.setup()
         p.setup()  # This fails in dymos 1.13.2-dev
