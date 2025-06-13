@@ -183,7 +183,6 @@ class ODEEvaluationGroup(om.Group):
         t_phase_targets = self._time_options['time_phase_targets']
         t_initial_targets = self._time_options['t_initial_targets']
         t_duration_targets = self._time_options['t_duration_targets']
-        dt_dstau_targets = self._time_options['dt_dstau_targets']
         units = self._time_options['units']
 
         self._ivc.add_output(t_name, shape=(vec_size,), units=units)
@@ -195,8 +194,7 @@ class ODEEvaluationGroup(om.Group):
         self.add_design_var('t_duration')
 
         for tgts, var in [(targets, t_name), (t_phase_targets, f'{t_name}_phase'),
-                          (t_initial_targets, 't_initial'), (t_duration_targets, 't_duration'),
-                          (dt_dstau_targets, 'dt_dstau_targets')]:
+                          (t_initial_targets, 't_initial'), (t_duration_targets, 't_duration')]:
             for t in tgts:
                 self.promotes('ode', inputs=[(t, var)])
             if tgts:
