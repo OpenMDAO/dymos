@@ -1831,6 +1831,9 @@ class Phase(om.Group):
             Targets in the ODE for the value of phase time duration.
         name : str
             Name of the integration variable for this phase. Default is 'time'.
+        dt_dstau_targets : iterable of str
+            Names of targets for dt_dstau in the ODE. This is an experimental
+            capability and will not work in all transcription types.
         """
         if units is not _unspecified:
             self.time_options['units'] = units
