@@ -216,8 +216,11 @@ class ExplicitShooting(TranscriptionBase):
 
         # The tuples here are (name, user_specified_targets, dynamic)
         for name, targets, dynamic in [(t_name, time_options['targets'], True),
-                                       (tphase_name, time_options['time_phase_targets'], True)]:
+                                       (tphase_name, time_options['time_phase_targets'], True),
+                                       ('dt_dstau', time_options['dt_dstau_targets'], True)]:
             if targets:
+                if name == 'dt_dstau':
+                    raise ValueError('dt_dstau_targets in ExplicitShooting are not supported at this time.')
                 src_idxs = self._output_grid_data.subset_node_indices['all'] if dynamic else None
                 phase.connect(f'integrator.{name}', [f'ode.{t}' for t in targets], src_indices=src_idxs,
                               flat_src_indices=True if dynamic else None)

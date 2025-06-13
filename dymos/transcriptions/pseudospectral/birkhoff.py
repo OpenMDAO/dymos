@@ -105,7 +105,8 @@ class Birkhoff(TranscriptionBase):
 
         # The tuples here are (name, user_specified_targets, dynamic)
         for name, targets in [('t', options['targets']),
-                              ('t_phase', options['time_phase_targets'])]:
+                              ('t_phase', options['time_phase_targets']),
+                              ('dt_dstau', options['dt_dstau_targets'])]:
             if targets:
                 src_idxs = self.grid_data.subset_node_indices['all']
                 phase.connect(name, [f'ode_all.{t}' for t in targets], src_indices=src_idxs,
