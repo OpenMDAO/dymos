@@ -1,4 +1,37 @@
 ********************************
+# Release Notes for Dymos 1.14.0
+
+June 16, 2025
+
+This release addresses issues found in 1.14.0.
+
+This is largely a bug fix release that catches a few issues with the recently-added PicardShooting transcription. One new experimental feature is the addition of `dt_dstau_targets` in the Phase time options. This lets ODE components have access to the dt_dstau ratio of each node, which in turn lets ODE components do things like computing rates of variables if they are known at all nodes across the phase.
+
+## Backwards Incompatible API Changes & Deprecations
+
+- When dymos automatically determines the rate units for state and control, variables with units of "unitless" will now have rate units of "1/s" (or more generally "1/{time_units}") rather than "unitless/s". This may require existing models to change some units [#1182](https://github.com/OpenMDAO/dymos/pull/1182)
+
+## Enhancements
+
+- Added experimental capability to connect dt_dstau_targets to targets in the ODE. [#1189](https://github.com/OpenMDAO/dymos/pull/1189)
+
+## Bug Fixes
+
+- Fix for failing test due to calling ravel() on a scalar. [#1176](https://github.com/OpenMDAO/dymos/pull/1176)
+- Fixed PicardShooting so that it now works with vector-valued states. [#1177](https://github.com/OpenMDAO/dymos/pull/1177)
+- Fixed bug that prevented distributed ODE outputs from being timeseries outputs. [#1185](https://github.com/OpenMDAO/dymos/pull/1185)
+- Trajectory.configure_parameters will not add parameters to phases if they already exist [#1191](https://github.com/OpenMDAO/dymos/pull/1191)
+- Fix a bug in the state units for the multiple shooting update comp. [#1189](https://github.com/OpenMDAO/dymos/pull/1189)
+
+## Miscellaneous
+
+- Updated GitHub workflows to test PyPI package after a release is published [#1173](https://github.com/OpenMDAO/dymos/pull/1173)
+- Refactored controls for more commonality between polynomial and "full controls. Also now output separate control values at the boundary nodes for use with Birkhoff and the upcoming Radau transcription refactor. [#1174](https://github.com/OpenMDAO/dymos/pull/1174)
+- A bit of cleanup to introspection. [#1178](https://github.com/OpenMDAO/dymos/pull/1178)
+- Removed version checks that involve OM versions before minimum supported version. [#1183](https://github.com/OpenMDAO/dymos/pull/1183)
+- Added MPI-safe logic to check if an option is left unspecified [#1184](https://github.com/OpenMDAO/dymos/pull/1184)
+
+********************************
 # Release Notes for Dymos 1.13.1
 
 Apr 10, 2025
