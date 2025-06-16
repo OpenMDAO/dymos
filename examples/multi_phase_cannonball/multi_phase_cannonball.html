@@ -841,24 +841,24 @@ the system at an event in the trajectory. Here, we have the first phase
 (ascent) terminate when the flight path angle reaches zero (apogee). The
 descent phase follows until the cannonball impacts the ground.</p>
 <p>The dynamics are given by</p>
-<div class="amsmath math notranslate nohighlight" id="equation-ef146934-8978-4b1f-84d0-c9c691ac201d">
-<span class="eqno">(75)<a class="headerlink" href="#equation-ef146934-8978-4b1f-84d0-c9c691ac201d" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-e5202287-0f6c-4556-9505-7e121c40dfe4">
+<span class="eqno">(75)<a class="headerlink" href="#equation-e5202287-0f6c-4556-9505-7e121c40dfe4" title="Permalink to this equation">#</a></span>\[\begin{align}
   \frac{dv}{dt} &amp;= \frac{D}{m} - g \sin \gamma \\
   \frac{d\gamma}{dt} &amp;= - \frac{g \cos \gamma}{v} \\
   \frac{dh}{dt} &amp;= v \sin \gamma \\
   \frac{dr}{dt} &amp;= v \cos \gamma \\
 \end{align}\]</div>
 <p>The initial conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-33b313dc-c535-40bd-96b1-9a93ced68013">
-<span class="eqno">(76)<a class="headerlink" href="#equation-33b313dc-c535-40bd-96b1-9a93ced68013" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-97488d71-d86a-4d9a-b46b-e2ffd94f4320">
+<span class="eqno">(76)<a class="headerlink" href="#equation-97488d71-d86a-4d9a-b46b-e2ffd94f4320" title="Permalink to this equation">#</a></span>\[\begin{align}
   r_0 &amp;= 0 \rm{\,m} \\
   h_0 &amp;= 100 \rm{\,m} \\
   v_0 &amp;= \rm{free} \\
   \gamma_0 &amp;= \rm{free}
 \end{align}\]</div>
 <p>and the final conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-5719e8d9-0763-4032-bb68-5c23888241d2">
-<span class="eqno">(77)<a class="headerlink" href="#equation-5719e8d9-0763-4032-bb68-5c23888241d2" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-7bdbe491-4660-4902-adf9-1a82ad850192">
+<span class="eqno">(77)<a class="headerlink" href="#equation-7bdbe491-4660-4902-adf9-1a82ad850192" title="Permalink to this equation">#</a></span>\[\begin{align}
   h_f &amp;= 0 \rm{\,m}
 \end{align}\]</div>
 </section>
@@ -871,8 +871,8 @@ energy and that our cannonball is made of solid iron. The volume (and
 mass) of the cannonball is proportional to its radius cubed, while the
 cross-sectional area is proportional to its radius squared. If we
 increase the size of the cannonball, the ballistic coefficient</p>
-<div class="amsmath math notranslate nohighlight" id="equation-82eb3eef-5537-468d-b25b-95a3745f8e8a">
-<span class="eqno">(78)<a class="headerlink" href="#equation-82eb3eef-5537-468d-b25b-95a3745f8e8a" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-dbfe2a2e-1556-4142-93b3-9cbbab03aa0c">
+<span class="eqno">(78)<a class="headerlink" href="#equation-dbfe2a2e-1556-4142-93b3-9cbbab03aa0c" title="Permalink to this equation">#</a></span>\[\begin{align}
   BC &amp;= \frac{m}{C_D A}
 \end{align}\]</div>
 <p>will increase, meaning the cannonball overcome air resistance more
@@ -1161,8 +1161,8 @@ Total colors vs. total size: 6 vs 63  (90.48% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense partial jacobian for CannonballODE &#39;traj.phases.ascent.rhs_all&#39; was computed 3 times.
-Time to compute sparsity:   0.0291 sec
-Time to compute coloring:   0.0071 sec
+Time to compute sparsity:   0.0285 sec
+Time to compute coloring:   0.0069 sec
 Memory to compute coloring:   0.3750 MB
 
 Coloring for &#39;traj.phases.descent.rhs_disc&#39; (class CannonballODE)
@@ -1173,7 +1173,7 @@ Total colors vs. total size: 6 vs 33  (81.82% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense partial jacobian for CannonballODE &#39;traj.phases.descent.rhs_disc&#39; was computed 3 times.
-Time to compute sparsity:   0.0120 sec
+Time to compute sparsity:   0.0118 sec
 Time to compute coloring:   0.0037 sec
 Memory to compute coloring:   0.0000 MB
 
@@ -1185,7 +1185,7 @@ Total colors vs. total size: 6 vs 18  (66.67% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense partial jacobian for CannonballODE &#39;traj.phases.descent.rhs_col&#39; was computed 3 times.
-Time to compute sparsity:   0.0062 sec
+Time to compute sparsity:   0.0060 sec
 Time to compute coloring:   0.0021 sec
 Memory to compute coloring:   0.0000 MB
 
@@ -1195,10 +1195,10 @@ Total colors vs. total size: 30 vs 88  (65.91% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem&#39; was computed 3 times.
-Time to compute sparsity:   0.1268 sec
-Time to compute coloring:   0.0975 sec
+Time to compute sparsity:   0.1247 sec
+Time to compute coloring:   0.0952 sec
 Memory to compute coloring:   0.6250 MB
-Coloring created on: 2025-06-13 19:40:20
+Coloring created on: 2025-06-16 21:32:25
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1207,11 +1207,11 @@ Coloring created on: 2025-06-13 19:40:20
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    2.1369
-       User Objective Time :       0.2376
-       User Sensitivity Time :     1.4319
-       Interface Time :            0.3065
-       Opt Solver Time:            0.1608
+    Total Time:                    2.0848
+       User Objective Time :       0.2264
+       User Sensitivity Time :     1.3999
+       Interface Time :            0.2998
+       Opt Solver Time:            0.1587
     Calls to Objective Function :     118
     Calls to Sens Function :           89
 
@@ -1408,20 +1408,18 @@ Coloring created on: 2025-06-13 19:40:20
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Simulating trajectory traj
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Done simulating trajectory traj
+Done simulating trajectory traj
 </pre></div>
 </div>
 <div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Problem: problem
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 119
-  runtime     : 2.4820E+00 s
+  runtime     : 2.3997E+00 s
   model_evals : 119
-  model_time  : 1.9664E-01 s
+  model_time  : 1.8816E-01 s
   deriv_evals : 89
-  deriv_time  : 1.0349E+00 s
+  deriv_time  : 1.0185E+00 s
   exit_status : SUCCESS
 </pre></div>
 </div>
