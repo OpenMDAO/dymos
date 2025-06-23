@@ -868,8 +868,8 @@ without friction along the wire moves from point A to point B in minimum time.</
 <section id="system-dynamics">
 <h2>System dynamics<a class="headerlink" href="#system-dynamics" title="Permalink to this heading">#</a></h2>
 <p>From the free-body diagram above, the evolution of the state variables is given by the following ordinary differential equations (ODE).</p>
-<div class="amsmath math notranslate nohighlight" id="equation-2f13f7b1-2422-49d0-8681-1eddc4cefeca">
-<span class="eqno">(13)<a class="headerlink" href="#equation-2f13f7b1-2422-49d0-8681-1eddc4cefeca" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-a64268ec-6f26-4ca1-82b1-fb1e35ca3dda">
+<span class="eqno">(13)<a class="headerlink" href="#equation-a64268ec-6f26-4ca1-82b1-fb1e35ca3dda" title="Permalink to this equation">#</a></span>\[\begin{align}
     \frac{d x}{d t} &amp;= v \sin(\theta) \\
     \frac{d y}{d t} &amp;= -v \cos(\theta) \\
     \frac{d v}{d t} &amp;= g \cos(\theta)
@@ -887,8 +887,8 @@ without friction along the wire moves from point A to point B in minimum time.</
 <p>In this case, starting point <strong>A</strong> is given as <em>(0, 10)</em>.
 The point moving along the curve will begin there with zero initial velocity.</p>
 <p>The initial conditions are:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-0f3f87ae-d9c0-466e-b81d-23be53d0c94d">
-<span class="eqno">(14)<a class="headerlink" href="#equation-0f3f87ae-d9c0-466e-b81d-23be53d0c94d" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-78d422ed-58ed-420a-97ff-08f9f3d17488">
+<span class="eqno">(14)<a class="headerlink" href="#equation-78d422ed-58ed-420a-97ff-08f9f3d17488" title="Permalink to this equation">#</a></span>\[\begin{align}
     x_0 &amp;= 0 \\
     y_0 &amp;= 10 \\
     v_0 &amp;= 0
@@ -896,8 +896,8 @@ The point moving along the curve will begin there with zero initial velocity.</p
 <p>The end point <strong>B</strong> is given as <em>(10, 5)</em>.
 The point will end there, but the velocity at that point is not constrained.</p>
 <p>The final conditions are:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-846becdd-31d0-4aad-b667-5f5e0beef457">
-<span class="eqno">(15)<a class="headerlink" href="#equation-846becdd-31d0-4aad-b667-5f5e0beef457" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-0b6b1e48-c8eb-462b-aa8b-d35a83cd8052">
+<span class="eqno">(15)<a class="headerlink" href="#equation-0b6b1e48-c8eb-462b-aa8b-d35a83cd8052" title="Permalink to this equation">#</a></span>\[\begin{align}
     x_f &amp;= 10 \\
     y_f &amp;= 5 \\
     v_f &amp;= \mathrm{free}
@@ -1071,7 +1071,7 @@ Component: BrachistochroneODE &#39;ode&#39;
 +---------------+----------------+---------------+---------------+------------------------+------------+
 | vdot          | theta          |  0.000000e+00 |  0.000000e+00 |         (0.000000e+00) |            |
 +---------------+----------------+---------------+---------------+------------------------+------------+
-| vdot          | v              |  0.000000e+00 | -0.000000e+00 |         (0.000000e+00) |            |
+| vdot          | v              |  0.000000e+00 |  0.000000e+00 |         (0.000000e+00) |            |
 +---------------+----------------+---------------+---------------+------------------------+------------+
 | xdot          | g              |  0.000000e+00 |  0.000000e+00 |         (0.000000e+00) |            |
 +---------------+----------------+---------------+---------------+------------------------+------------+
@@ -1171,10 +1171,10 @@ Total colors vs. total size: 8 vs 50  (84.00% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem2&#39; was computed 3 times.
-Time to compute sparsity:   0.0243 sec
-Time to compute coloring:   0.0417 sec
-Memory to compute coloring:   0.2500 MB
-Coloring created on: 2025-06-16 21:26:44
+Time to compute sparsity:   0.0245 sec
+Time to compute coloring:   0.0424 sec
+Memory to compute coloring:   0.1250 MB
+Coloring created on: 2025-06-23 20:41:37
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully    (Exit mode 0)
