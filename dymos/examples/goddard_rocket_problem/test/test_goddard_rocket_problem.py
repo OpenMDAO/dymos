@@ -3,12 +3,6 @@ import dymos as dm
 import unittest
 import os
 
-try:
-    import matplotlib  # noqa: F401
-    SHOW_PLOTS = True
-except ImportError:
-    SHOW_PLOTS = False
-
 from openmdao.utils.assert_utils import assert_near_equal, assert_check_partials
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
@@ -78,48 +72,11 @@ class TestGoddardRocketProblem(unittest.TestCase):
     def test_goddard_rocket_problem_lgl(self):
         p = goddard_rocket_direct_collocation(grid_type='lgl')
         dm.run_problem(p)
-        if SHOW_PLOTS:
-            t = p.get_val('traj.phase0.timeseries.time')
-            h = p.get_val('traj.phase0.timeseries.h')
-            v = p.get_val('traj.phase0.timeseries.v')
-            m = p.get_val('traj.phase0.timeseries.m')
-            T = p.get_val('traj.phase0.timeseries.T')
-
-            import matplotlib.pyplot as plt
-            fig, axs = plt.subplots(2, 2)
-            axs[0, 0].plot(t, h)
-            axs[0, 0].set_xlabel('time (s)')
-            axs[0, 0].set_ylabel('altitude (ft)')
-            axs[0, 1].plot(t, v)
-            axs[0, 1].set_xlabel('time (s)')
-            axs[0, 1].set_ylabel('velocity (ft/s)')
-            axs[1, 0].plot(t, m)
-            axs[1, 0].set_xlabel('time (s)')
-            axs[1, 0].set_ylabel('mass (slug)')
-            axs[1, 1].plot(t, T)
-            axs[1, 1].set_xlabel('time (s)')
-            axs[1, 1].set_ylabel('thrust (lb)')
-            plt.show()
-
         self._assert_results(p)
 
     def test_goddard_rocket_problem_cgl(self):
         p = goddard_rocket_direct_collocation(grid_type='cgl')
         dm.run_problem(p)
-        if SHOW_PLOTS:
-            t = p.get_val('traj.phase0.timeseries.time')
-            h = p.get_val('traj.phase0.timeseries.h')
-            v = p.get_val('traj.phase0.timeseries.v')
-            m = p.get_val('traj.phase0.timeseries.m')
-            T = p.get_val('traj.phase0.timeseries.T')
-
-            import matplotlib.pyplot as plt
-            fig, axs = plt.subplots(2, 2)
-            axs[0, 0].plot(t, h)
-            axs[0, 1].plot(t, v)
-            axs[1, 0].plot(t, m)
-            axs[1, 1].plot(t, T)
-            plt.show()
         self._assert_results(p)
 
     def test_check_partials(self):

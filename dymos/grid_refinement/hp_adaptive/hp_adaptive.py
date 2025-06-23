@@ -458,7 +458,7 @@ class HPAdaptive:
                         b = a @ x[state_name][left_end_idxs[k]:left_end_idxs[k + 1]]
                         for i in range(seg_size[gd.transcription] - 1, phase.refine_options['min_order'], -1):
                             state_error = np.abs(b[i]) / beta[state_name]
-                            if state_error < refine_tol:
+                            if np.any(state_error < refine_tol):
                                 if gd.transcription == 'gauss-lobatto':
                                     if new_order_state[state_name] < i - 2 <= refine_min_order:
                                         new_order_state[state_name] = i - 2

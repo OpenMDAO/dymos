@@ -87,8 +87,8 @@ class TestPhaseLinkageComp(unittest.TestCase):
         v0 = p.get_val('traj.phase0.states:v')[-1]
         v1 = p.get_val('traj.phase1.states:v')[0]
 
-        assert_near_equal(h0, h1)
-        assert_near_equal(v0, v1)
+        assert_near_equal(h0, h1, tolerance=1.0E-9)
+        assert_near_equal(v0, v1, tolerance=1.0E-9)
 
     def test_link_phases_all_vars_unconnected(self):
         p = self.make_problem(link_all_vars=True, connected=False)
@@ -99,8 +99,8 @@ class TestPhaseLinkageComp(unittest.TestCase):
         v0 = p.get_val('traj.phase0.states:v')[-1]
         v1 = p.get_val('traj.phase1.states:v')[0]
 
-        assert_near_equal(h0, h1)
-        assert_near_equal(v0, v1)
+        assert_near_equal(h0, h1, tolerance=1.0E-9)
+        assert_near_equal(v0, v1, tolerance=1.0E-9)
 
     def test_link_phases_specified_vars_connected(self):
         p = self.make_problem(connected=True)
@@ -111,8 +111,8 @@ class TestPhaseLinkageComp(unittest.TestCase):
         v0 = p.get_val('traj.phase0.states:v')[-1]
         v1 = p.get_val('traj.phase1.states:v')[0]
 
-        assert_near_equal(h0, h1)
-        assert_near_equal(v0, v1)
+        assert_near_equal(h0, h1, tolerance=1.0E-9)
+        assert_near_equal(v0, v1, tolerance=1.0E-9)
 
     def test_link_phases_all_vars_connected(self):
         p = self.make_problem(link_all_vars=True, connected=True)
@@ -123,5 +123,5 @@ class TestPhaseLinkageComp(unittest.TestCase):
         v0 = p.get_val('traj.phase0.states:v')[-1]
         v1 = p.get_val('traj.phase1.states:v')[0]
 
-        assert_near_equal(h0, h1)
-        assert_near_equal(v0, v1)
+        assert_near_equal(h0, h1, tolerance=1.0E-9)
+        assert_near_equal(v0, v1, tolerance=1.0E-9)

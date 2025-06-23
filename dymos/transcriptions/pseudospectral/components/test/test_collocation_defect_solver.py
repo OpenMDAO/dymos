@@ -4,6 +4,7 @@ import numpy as np
 from numpy.testing import assert_almost_equal
 
 import openmdao.api as om
+from openmdao.utils.general_utils import env_truthy
 from openmdao.utils.testing_utils import use_tempdirs
 
 
@@ -11,6 +12,9 @@ from openmdao.utils.testing_utils import use_tempdirs
 import dymos as dm
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 from dymos.examples.brachistochrone.test.ex_brachistochrone import brachistochrone_min_time as brach
+
+
+_DYMOS_2 = env_truthy('DYMOS_2')
 
 
 @use_tempdirs
@@ -138,6 +142,7 @@ class TestCollocationBalanceIndex(unittest.TestCase):
         self.assertSetEqual(set(state_indeps_comp.state_idx_map['x']['solver']), {1, 2, 4, 5})
         self.assertSetEqual(set(state_indeps_comp.state_idx_map['x']['indep']), {0, 3})
 
+    @unittest.skipIf(_DYMOS_2, 'Test invalid for updated Radau transcription')
     def test_3_radau(self):
         """
         Test one 3rd order radau segment indices
@@ -157,6 +162,7 @@ class TestCollocationBalanceIndex(unittest.TestCase):
         self.assertSetEqual(set(state_indeps_comp.state_idx_map['x']['solver']), {1, 2, 3})
         self.assertSetEqual(set(state_indeps_comp.state_idx_map['x']['indep']), {0})
 
+    @unittest.skipIf(_DYMOS_2, 'Test invalid for updated Radau transcription')
     def test_5_radau(self):
         """
         Test one 5th order radau segment indices
@@ -176,6 +182,7 @@ class TestCollocationBalanceIndex(unittest.TestCase):
         self.assertSetEqual(set(state_indeps_comp.state_idx_map['x']['solver']), {1, 2, 3, 4, 5})
         self.assertSetEqual(set(state_indeps_comp.state_idx_map['x']['indep']), {0})
 
+    @unittest.skipIf(_DYMOS_2, 'Test invalid for updated Radau transcription')
     def test_3_radau_compressed(self):
         """
         Test one 3rd order radau segment indices
@@ -195,6 +202,7 @@ class TestCollocationBalanceIndex(unittest.TestCase):
         self.assertSetEqual(set(state_indeps_comp.state_idx_map['x']['solver']), {1, 2, 3, 4, 5, 6})
         self.assertSetEqual(set(state_indeps_comp.state_idx_map['x']['indep']), {0})
 
+    @unittest.skipIf(_DYMOS_2, 'Test invalid for updated Radau transcription')
     def test_5_radau_compressed(self):
         """
         Test two 5th order radau segment indices
@@ -214,6 +222,7 @@ class TestCollocationBalanceIndex(unittest.TestCase):
         self.assertSetEqual(set(state_indeps_comp.state_idx_map['x']['solver']), {1, 2, 3, 4, 5, 6, 7, 8, 9, 10})
         self.assertSetEqual(set(state_indeps_comp.state_idx_map['x']['indep']), {0})
 
+    @unittest.skipIf(_DYMOS_2, 'Test invalid for updated Radau transcription')
     def test_3_radau_uncompressed(self):
         """
         Test one 3rd order radau segment indices
@@ -233,6 +242,7 @@ class TestCollocationBalanceIndex(unittest.TestCase):
         self.assertSetEqual(set(state_indeps_comp.state_idx_map['x']['solver']), {1, 2, 3, 5, 6, 7})
         self.assertSetEqual(set(state_indeps_comp.state_idx_map['x']['indep']), {0, 4})
 
+    @unittest.skipIf(_DYMOS_2, 'Test invalid for updated Radau transcription')
     def test_5_radau_uncompressed(self):
         """
         Test two 5th order radau segment indices
@@ -267,7 +277,7 @@ class TestCollocationBalanceApplyNL(unittest.TestCase):
             t = dm.GaussLobatto(num_segments=num_segments,
                                 order=transcription_order,
                                 compressed=compressed,)
-        elif transcription == 'radau-ps':
+        else:
             t = dm.Radau(num_segments=num_segments,
                          order=transcription_order,
                          compressed=compressed)
@@ -324,6 +334,7 @@ class TestCollocationBalanceApplyNL(unittest.TestCase):
         assert_almost_equal(resids['states:x'], expected)
         assert_almost_equal(resids['states:v'], expected)
 
+    @unittest.skipIf(_DYMOS_2, 'Test invalid for updated Radau transcription')
     def test_apply_nonlinear_radau(self):
         dm.options['include_check_partials'] = True
         p = self.make_prob(transcription='radau-ps', num_segments=3, transcription_order=3,
@@ -360,6 +371,7 @@ class TestCollocationBalanceApplyNL(unittest.TestCase):
         data = cpd['traj0.phases.phase0.indep_states']
         assert_partials(data)
 
+    @unittest.skipIf(_DYMOS_2, 'Test invalid for updated Radau transcription')
     def test_partials_radau(self):
         dm.options['include_check_partials'] = True
         p = self.make_prob(transcription='radau-ps', num_segments=3, transcription_order=3,

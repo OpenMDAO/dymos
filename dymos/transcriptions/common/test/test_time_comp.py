@@ -6,7 +6,7 @@ from numpy.testing import assert_almost_equal
 import openmdao.api as om
 from openmdao.utils.testing_utils import use_tempdirs
 
-from dymos.transcriptions.grid_data import GridData
+from dymos.transcriptions.grid_data import GaussLobattoGrid, RadauGrid
 from dymos.transcriptions.common import TimeComp
 
 from dymos.utils.misc import CompWrapperConfig
@@ -28,10 +28,9 @@ class TestTimeComp(unittest.TestCase):
 
     def test_results_gauss_lobatto(self):
 
-        gd = GridData(num_segments=3,
-                      transcription_order=[5, 3, 3],
-                      segment_ends=_segends,
-                      transcription='gauss-lobatto')
+        gd = GaussLobattoGrid(num_segments=3,
+                              nodes_per_seg=[5, 3, 3],
+                              segment_ends=_segends)
 
         p = om.Problem(model=om.Group())
 
@@ -83,10 +82,9 @@ class TestTimeComp(unittest.TestCase):
 
     def test_results_radau(self):
 
-        gd = GridData(num_segments=3,
-                      transcription_order=[5, 3, 3],
-                      segment_ends=_segends,
-                      transcription='radau-ps')
+        gd = RadauGrid(num_segments=3,
+                       nodes_per_seg=[5+1, 3+1, 3+1],
+                       segment_ends=_segends)
 
         p = om.Problem(model=om.Group())
 
