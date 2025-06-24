@@ -6,7 +6,7 @@ from ...utils.introspection import configure_analytic_states_introspection, get_
     get_source_metadata, configure_analytic_states_discovery
 from ...utils.indexing import get_src_indices_by_row
 from ...utils.ode_utils import _make_ode_system
-from ..grid_data import GridData
+from ..grid_data import GaussLobattoGrid
 from ..common import TimeComp, TimeseriesOutputComp
 
 
@@ -30,11 +30,10 @@ class Analytic(TranscriptionBase):
         """
         Setup the GridData object for the Transcription.
         """
-        self.grid_data = GridData(num_segments=1,
-                                  transcription='gauss-lobatto',
-                                  transcription_order=self.options['order'],
-                                  segment_ends=self.options['segment_ends'],
-                                  compressed=self.options['compressed'])
+        self.grid_data = GaussLobattoGrid(num_segments=1,
+                                          nodes_per_seg=self.options['order'],
+                                          segment_ends=self.options['segment_ends'],
+                                          compressed=self.options['compressed'])
 
     def setup_time(self, phase):
         """
