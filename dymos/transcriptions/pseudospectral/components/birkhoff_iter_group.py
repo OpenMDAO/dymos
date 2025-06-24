@@ -1,11 +1,11 @@
-import numpy as np
 import openmdao.api as om
 
 from .birkhoff_defect_comp import BirkhoffDefectComp
 
-from ...grid_data import GridData
-from ....phase.options import TimeOptionsDictionary
-from ....utils.ode_utils import _make_ode_system
+from dymos.transcriptions.grid_data import GridData
+from dymos.phase.options import TimeOptionsDictionary
+from dymos.utils.ode_utils import _make_ode_system
+from dymos.utils.misc import broadcast_to_nodes
 
 
 class BirkhoffIterGroup(om.Group):
@@ -108,26 +108,10 @@ class BirkhoffIterGroup(om.Group):
                              f"a boundary constraint to constrain the initial "
                              f"state value instead.")
 
-        if not np.isscalar(ref0) and ref0 is not None:
-            ref0 = np.asarray(ref0)
-            if ref0.shape == shape:
-                ref0_state = np.tile(ref0.flatten(), num_nodes)
-                # ref0_seg_ends = np.tile(ref0.flatten(), 2)
-            else:
-                raise ValueError('array-valued scaler/ref must length equal to state-size')
-        else:
-            ref0_state = ref0
-            # ref0_seg_ends = ref0
-        if not np.isscalar(ref) and ref is not None:
-            ref = np.asarray(ref)
-            if ref.shape == shape:
-                ref_state = np.tile(ref.flatten(), num_nodes)
-                # ref_seg_ends = np.tile(ref.flatten(), 2)
-            else:
-                raise ValueError('array-valued scaler/ref must length equal to state-size')
-        else:
-            ref_state = ref
-            # ref_seg_ends = ref
+        ref0_at_nodes = broadcast_to_nodes(ref0, shape, num_nodes)
+        ref_at_nodes = broadcast_to_nodes(ref, shape, num_nodes)
+        scaler_at_nodes = broadcast_to_nodes(scaler, shape, num_nodes)
+        adder_at_nodes = broadcast_to_nodes(adder, shape, num_nodes)
 
         free_vars = {state_name, state_rate_name, initial_state_name, final_state_name}
 
@@ -151,17 +135,17 @@ class BirkhoffIterGroup(om.Group):
                 self.add_design_var(name=state_name,
                                     lower=lower,
                                     upper=upper,
-                                    scaler=scaler,
-                                    adder=adder,
-                                    ref0=ref0_state,
-                                    ref=ref_state)
+                                    scaler=scaler_at_nodes,
+                                    adder=adder_at_nodes,
+                                    ref0=ref0_at_nodes,
+                                    ref=ref_at_nodes)
 
             if state_rate_name in free_vars:
                 self.add_design_var(name=state_rate_name,
-                                    scaler=scaler,
-                                    adder=adder,
-                                    ref0=ref0_state,
-                                    ref=ref_state)
+                                    scaler=scaler_at_nodes,
+                                    adder=adder_at_nodes,
+                                    ref0=ref0_at_nodes,
+                                    ref=ref_at_nodes)
 
             if initial_state_name in free_vars:
                 self.add_design_var(name=initial_state_name,
