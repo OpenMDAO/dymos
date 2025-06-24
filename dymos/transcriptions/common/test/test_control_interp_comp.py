@@ -9,7 +9,7 @@ from dymos.utils.testing_utils import assert_check_partials
 import dymos as dm
 from dymos.transcriptions.common import TimeComp
 from dymos.transcriptions.common import ControlInterpComp
-from dymos.transcriptions.grid_data import GridData
+from dymos.transcriptions.grid_data import RadauGrid, GaussLobattoGrid
 from dymos.utils.lgl import lgl
 
 # Modify class so we can run it standalone.
@@ -79,26 +79,39 @@ class TestControlRateComp(unittest.TestCase):
 
     def test_control_interp_scalar(self):
         param_list = itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
-                                       [True, False],  # compressed
+                                       [False, True],  # compressed
                                        ['polynomial', 'full'])  # control type
         for transcription, compressed, control_type in param_list:
             with self.subTest():
                 segends = np.array([0.0, 3.0, 10.0])
 
-                gd = GridData(num_segments=2,
-                              transcription_order=5,
-                              segment_ends=segends,
-                              transcription=transcription,
-                              compressed=compressed)
+                if transcription == 'gauss-lobatto':
+                    gd = dm.GaussLobattoGrid(num_segments=2,
+                                             nodes_per_seg=5,
+                                             segment_ends=segends,
+                                             compressed=compressed)
+                elif transcription == 'radau-ps':
+                    gd = dm.RadauGrid(num_segments=2,
+                                      nodes_per_seg=5,
+                                      segment_ends=segends,
+                                      compressed=compressed)
 
                 p = om.Problem(model=om.Group())
 
                 controls = {'a': {'units': 'm', 'shape': (1,), 'val': 1.0,
                                   'dynamic': True, 'opt': False, 'control_type': control_type,
-                                  'order': 3},
+                                  'order': 3, 'continuity': True, 'rate_continuity': True,
+                                  'rate2_continuity': True, 'continuity_scaler': 1.,
+                                  'continuity_ref': None, 'rate_continuity_scaler': 1.,
+                                  'rate_continuity_ref': None, 'rate2_continuity_scaler': 1.,
+                                  'rate2_continuity_ref': None},
                             'b': {'units': 'm', 'shape': (1,), 'val': 1.0,
                                   'dynamic': True, 'opt': False, 'control_type': control_type,
-                                  'order': 5}}
+                                  'order': 5, 'continuity': True, 'rate_continuity': True,
+                                  'rate2_continuity': True, 'continuity_scaler': None,
+                                  'continuity_ref': 1., 'rate_continuity_scaler': None,
+                                  'rate_continuity_ref': 1., 'rate2_continuity_scaler': None,
+                                  'rate2_continuity_ref': 1.}}
 
                 ivc = om.IndepVarComp()
                 p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
@@ -132,7 +145,9 @@ class TestControlRateComp(unittest.TestCase):
                 p.model.add_subsystem('control_interp_comp',
                                       subsys=ControlInterpComp(grid_data=gd,
                                                                control_options=controls,
-                                                               time_units='s'),
+                                                               time_units='s',
+                                                               compute_continuity=True,
+                                                               enforce_continuity=True),
                                       promotes_inputs=['controls:*', 't_duration'])
 
                 p.model.connect('dt_dstau', 'control_interp_comp.dt_dstau')
@@ -206,7 +221,204 @@ class TestControlRateComp(unittest.TestCase):
                 assert_almost_equal(p['control_interp_comp.control_boundary_rates:b_rate2'],
                                     np.atleast_2d(b_rate2_expected).T[(0, -1), ...])
 
+                if p.model.control_interp_comp._is_val_cnty('a'):
+                    assert_almost_equal(p['control_interp_comp.control_continuity_defects:a'],
+                                        0.0)
+
+                if p.model.control_interp_comp._is_val_cnty('b'):
+                    assert_almost_equal(p['control_interp_comp.control_continuity_defects:b'],
+                                        0.0)
+
+                if p.model.control_interp_comp._is_rate_cnty('a'):
+                    assert_almost_equal(p['control_interp_comp.control_rate_continuity_defects:a'],
+                                        0.0)
+
+                if p.model.control_interp_comp._is_rate_cnty('b'):
+                    assert_almost_equal(p['control_interp_comp.control_rate_continuity_defects:b'],
+                                        0.0)
+
+                if p.model.control_interp_comp._is_rate2_cnty('a'):
+                    assert_almost_equal(p['control_interp_comp.control_rate2_continuity_defects:a'],
+                                        0.0)
+
+                if p.model.control_interp_comp._is_rate2_cnty('b'):
+                    assert_almost_equal(p['control_interp_comp.control_rate2_continuity_defects:b'],
+                                        0.0)
+
                 cpd = p.check_partials(compact_print=False, show_only_incorrect=True,
+                                       abs_err_tol=1.0E-8, rel_err_tol=1.0E-8, method='cs',
+                                       out_stream=None)
+                assert_check_partials(cpd)
+
+    def test_control_interp_scalar_10_seg(self):
+        param_list = itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
+                                       [False, True],  # compressed
+                                       ['polynomial', 'full'])  # control type
+        for transcription, compressed, control_type in param_list:
+            with self.subTest():
+                segends = np.linspace(0., 10., 11)
+
+                if transcription == 'gauss-lobatto':
+                    gd = dm.GaussLobattoGrid(num_segments=10,
+                                             nodes_per_seg=5,
+                                             segment_ends=segends,
+                                             compressed=compressed)
+                elif transcription == 'radau-ps':
+                    gd = dm.RadauGrid(num_segments=10,
+                                      nodes_per_seg=5,
+                                      segment_ends=segends,
+                                      compressed=compressed)
+
+                p = om.Problem(model=om.Group())
+
+                controls = {'a': {'units': 'm', 'shape': (1,), 'val': 1.0,
+                                  'dynamic': True, 'opt': False, 'control_type': control_type,
+                                  'order': 3, 'continuity': True, 'rate_continuity': True,
+                                  'rate2_continuity': True, 'continuity_scaler': 1.,
+                                  'continuity_ref': None, 'rate_continuity_scaler': 1.,
+                                  'rate_continuity_ref': None, 'rate2_continuity_scaler': 1.,
+                                  'rate2_continuity_ref': None},
+                            'b': {'units': 'm', 'shape': (1,), 'val': 1.0,
+                                  'dynamic': True, 'opt': False, 'control_type': control_type,
+                                  'order': 5, 'continuity': True, 'rate_continuity': True,
+                                  'rate2_continuity': True, 'continuity_scaler': None,
+                                  'continuity_ref': 1., 'rate_continuity_scaler': None,
+                                  'rate_continuity_ref': 1., 'rate2_continuity_scaler': None,
+                                  'rate2_continuity_ref': 1.}}
+
+                ivc = om.IndepVarComp()
+                p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
+
+                if control_type == 'polynomial':
+                    ivc.add_output('controls:a',
+                                   val=np.zeros((controls['a']['order'] + 1, 1)),
+                                   units='m')
+
+                    ivc.add_output('controls:b',
+                                   val=np.zeros((controls['b']['order'] + 1, 1)),
+                                   units='m')
+                else:
+                    ivc.add_output('controls:a',
+                                   val=np.zeros((gd.subset_num_nodes['control_input'], 1)),
+                                   units='m')
+
+                    ivc.add_output('controls:b',
+                                   val=np.zeros((gd.subset_num_nodes['control_input'], 1)),
+                                   units='m')
+
+                ivc.add_output('t_initial', val=0.0, units='s')
+                ivc.add_output('t_duration', val=10.0, units='s')
+
+                p.model.add_subsystem('time_comp',
+                                      subsys=TimeComp(num_nodes=gd.num_nodes, node_ptau=gd.node_ptau,
+                                                      node_dptau_dstau=gd.node_dptau_dstau, units='s'),
+                                      promotes_inputs=['t_initial', 't_duration'],
+                                      promotes_outputs=['t', 'dt_dstau'])
+
+                p.model.add_subsystem('control_interp_comp',
+                                      subsys=ControlInterpComp(grid_data=gd,
+                                                               control_options=controls,
+                                                               time_units='s',
+                                                               compute_continuity=True,
+                                                               enforce_continuity=True),
+                                      promotes_inputs=['controls:*', 't_duration'])
+
+                p.model.connect('dt_dstau', 'control_interp_comp.dt_dstau')
+
+                p.setup(force_alloc_complex=True)
+
+                p['t_initial'] = 0.0
+                p['t_duration'] = 3.0
+
+                p.run_model()
+
+                t = p['t']
+
+                if control_type == 'polynomial':
+                    lgl_nodes_a, _ = lgl(controls['a']['order'] + 1)
+                    lgl_nodes_b, _ = lgl(controls['b']['order'] + 1)
+
+                    t_a = 0.5 * (lgl_nodes_a + 1) * 3.0
+                    t_b = 0.5 * (lgl_nodes_b + 1) * 3.0
+
+                    p['controls:a'][:, 0] = f_a(t_a)
+                    p['controls:b'][:, 0] = f_b(t_b)
+                else:
+                    p['controls:a'][:, 0] = f_a(t[gd.subset_node_indices['control_input']])
+                    p['controls:b'][:, 0] = f_b(t[gd.subset_node_indices['control_input']])
+
+                p.run_model()
+
+                a_value_expected = f_a(t)
+                b_value_expected = f_b(t)
+
+                a_rate_expected = f1_a(t)
+                b_rate_expected = f1_b(t)
+
+                a_rate2_expected = f2_a(t)
+                b_rate2_expected = f2_b(t)
+
+                assert_almost_equal(p['control_interp_comp.control_values:a'],
+                                    np.atleast_2d(a_value_expected).T)
+
+                assert_almost_equal(p['control_interp_comp.control_values:b'],
+                                    np.atleast_2d(b_value_expected).T)
+
+                assert_almost_equal(p['control_interp_comp.control_rates:a_rate'],
+                                    np.atleast_2d(a_rate_expected).T)
+
+                assert_almost_equal(p['control_interp_comp.control_rates:b_rate'],
+                                    np.atleast_2d(b_rate_expected).T)
+
+                assert_almost_equal(p['control_interp_comp.control_rates:a_rate2'],
+                                    np.atleast_2d(a_rate2_expected).T)
+
+                assert_almost_equal(p['control_interp_comp.control_rates:b_rate2'],
+                                    np.atleast_2d(b_rate2_expected).T)
+
+                assert_almost_equal(p['control_interp_comp.control_boundary_values:a'],
+                                    np.atleast_2d(a_value_expected).T[(0, -1), ...])
+
+                assert_almost_equal(p['control_interp_comp.control_boundary_values:b'],
+                                    np.atleast_2d(b_value_expected).T[(0, -1), ...])
+
+                assert_almost_equal(p['control_interp_comp.control_boundary_rates:a_rate'],
+                                    np.atleast_2d(a_rate_expected).T[(0, -1), ...])
+
+                assert_almost_equal(p['control_interp_comp.control_boundary_rates:b_rate'],
+                                    np.atleast_2d(b_rate_expected).T[(0, -1), ...])
+
+                assert_almost_equal(p['control_interp_comp.control_boundary_rates:a_rate2'],
+                                    np.atleast_2d(a_rate2_expected).T[(0, -1), ...])
+
+                assert_almost_equal(p['control_interp_comp.control_boundary_rates:b_rate2'],
+                                    np.atleast_2d(b_rate2_expected).T[(0, -1), ...])
+
+                if p.model.control_interp_comp._is_val_cnty('a'):
+                    assert_almost_equal(p['control_interp_comp.control_continuity_defects:a'],
+                                        0.0)
+
+                if p.model.control_interp_comp._is_val_cnty('b'):
+                    assert_almost_equal(p['control_interp_comp.control_continuity_defects:b'],
+                                        0.0)
+
+                if p.model.control_interp_comp._is_rate_cnty('a'):
+                    assert_almost_equal(p['control_interp_comp.control_rate_continuity_defects:a'],
+                                        0.0)
+
+                if p.model.control_interp_comp._is_rate_cnty('b'):
+                    assert_almost_equal(p['control_interp_comp.control_rate_continuity_defects:b'],
+                                        0.0)
+
+                if p.model.control_interp_comp._is_rate2_cnty('a'):
+                    assert_almost_equal(p['control_interp_comp.control_rate2_continuity_defects:a'],
+                                        0.0)
+
+                if p.model.control_interp_comp._is_rate2_cnty('b'):
+                    assert_almost_equal(p['control_interp_comp.control_rate2_continuity_defects:b'],
+                                        0.0)
+
+                cpd = p.check_partials(compact_print=True, show_only_incorrect=True,
                                        abs_err_tol=1.0E-8, rel_err_tol=1.0E-8, method='cs',
                                        out_stream=None)
                 assert_check_partials(cpd)
@@ -217,18 +429,27 @@ class TestControlRateComp(unittest.TestCase):
                                        )
         for transcription, compressed in param_list:
             with self.subTest():
-                segends = np.array([0.0, 3.0, 10.0])
+                segends = np.array([0.0, 3.0, 7.0, 10.0])
 
-                gd = GridData(num_segments=2,
-                              transcription_order=5,
-                              segment_ends=segends,
-                              transcription=transcription,
-                              compressed=compressed)
+                if transcription == 'gauss-lobatto':
+                    gd = dm.GaussLobattoGrid(num_segments=3,
+                                             nodes_per_seg=5,
+                                             segment_ends=segends,
+                                             compressed=compressed)
+                elif transcription == 'radau-ps':
+                    gd = dm.RadauGrid(num_segments=3,
+                                      nodes_per_seg=5,
+                                      segment_ends=segends,
+                                      compressed=compressed)
 
                 p = om.Problem(model=om.Group())
 
                 controls = {'a': {'units': 'm', 'shape': (3,), 'val': np.array([1, 2, 3]),
-                                  'dynamic': True, 'opt': False}}
+                                  'dynamic': True, 'opt': False, 'continuity': True,
+                                  'rate_continuity': True, 'rate2_continuity': True,
+                                  'continuity_scaler': 1., 'continuity_ref': None,
+                                  'rate_continuity_scaler': 1., 'rate_continuity_ref': None,
+                                  'rate2_continuity_scaler': 1., 'rate2_continuity_ref': None}}
 
                 ivc = om.IndepVarComp()
                 p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
@@ -247,7 +468,9 @@ class TestControlRateComp(unittest.TestCase):
                 p.model.add_subsystem('control_interp_comp',
                                       subsys=ControlInterpComp(grid_data=gd,
                                                                control_options=controls,
-                                                               time_units='s'),
+                                                               time_units='s',
+                                                               compute_continuity=True,
+                                                               enforce_continuity=True),
                                       promotes_inputs=['controls:*'])
 
                 p.model.connect('dt_dstau', 'control_interp_comp.dt_dstau')
@@ -334,8 +557,20 @@ class TestControlRateComp(unittest.TestCase):
                 assert_almost_equal(p['control_interp_comp.control_boundary_rates:a_rate2'][:, 2],
                                     a2_rate2_expected.T[(0, -1), ...])
 
+                if p.model.control_interp_comp._is_val_cnty('a'):
+                    assert_almost_equal(p['control_interp_comp.control_continuity_defects:a'],
+                                        0.0)
+
+                if p.model.control_interp_comp._is_rate_cnty('a'):
+                    assert_almost_equal(p['control_interp_comp.control_rate_continuity_defects:a'],
+                                        0.0)
+
+                if p.model.control_interp_comp._is_rate2_cnty('a'):
+                    assert_almost_equal(p['control_interp_comp.control_rate2_continuity_defects:a'],
+                                        0.0)
+
                 np.set_printoptions(linewidth=1024)
-                cpd = p.check_partials(compact_print=True, method='cs', out_stream=None)
+                cpd = p.check_partials(compact_print=False, method='cs', show_only_incorrect=True, out_stream=None)
 
                 assert_check_partials(cpd)
 
@@ -347,16 +582,24 @@ class TestControlRateComp(unittest.TestCase):
             with self.subTest():
                 segends = np.array([0.0, 3.0, 10.0])
 
-                gd = GridData(num_segments=2,
-                              transcription_order=5,
-                              segment_ends=segends,
-                              transcription=transcription,
-                              compressed=compressed)
+                if transcription == 'gauss-lobatto':
+                    gd = dm.GaussLobattoGrid(num_segments=2,
+                                             nodes_per_seg=5,
+                                             segment_ends=segends,
+                                             compressed=compressed)
+                elif transcription == 'radau-ps':
+                    gd = dm.RadauGrid(num_segments=2,
+                                      nodes_per_seg=5,
+                                      segment_ends=segends,
+                                      compressed=compressed)
 
                 p = om.Problem(model=om.Group())
 
                 controls = {'a': {'units': 'm', 'shape': (3, 1), 'val': 1.0,
-                                  'dynamic': True, 'opt': False}}
+                                  'dynamic': True, 'opt': False,
+                                  'continuity': True, 'continuity_scaler': 1.0, 'continuity_ref': None,
+                                  'rate_continuity': True, 'rate_continuity_scaler': 1.0, 'rate_continuity_ref': None,
+                                  'rate2_continuity': True, 'rate2_continuity_scaler': 1.0, 'rate2_continuity_ref': None}}
 
                 ivc = om.IndepVarComp()
                 p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])
@@ -375,7 +618,9 @@ class TestControlRateComp(unittest.TestCase):
                 p.model.add_subsystem('control_interp_comp',
                                       subsys=ControlInterpComp(grid_data=gd,
                                                                control_options=controls,
-                                                               time_units='s'),
+                                                               time_units='s',
+                                                               compute_continuity=True,
+                                                               enforce_continuity=True),
                                       promotes_inputs=['controls:*'])
 
                 p.model.connect('dt_dstau', 'control_interp_comp.dt_dstau')
@@ -439,7 +684,7 @@ class TestControlRateComp(unittest.TestCase):
 
                 assert_check_partials(cpd)
 
-    def test_control_interp_matrix_2x2(self, transcription='gauss-lobatto', compressed=True):
+    def test_control_interp_matrix_2x2(self):
         param_list = itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
                                        [True, False],  # compressed
                                        )
@@ -447,16 +692,22 @@ class TestControlRateComp(unittest.TestCase):
             with self.subTest():
                 segends = np.array([0.0, 3.0, 10.0])
 
-                gd = GridData(num_segments=2,
-                              transcription_order=5,
-                              segment_ends=segends,
-                              transcription=transcription,
-                              compressed=compressed)
+                if transcription == 'gauss-lobatto':
+                    gd = dm.GaussLobattoGrid(num_segments=2,
+                                             nodes_per_seg=5,
+                                             segment_ends=segends,
+                                             compressed=compressed)
+                elif transcription == 'radau-ps':
+                    gd = dm.RadauGrid(num_segments=2,
+                                      nodes_per_seg=5,
+                                      segment_ends=segends,
+                                      compressed=compressed)
 
                 p = om.Problem(model=om.Group())
 
                 controls = {'a': {'units': 'm', 'shape': (2, 2), 'val': np.array([[1, 2], [3, 4]]),
-                                  'dynamic': True, 'opt': False}}
+                                  'dynamic': True, 'opt': False, 'continuity': True, 'rate_continuity': True,
+                                  'rate2_continuity': True}}
 
                 ivc = om.IndepVarComp()
                 p.model.add_subsystem('ivc', ivc, promotes_outputs=['*'])

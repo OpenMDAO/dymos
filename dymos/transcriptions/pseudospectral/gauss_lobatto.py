@@ -1,3 +1,4 @@
+from copy import deepcopy
 
 import numpy as np
 import openmdao.api as om
@@ -9,7 +10,7 @@ from ...utils.misc import get_rate_units
 from ...utils.introspection import get_promoted_vars, get_targets, get_source_metadata
 from ...utils.indexing import get_src_indices_by_row
 from ...utils.ode_utils import _make_ode_system
-from ..grid_data import GridData, make_subset_map
+from ..grid_data import make_subset_map, GaussLobattoGrid
 
 
 class GaussLobatto(PseudospectralBase):
@@ -48,11 +49,15 @@ class GaussLobatto(PseudospectralBase):
         if np.any(self.options['order'] % 2 == 0):
             raise ValueError('A Gauss-Lobatto scheme must use an odd order for state interpolation.')
 
-        self.grid_data = GridData(num_segments=self.options['num_segments'],
-                                  transcription='gauss-lobatto',
-                                  transcription_order=self.options['order'],
-                                  segment_ends=self.options['segment_ends'],
-                                  compressed=self.options['compressed'])
+        self.grid_data = GaussLobattoGrid(num_segments=self.options['num_segments'],
+                                          nodes_per_seg=self.options['order'],
+                                          segment_ends=self.options['segment_ends'],
+                                          compressed=self.options['compressed'])
+
+    def _get_refinement_error_transcription(self):
+        new_tx = deepcopy(self)
+        new_tx.options['order'] = np.asarray(new_tx.options['order'], dtype=int) + 2
+        return new_tx
 
     def configure_time(self, phase):
         """

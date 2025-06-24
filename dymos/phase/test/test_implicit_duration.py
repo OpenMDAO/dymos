@@ -117,9 +117,8 @@ class TestImplicitDuration(unittest.TestCase):
 
         p.setup()
 
-        p.set_val('traj.phase.t_initial', 0)
-        p.set_val('traj.phase.t_duration', 7)
-        p.set_val('traj.phase.states:z', phase.interp('z', [[[0, 0], [10, 10]], [[10, 0], [10, -10]]]))
+        phase.set_time_val(initial=0, duration=7.)
+        phase.set_state_val('z', [[[0, 0], [10, 10]], [[10, 0], [10, -10]]])
 
         return p
 

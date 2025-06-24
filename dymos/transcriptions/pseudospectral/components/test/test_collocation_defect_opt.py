@@ -21,9 +21,9 @@ class TestCollocationComp(unittest.TestCase):
         dm.options['include_check_partials'] = True
         transcription = 'gauss-lobatto'
 
-        gd = GridData(
-            num_segments=4, segment_ends=np.array([0., 2., 4., 5., 12.]),
-            transcription=transcription, transcription_order=3)
+        gd = dm.GaussLobattoGrid(num_segments=4,
+                                 segment_ends=np.array([0., 2., 4., 5., 12.]),
+                                 nodes_per_seg=3)
 
         self.p = om.Problem(model=om.Group())
 

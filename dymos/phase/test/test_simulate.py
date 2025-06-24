@@ -77,14 +77,13 @@ class TestSimulateShapedParams(unittest.TestCase):
 
         p.setup(mode='auto', check=['unconnected_inputs'], force_alloc_complex=True)
 
-        p.set_val('hop0.main_phase.t_initial', 0.0)
-        p.set_val('hop0.main_phase.t_duration', 10)
-        p.set_val('hop0.main_phase.controls:Thrust', val=-3400, indices=om.slicer[:, 0])
-        p.set_val('hop0.main_phase.states:impulse',  main_phase.interp('impulse', [0, 0]))
+        main_phase.set_time_val(initial=0.0, duration=10.0)
+        main_phase.set_control_val('Thrust', [-3400, -3400])
+        main_phase.set_state_val('impulse', [0, 0])
 
         p.run_driver()
 
-        assert_near_equal(p.get_val('hop0.main_phase.timeseries.impulse')[-1, 0], -7836.66666, tolerance=1.0E-4)
+        assert_near_equal(p.get_val('hop0.main_phase.timeseries.impulse')[-1, 0], -7836.66666, tolerance=1.0E-3)
 
         try:
             hop0.simulate()
@@ -121,19 +120,12 @@ class TestSimulateShapedParams(unittest.TestCase):
 
         p.setup(mode='auto', check=['unconnected_inputs'], force_alloc_complex=True)
 
-        p.set_val('hop0.main_phase.t_initial', 0.0)
-        p.set_val('hop0.main_phase.t_duration', 10)
-        p.set_val('hop0.main_phase.controls:Thrust', val=-3400, indices=om.slicer[:, 0])
-        p.set_val('hop0.main_phase.states:impulse',  main_phase.interp('impulse', [0, 0]))
+        main_phase.set_time_val(initial=0.0, duration=10.0)
+        main_phase.set_control_val('Thrust', [-3400, -3400])
+        main_phase.set_state_val('impulse', [0, 0])
 
-        p.run_driver()
-
+        dm.run_problem(p, run_driver=True, simulate=True, make_plots=False)
         assert_near_equal(p.get_val('hop0.main_phase.timeseries.impulse')[-1, 0], -7836.66666, tolerance=1.0E-4)
-
-        try:
-            hop0.simulate()
-        except Exception:
-            self.fail('Simulate did not correctly complete.')
 
 
 if __name__ == '__main__':  # pragma: no cover

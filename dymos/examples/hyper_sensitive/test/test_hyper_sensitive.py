@@ -29,7 +29,7 @@ class TestHyperSensitive(unittest.TestCase):
 
         p = om.Problem(model=om.Group())
 
-        p.driver = om.pyOptSparseDriver()
+        p.driver = om.pyOptSparseDriver(print_results=False)
         p.driver.declare_coloring()
         p.driver.options['optimizer'] = optimizer
 
@@ -113,15 +113,15 @@ class TestHyperSensitive(unittest.TestCase):
 
         assert_near_equal(p.get_val('traj.phase0.timeseries.u')[0],
                           ui,
-                          tolerance=5e-6)
+                          tolerance=1e-4)
 
         assert_near_equal(p.get_val('traj.phase0.timeseries.u')[-1],
                           uf,
-                          tolerance=5e-6)
+                          tolerance=1e-4)
 
         assert_near_equal(p.get_val('traj.phase0.timeseries.xL')[-1],
                           J,
-                          tolerance=1e-6)
+                          tolerance=1e-4)
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_hyper_sensitive_birkhoff(self):

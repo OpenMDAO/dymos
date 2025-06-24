@@ -17,7 +17,7 @@ from dymos.utils.testing_utils import SimpleODE
 
 class TestODEIntegrationComp(unittest.TestCase):
 
-    @unittest.skipIf(om_version()[0] >= (3, 36, 0) or om_version()[0] < (3, 37, 0),
+    @unittest.skipIf(om_version()[0] >= (3, 36, 0) and om_version()[0] < (3, 37, 0),
                      reason='Test skipped due to an issue in OpenMDAO 3.36.x')
     def test_integrate_scalar_ode(self):
         dymos_options['include_check_partials'] = True
@@ -26,12 +26,12 @@ class TestODEIntegrationComp(unittest.TestCase):
             with self.subTest('input_grid_data = output_grid_data'
                               if ogd_eq_igd else 'input_grid_data != output_grid_data'):
 
-                input_grid_data = GridData(num_segments=1, transcription='gauss-lobatto', transcription_order=3)
+                input_grid_data = dm.GaussLobattoGrid(num_segments=1, nodes_per_seg=3)
 
                 if ogd_eq_igd:
                     output_grid_data = input_grid_data
                 else:
-                    output_grid_data = GridData(num_segments=1, transcription='uniform', transcription_order=10)
+                    output_grid_data = dm.UniformGrid(num_segments=1, nodes_per_seg=10)
 
                 time_options = TimeOptionsDictionary()
 
@@ -83,14 +83,13 @@ class TestODEIntegrationComp(unittest.TestCase):
 
         dymos_options['include_check_partials'] = False
 
-    @unittest.skipIf(om_version()[0] >= (3, 36, 0) or om_version()[0] < (3, 37, 0),
+    @unittest.skipIf(om_version()[0] >= (3, 36, 0) and om_version()[0] < (3, 37, 0),
                      reason='Test skipped due to an issue in OpenMDAO 3.36.x')
     def test_integrate_with_controls(self):
 
         dymos_options['include_check_partials'] = True
 
-        gd = dm.transcriptions.grid_data.GridData(num_segments=5, transcription='gauss-lobatto',
-                                                  transcription_order=3, compressed=True)
+        gd = dm.GaussLobattoGrid(num_segments=5, nodes_per_seg=3, compressed=True)
 
         time_options = dm.phase.options.TimeOptionsDictionary()
 
@@ -165,14 +164,13 @@ class TestODEIntegrationComp(unittest.TestCase):
             cpd = p.check_partials(compact_print=False, method='fd')
             assert_check_partials(cpd, atol=1.0E-4, rtol=1.0E-4)
 
-    @unittest.skipIf(om_version()[0] >= (3, 36, 0) or om_version()[0] < (3, 37, 0),
+    @unittest.skipIf(om_version()[0] >= (3, 36, 0) and om_version()[0] < (3, 37, 0),
                      reason='Test skipped due to an issue in OpenMDAO 3.36.x')
     def test_integrate_with_polynomial_controls(self):
 
         dymos_options['include_check_partials'] = True
 
-        gd = dm.transcriptions.grid_data.GridData(num_segments=5, transcription='gauss-lobatto',
-                                                  transcription_order=3, compressed=True)
+        gd = dm.GaussLobattoGrid(num_segments=5, nodes_per_seg=3, compressed=True)
 
         time_options = dm.phase.options.TimeOptionsDictionary()
 

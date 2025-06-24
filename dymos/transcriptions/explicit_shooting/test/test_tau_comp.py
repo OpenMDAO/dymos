@@ -12,8 +12,7 @@ from dymos.transcriptions.explicit_shooting.tau_comp import TauComp
 class TestTauComp(unittest.TestCase):
 
     def test_eval(self):
-        grid_data = dm.transcriptions.grid_data.GridData(num_segments=3, transcription='gauss-lobatto',
-                                                         transcription_order=3)
+        grid_data = dm.GaussLobattoGrid(num_segments=3, nodes_per_seg=3)
 
         p = om.Problem()
         tau_comp = p.model.add_subsystem('tau_comp', TauComp(grid_data=grid_data, time_units='s'))
@@ -39,8 +38,7 @@ class TestTauComp(unittest.TestCase):
         assert_check_partials(cpd)
 
     def test_eval_vectorized(self):
-        grid_data = dm.transcriptions.grid_data.GridData(num_segments=3, transcription='gauss-lobatto',
-                                                         transcription_order=3)
+        grid_data = dm.GaussLobattoGrid(num_segments=3, nodes_per_seg=3)
 
         p = om.Problem()
         tau_comp = p.model.add_subsystem('tau_comp', TauComp(vec_size=4, grid_data=grid_data, time_units='s'))
