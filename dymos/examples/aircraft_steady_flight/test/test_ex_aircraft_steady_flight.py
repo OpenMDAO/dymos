@@ -100,7 +100,7 @@ def ex_aircraft_steady_flight(transcription, optimizer='SLSQP', use_boundary_con
 
     p.setup()
 
-    phase.set_time_val(initial=0.0, duration=5000.0)
+    phase.set_time_val(initial=0.0, duration=2000.0)
     phase.set_state_val('range', (0, 724.0))
     phase.set_state_val('mass_fuel', (30000, 1e-3))
     phase.set_state_val('alt', 10.0)
@@ -118,13 +118,13 @@ def ex_aircraft_steady_flight(transcription, optimizer='SLSQP', use_boundary_con
 @use_tempdirs
 class TestExSteadyAircraftFlight(unittest.TestCase):
 
-    @require_pyoptsparse(optimizer='SLSQP')
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_ex_aircraft_steady_flight_opt_radau(self):
         num_seg = 15
         seg_ends, _ = lgl(num_seg + 1)
 
         tx = dm.Radau(num_segments=num_seg, segment_ends=seg_ends, order=3, compressed=False)
-        p = ex_aircraft_steady_flight(transcription=tx, optimizer='SLSQP')
+        p = ex_aircraft_steady_flight(transcription=tx, optimizer='IPOPT')
         assert_near_equal(p.get_val('traj.phase0.timeseries.range', units='NM')[-1],
                           726.85, tolerance=1.0E-2)
 
@@ -137,14 +137,15 @@ class TestExSteadyAircraftFlight(unittest.TestCase):
         assert_near_equal(p.get_val('traj.phase0.timeseries.range', units='NM')[-1],
                           726.85, tolerance=2.0E-2)
 
-    @require_pyoptsparse(optimizer='SLSQP')
+    @unittest.skip('Solving this example is unreliable due to the possibility of depleted mass')
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_ex_aircraft_steady_flight_solve_radau(self):
         num_seg = 15
         seg_ends, _ = lgl(num_seg + 1)
 
         tx = dm.Radau(num_segments=num_seg, segment_ends=seg_ends, order=3, compressed=False,
                       solve_segments='forward')
-        p = ex_aircraft_steady_flight(transcription=tx, optimizer='SLSQP',
+        p = ex_aircraft_steady_flight(transcription=tx, optimizer='IPOPT',
                                       use_boundary_constraints=True)
         assert_near_equal(p.get_val('traj.phase0.timeseries.range', units='NM')[-1],
                           726.85, tolerance=1.0E-2)

@@ -5,20 +5,6 @@ import numpy as np
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 
-def initial_guess(t_dur, gam0=np.pi/3):
-    t = np.linspace(0, t_dur, num=100)
-    g = -9.80665
-    v0 = -0.5*g*t_dur/np.sin(gam0)
-    r = v0*np.cos(gam0)*t
-    h = v0*np.sin(gam0)*t + 0.5*g*t**2
-    v = np.sqrt(v0*np.cos(gam0)**2 + (v0*np.sin(gam0) + g*t)**2)
-    gam = np.arctan2(v0*np.sin(gam0) + g*t, v0*np.cos(gam0)**2)
-
-    guess = {'t': t, 'r': r, 'h': h, 'v': v, 'gam': gam}
-
-    return guess
-
-
 @use_tempdirs
 class TestCannonballImplicitDuration(unittest.TestCase):
 
@@ -145,7 +131,6 @@ class TestCannonballImplicitDuration(unittest.TestCase):
         p = om.Problem(model=om.Group())
 
         p.driver = om.ScipyOptimizeDriver()
-        p.driver.declare_coloring()
 
         p.model.add_subsystem('size_comp', CannonballSizeComp(),
                               promotes_inputs=['radius', 'dens'])
@@ -155,7 +140,8 @@ class TestCannonballImplicitDuration(unittest.TestCase):
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
 
-        transcription = dm.Radau(num_segments=20, order=3, compressed=False)
+        # transcription = dm.Radau(num_segments=20, order=3, compressed=False)
+        transcription = dm.PicardShooting(num_segments=5, order=3, compressed=False)
         phase = dm.Phase(ode_class=CannonballODE, transcription=transcription)
 
         phase = traj.add_phase('phase', phase)
@@ -182,7 +168,8 @@ class TestCannonballImplicitDuration(unittest.TestCase):
         # A nonlinear solver is used to find the duration of required to satisfy the condition.
         # The duration was bounded to be greater than 1 to ensure the solver did not
         # converge to the initial point.
-        phase.set_duration_balance('h', val=0.0)
+        phase.add_boundary_balance(param='t_duration', name='h', tgt_val=0.0, loc='final',
+                                   lower=0.1, upper=100.0)
 
         # In this problem, the default ArmijoGoldsteinLS has issues with extrapolating
         # the states and causes the optimization to fail.
@@ -192,7 +179,7 @@ class TestCannonballImplicitDuration(unittest.TestCase):
         phase.nonlinear_solver.linesearch = om.BoundsEnforceLS()
         phase.linear_solver = om.DirectSolver()
 
-        phase.add_objective('r', loc='final', scaler=-1.0)
+        phase.add_objective('r', loc='final', scaler=-1.0, units='ft')
 
         p.model.connect('size_comp.mass', 'traj.phase.parameters:m')
         p.model.connect('size_comp.S', 'traj.phase.parameters:S')
@@ -208,14 +195,12 @@ class TestCannonballImplicitDuration(unittest.TestCase):
 
         p.set_val('traj.phase.parameters:CD', 0.5)
 
-        guess = initial_guess(t_dur=30.0)
-
         phase.set_time_val(initial=0.0, duration=30.0)
 
-        phase.set_state_val('r', vals=guess['r'], time_vals=guess['t'])
-        phase.set_state_val('h', vals=guess['h'], time_vals=guess['t'])
-        phase.set_state_val('v', vals=guess['v'], time_vals=guess['t'])
-        phase.set_state_val('gam', vals=guess['gam'], time_vals=guess['t'], units='rad')
+        phase.set_state_val('r', [0, 500], units='m')
+        phase.set_state_val('h', [0, 0])
+        phase.set_state_val('v', [100, 100])
+        phase.set_state_val('gam', [45, -45], units='deg')
 
         #####################################################
         # Run the optimization and final explicit simulation

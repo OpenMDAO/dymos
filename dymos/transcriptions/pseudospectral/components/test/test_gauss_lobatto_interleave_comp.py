@@ -16,8 +16,8 @@ class TestGaussLobattoInterleaveComp(unittest.TestCase):
     def setUp(self):
         dm.options['include_check_partials'] = True
 
-        self.grid_data = gd = GridData(num_segments=3, segment_ends=np.array([0., 2., 4., 10.0]),
-                                       transcription='gauss-lobatto', transcription_order=[3, 3, 3])
+        self.grid_data = gd = dm.GaussLobattoGrid(num_segments=3, segment_ends=np.array([0., 2., 4., 10.0]),
+                                                  nodes_per_seg=[3, 3, 3])
 
         num_disc_nodes = gd.subset_num_nodes['state_disc']
         num_col_nodes = gd.subset_num_nodes['col']
