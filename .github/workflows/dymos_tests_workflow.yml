@@ -102,21 +102,6 @@ jobs:
             JAX: '0.4.28'
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.baseline }}
 
-          # Test dymos 2 features
-          - NAME: baseline_dymos2
-            PY: '3.12'
-            NUMPY: 1.26
-            SCIPY: 1.13
-            PETSc: 3.21.0
-            PYOPTSPARSE: 'v2.11.0'
-            SNOPT: 7.7
-            OPENMDAO: 'latest'
-            PEP517: true
-            OPTIONAL: '[all]'
-            JAX: '0.4.28'
-            DYMOS_2: '1'
-            EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.baseline }}
-
           # baseline versions except no pyoptsparse or SNOPT
           - NAME: no_pyoptsparse
             PY: '3.12'
@@ -173,7 +158,7 @@ jobs:
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
 
           # Python 3.13 (requires NumPy 2.1 which does not work yet with pyoptsparse)
-          - NAME: python314
+          - NAME: python313
             PY: '3.13'
             NUMPY: 2
             SCIPY: 1
@@ -464,9 +449,6 @@ jobs:
           echo "Environment:"
           echo "   DYMOS_CHECK_PARTIALS: $DYMOS_CHECK_PARTIALS"
           echo "============================================================="
-          if [[ "${{ matrix.DYMOS_2 }}" == "1" ]]; then
-            export DYMOS_2="1"
-          fi
           testflo -n 1 docs/dymos_book/test --pre_announce
           testflo -n 1 joss/test --pre_announce
           testflo -b benchmark --pre_announce
