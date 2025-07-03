@@ -158,7 +158,7 @@ jobs:
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.python313 }}
 
           # Python 3.13, Dymos 2
-          - NAME: python313
+          - NAME: python313_dymos2
             PY: '3.13'
             NUMPY: 2
             SCIPY: 1
@@ -168,8 +168,8 @@ jobs:
             OPENMDAO: 'dev'
             OPTIONAL: '[test]'
             JAX: 'latest'
-            EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.python313 }}
             DYMOS_2: true
+            EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.python313_dymos2 }}
 
           # oldest supported versions
           - NAME: oldest
@@ -387,11 +387,13 @@ jobs:
 
       - name: Set Environment for Dymos 2
         if: ${{ matrix.DYMOS_2 }}
+        shell: bash -l {0}
         run: |
           echo "============================================================="
           echo "Setting environement variable DYMOS_2=1"
           echo "============================================================="
           export DYMOS_2=1
+          echo "DYMOS2=1" >> $GITHUB_ENV
 
       - name: Display environment info
         id: env_info
