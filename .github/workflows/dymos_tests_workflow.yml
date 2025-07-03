@@ -398,6 +398,8 @@ jobs:
         if: ${{ ! matrix.EXCLUDE }}
         shell: bash -l {0}
         run: |
+          printenv
+
           conda info
           conda list
           conda env export --name test --file ${{ matrix.NAME }}_environment.yml
