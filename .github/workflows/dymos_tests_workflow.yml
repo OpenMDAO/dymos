@@ -389,7 +389,7 @@ jobs:
         if: ${{ matrix.DYMOS_2 }}
         run: |
           echo "============================================================="
-          echo "Setting environement variable DYMOS_2='1'
+          echo "Setting environement variable DYMOS_2=1"
           echo "============================================================="
           export DYMOS_2=1
 
