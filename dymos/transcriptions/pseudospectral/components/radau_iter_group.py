@@ -1,4 +1,3 @@
-import numpy as np
 import openmdao.api as om
 
 from openmdao.components.input_resids_comp import InputResidsComp
