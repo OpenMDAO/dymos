@@ -21,10 +21,13 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         p.driver = om.ScipyOptimizeDriver()
         p.driver.declare_coloring()
 
+        traj = dm.Trajectory()
+
         phase = dm.Phase(ode_class=BrachistochroneVectorStatesODE,
                          transcription=dm.Radau(num_segments=20, order=3))
 
-        p.model.add_subsystem('phase0', phase)
+        traj.add_phase('phase0', phase)
+        p.model.add_subsystem('traj0', traj)
 
         phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
 
@@ -57,10 +60,11 @@ class TestBrachistochroneVectorPathConstraints(unittest.TestCase):
         phase.set_control_val('theta', [5, 100])
         phase.set_parameter_val('g', 9.80665)
 
-        p.run_driver()
+        dm.run_problem(p, make_plots=True)
 
-        assert_near_equal(np.min(p.get_val('phase0.timeseries.pos')[:, 1]), 5.0,
-                          tolerance=1.0E-3)
+        assert_near_equal(p.get_val('traj0.phase0.control_rates:theta_rate')[-1, ...], 0.0, tolerance=1.0E-5)
+        assert_near_equal(p.get_val('traj0.phase0.control_rates:theta_rate2')[-1, ...], 0.0, tolerance=1.0E-5)
+        assert_near_equal(np.min(p.get_val('traj0.phase0.timeseries.pos')[:, 1]), 5.0, tolerance=1.0E-5)
 
     def test_brachistochrone_vector_ode_path_constraints_radau_partial_indices(self):
 

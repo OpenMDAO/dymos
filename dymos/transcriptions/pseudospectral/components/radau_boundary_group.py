@@ -1,13 +1,13 @@
 import numpy as np
 import openmdao.api as om
 
-from ....utils.ode_utils import _make_ode_system
 from dymos._options import options as dymos_options
+from dymos.utils.ode_utils import _make_ode_system
 
 
-class BirkhoffBoundaryMuxComp(om.ExplicitComponent):
+class RadauBoundaryMuxComp(om.ExplicitComponent):
     """
-    Class definition of the BirtkhoffBoundaryMuxComp.
+    Class definition of the RadauBoundaryMuxComp.
 
     This component takes the initial and final values of states
     and muxes them into a single output.
@@ -78,20 +78,13 @@ class BirkhoffBoundaryMuxComp(om.ExplicitComponent):
             outputs[io_names['boundary']][1] = inputs[io_names['final']]
 
 
-class BirkhoffBoundaryGroup(om.Group):
+class RadauBoundaryGroup(om.Group):
     """
-    Class definition for the BirkhoffBoundaryGroup.
+    Class definition for the RadauBoundaryGroup.
 
     This group accepts values for initial and final times, states, controls, and parameters
     and evaluates the ODE with those in order to compute the boundary values and
     objectives.
-
-    Note that in the Birkhoff transcription, the initial and final state values are
-    decoupled from the initial and final states in the interpolating polynomial.
-
-    Dymos uses the Birkhoff LGL or CGL approaches so that the control values are provided
-    at the endpoints of the phase without the need for extrapolation (unlike the classical
-    Radau approach in Dymos)
 
     Parameters
     ----------
@@ -112,8 +105,8 @@ class BirkhoffBoundaryGroup(om.Group):
                              recordable=False)
         self.options.declare('ode_init_kwargs', types=dict, default={}, recordable=False,
                              desc='Keyword arguments provided when initializing the ODE System')
-        self.options.declare('calc_exprs', types=dict, default={},
-                             desc='ODE Expressions from the Phase')
+        self.options.declare('calc_exprs', types=dict, default={}, recordable=False,
+                             desc='Calculation expressions of the parent phase.')
         self.options.declare('parameter_options', types=dict, default={},
                              desc='parameter options inherited from the phase')
 
@@ -124,16 +117,16 @@ class BirkhoffBoundaryGroup(om.Group):
         ode_class = self.options['ode_class']
         ode_init_kwargs = self.options['ode_init_kwargs']
 
-        self.add_subsystem('boundary_mux', subsys=BirkhoffBoundaryMuxComp(),
+        ode_sys = _make_ode_system(ode_class=ode_class,
+                                   num_nodes=2,
+                                   ode_init_kwargs=ode_init_kwargs,
+                                   calc_exprs=self.options['calc_exprs'],
+                                   parameter_options=self.options['parameter_options'])
+
+        self.add_subsystem('boundary_mux', subsys=RadauBoundaryMuxComp(),
                            promotes_inputs=['*'], promotes_outputs=['*'])
 
-        ode = _make_ode_system(ode_class=ode_class,
-                               num_nodes=2,
-                               ode_init_kwargs=ode_init_kwargs,
-                               calc_exprs=self.options['calc_exprs'],
-                               parameter_options=self.options['parameter_options'])
-
-        self.add_subsystem('boundary_ode', ode,
+        self.add_subsystem('boundary_ode', subsys=ode_sys,
                            promotes_inputs=['*'], promotes_outputs=['*'])
 
     def configure_io(self, phase):

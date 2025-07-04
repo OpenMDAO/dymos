@@ -144,31 +144,32 @@ jobs:
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.no_mpi }}
 
           # try latest versions
-          # sticking with Python 3.12 here, 3.13 requires NumPy 2.1 which does not work yet with pyoptsparse
-          - NAME: latest
-            PY: '3.12'
-            NUMPY: 1
-            SCIPY: 1
-            PETSc: 3.21.0
-            PYOPTSPARSE: 'latest'
-            SNOPT: 7.7
-            OPENMDAO: 'dev'
-            OPTIONAL: '[all]'
-            JAX: 'latest'
-            EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
-
-          # Python 3.13 (requires NumPy 2.1 which does not work yet with pyoptsparse)
+          # Python 3.13
           - NAME: python313
             PY: '3.13'
             NUMPY: 2
             SCIPY: 1
             PETSc: 3.22.2
-            # PYOPTSPARSE: 'latest'
+            PYOPTSPARSE: 'latest'
             SNOPT: 7.7
             OPENMDAO: 'dev'
             OPTIONAL: '[test]'
             JAX: 'latest'
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.python313 }}
+
+          # Python 3.13, Dymos 2
+          - NAME: python313_dymos2
+            PY: '3.13'
+            NUMPY: 2
+            SCIPY: 1
+            PETSc: 3.22.2
+            PYOPTSPARSE: 'latest'
+            SNOPT: 7.7
+            OPENMDAO: 'dev'
+            OPTIONAL: '[test]'
+            JAX: 'latest'
+            DYMOS_2: true
+            EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.python313_dymos2 }}
 
           # oldest supported versions
           - NAME: oldest
@@ -384,11 +385,23 @@ jobs:
           pip install playwright
           playwright install --with-deps
 
+      - name: Set Environment for Dymos 2
+        if: ${{ matrix.DYMOS_2 }}
+        shell: bash -l {0}
+        run: |
+          echo "============================================================="
+          echo "Setting environement variable DYMOS_2=1"
+          echo "============================================================="
+          export DYMOS_2=1
+          echo "DYMOS_2=1" >> $GITHUB_ENV
+
       - name: Display environment info
         id: env_info
         if: ${{ ! matrix.EXCLUDE }}
         shell: bash -l {0}
         run: |
+          printenv
+
           conda info
           conda list
           conda env export --name test --file ${{ matrix.NAME }}_environment.yml

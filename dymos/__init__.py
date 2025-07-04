@@ -1,12 +1,20 @@
 __version__ = '1.14.1-dev'
 
 
-from .phase import Phase, AnalyticPhase
-from .transcriptions import GaussLobatto, Radau, ExplicitShooting, Analytic, \
+from openmdao.utils.general_utils import env_truthy as _env_truthy
+
+
+from dymos.phase import Phase, AnalyticPhase
+from dymos.transcriptions import GaussLobatto, ExplicitShooting, Analytic, \
     Birkhoff, PicardShooting
-from .transcriptions.grid_data import GaussLobattoGrid, ChebyshevGaussLobattoGrid, \
+
+if _env_truthy('DYMOS_2'):
+    from dymos.transcriptions import RadauNew as Radau
+else:
+    from dymos.transcriptions import Radau
+
+from dymos.transcriptions.grid_data import GaussLobattoGrid, ChebyshevGaussLobattoGrid, \
     RadauGrid, UniformGrid, BirkhoffGrid
-from .trajectory.trajectory import Trajectory
-from .run_problem import run_problem
-from .load_case import load_case
+from dymos.trajectory.trajectory import Trajectory
+from dymos.run_problem import run_problem
 from ._options import options
