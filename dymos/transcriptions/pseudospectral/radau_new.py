@@ -547,11 +547,6 @@ class RadauNew(TranscriptionBase):
             units = phase.parameter_options[var]['units']
             linear = True
             constraint_path = f'parameter_vals:{var}'
-        elif var_type == 'parameter':
-            shape = phase.parameter_options[var]['shape']
-            units = phase.parameter_options[var]['units']
-            linear = False
-            constraint_path = f'parameter_vals:{var}'
         elif var_type in ('control_rate', 'control_rate2'):
             control_var = var[:-5] if var_type == 'control_rate' else var[:-6]
             shape = phase.control_options[control_var]['shape']
