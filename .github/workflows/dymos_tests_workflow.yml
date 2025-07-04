@@ -393,7 +393,7 @@ jobs:
           echo "Setting environement variable DYMOS_2=1"
           echo "============================================================="
           export DYMOS_2=1
-          echo "DYMOS2=1" >> $GITHUB_ENV
+          echo "DYMOS_2=1" >> $GITHUB_ENV
 
       - name: Display environment info
         id: env_info
