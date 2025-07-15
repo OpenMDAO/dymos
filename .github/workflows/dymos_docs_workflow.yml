@@ -21,6 +21,10 @@ jobs:
   docs_ubuntu:
     runs-on: ubuntu-22.04
 
+    defaults:
+      run:
+        shell: bash -l {0}
+
     timeout-minutes: 90
 
     strategy:
@@ -30,29 +34,25 @@ jobs:
           # baseline versions except with pyoptsparse but no SNOPT
           # build docs to verify those that use pyoptsparse do not use SNOPT
           - NAME: baseline_no_snopt
-            PY: '3.11'
-            NUMPY: '1.26'
-            SCIPY: '1.13'
-            PETSc: '3.19'
-            PYOPTSPARSE: 'v2.11.0'
-            OPENMDAO: 'dev'
+            PY: '3.13'
+            NUMPY: '2.2'
+            SCIPY: '1.15'
+            PETSc: '3.21'
+            PYOPTSPARSE: 'v2.13.1'
+            OPENMDAO: 'latest'
             OPTIONAL: '[docs]'
-            JAX: '0.4.28'
             PUBLISH_DOCS: 1
 
           # make sure the latest versions of things don't break the docs
-          # sticking with Python 3.12 for now, 3.13 requires NumPy 2.1 which does not work yet with PETSc/pyoptsparse
-          # Pin PETSc back to 3.22.2
           - NAME: latest
-            PY: '3.12'
-            NUMPY: 1
-            SCIPY: 1
-            PETSc: 3.21.0
+            PY: '3'
+            NUMPY: '2'
+            SCIPY: '1'
+            PETSc: '3'
             PYOPTSPARSE: 'latest'
-            SNOPT: 7.7
+            SNOPT: '7.7'
             OPENMDAO: 'dev'
             OPTIONAL: '[docs]'
-            JAX: 'latest'
             PUBLISH_DOCS: 0
 
     steps:
@@ -67,7 +67,6 @@ jobs:
           echo "============================================================="
 
       - name: Create SSH key
-        shell: bash
         env:
           SSH_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}
           SSH_KNOWN_HOSTS: ${{secrets.SSH_KNOWN_HOSTS}}
@@ -92,7 +91,6 @@ jobs:
           conda-remove-defaults: true
 
       - name: Install Numpy/Scipy
-        shell: bash -l {0}
         run: |
           echo "============================================================="
           echo "Install Numpy/Scipy"
@@ -100,25 +98,14 @@ jobs:
           conda install numpy=${{ matrix.NUMPY }} scipy=${{ matrix.SCIPY }} -q -y
 
       - name: Install jax
-        if: matrix.JAX
-        shell: bash -l {0}
         run: |
           echo "============================================================="
           echo "Install jax"
           echo "============================================================="
-          if [[ "${{ matrix.JAX }}" == "latest" ]]; then
-            {
-              python -m pip install jaxlib
-            } || {
-              echo "Failed to install jaxlib..."
-            }
-            python -m pip install jax
-          else
-            python -m pip install jaxlib==${{ matrix.JAX }} jax==${{ matrix.JAX }}
-          fi
+          python -m pip install jax
+
       - name: Install PETSc
         if: matrix.PETSc
-        shell: bash -l {0}
         run: |
           echo "============================================================="
           echo "Install PETSc"
@@ -141,7 +128,6 @@ jobs:
 
       - name: Install pyOptSparse
         if: matrix.PYOPTSPARSE
-        shell: bash -l {0}
         run: |
           echo "============================================================="
           echo "Install pyoptsparse"
@@ -187,7 +173,6 @@ jobs:
 
       - name: Install OpenMDAO
         if: matrix.OPENMDAO
-        shell: bash -l {0}
         run: |
           echo "============================================================="
           echo "Install OpenMDAO"
@@ -201,7 +186,6 @@ jobs:
           fi
 
       - name: Install bokeh
-        shell: bash -l {0}
         run: |
           echo "============================================================="
           echo "Install additional packages for testing/coverage"
@@ -209,7 +193,6 @@ jobs:
           conda install bokeh
 
       - name: Install Dymos
-        shell: bash -l {0}
         run: |
           echo "============================================================="
           echo "Install Dymos"
@@ -218,7 +201,6 @@ jobs:
 
       - name: Display environment info
         id: env_info
-        shell: bash -l {0}
         run: |
           conda info
           conda list
@@ -243,7 +225,6 @@ jobs:
 
       - name: Build docs
         id: build_docs
-        shell: bash -l {0}
         run: |
           echo "============================================================="
           echo "Building Docs"
@@ -267,7 +248,6 @@ jobs:
       - name: Publish docs to github.io
         if: |
           github.event_name == 'push' && matrix.PUBLISH_DOCS == '1'
-        shell: bash -l {0}
         run: |
           echo "============================================================="
           echo "Publishing Docs to github.io"
@@ -282,13 +262,13 @@ jobs:
           matrix.PUBLISH_DOCS == '1'
         env:
           DOCS_LOCATION: ${{ secrets.DOCS_LOCATION }}
-        shell: bash -l {0}
         run: |
           if [[ "${#DOCS_LOCATION}" ]]; then
             echo "============================================================="
-            echo "Install version of openssl compatible with hosting service"
+            echo "Create env with openssl compatible with hosting service"
             echo "============================================================="
-            conda install -c conda-forge 'openssl=3.0'
+            conda create -n upload python=3.11 packaging openssl=3 openmdao -y
+            conda activate upload
 
             echo "============================================================="
             echo "Publishing Docs to openmdao.org"
