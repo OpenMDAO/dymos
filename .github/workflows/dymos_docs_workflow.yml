@@ -44,7 +44,7 @@ jobs:
           # sticking with Python 3.12 for now, 3.13 requires NumPy 2.1 which does not work yet with PETSc/pyoptsparse
           # Pin PETSc back to 3.22.2
           - NAME: latest
-            PY: '3.13'
+            PY: '3.12'
             NUMPY: 2
             SCIPY: 1
             PETSc: 3.22.2
