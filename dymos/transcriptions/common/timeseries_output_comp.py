@@ -1,6 +1,5 @@
 import numpy as np
 import openmdao.api as om
-from openmdao.utils.units import unit_conversion
 from scipy import sparse as sp
 
 from ...transcriptions.grid_data import GridData
@@ -37,11 +36,6 @@ class TimeseriesOutputComp(om.ExplicitComponent):
         # the number of nodes in the output
         self.output_num_nodes = 0
 
-        # Used to track conversion factors for instances when one output that relies on an input
-        # from another variable has potentially different units
-        self._units = {}
-        self._conversion_factors = {}
-
         # Flag to set if no multiplication by the interpolation matrix is necessary
         self._no_interp = False
 
@@ -66,61 +60,6 @@ class TimeseriesOutputComp(om.ExplicitComponent):
 
         self.options.declare('time_units', default=None, allow_none=True, types=str,
                              desc='Units of time')
-
-    def setup(self):
-        """
-        Define the independent variables as output variables.
-        """
-
-        # igd = self.options['input_grid_data']
-        # ogd = self.options['output_grid_data']
-        # output_subset = self.options['output_subset']
-
-        # if ogd is None:
-        #     ogd = igd
-
-        # if ogd == igd and output_subset == 'all':
-        #     self._no_interp = True
-
-        # self.input_num_nodes = igd.num_nodes
-        # self.output_num_nodes = ogd.subset_num_nodes[output_subset]
-
-        # # Build the interpolation matrix which maps from the input grid to the output grid.
-        # # Rather than a single phase-wide interpolating polynomial, map each segment.
-        # # To do this, find the nodes in the output grid which fall in each segment of the input
-        # # grid.  Then build a Lagrange interpolating polynomial for that segment
-        # L_blocks = []
-        # D_blocks = []
-        # output_nodes_ptau = ogd.node_ptau[ogd.subset_node_indices[output_subset]]
-
-        # for iseg in range(igd.num_segments):
-        #     i1, i2 = igd.segment_indices[iseg]
-        #     iptau_segi = igd.node_ptau[i1:i2]
-        #     istau_segi = igd.node_stau[i1:i2]
-
-        #     # The indices of the output grid that fall within this segment of the input grid
-        #     if ogd is igd and output_subset == 'all':
-        #         optau_segi = iptau_segi
-        #     else:
-        #         ptau_hi = igd.segment_ends[iseg+1]
-        #         if iseg < igd.num_segments - 1:
-        #             optau_segi = output_nodes_ptau[output_nodes_ptau <= ptau_hi]
-        #         else:
-        #             optau_segi = output_nodes_ptau
-
-        #         # Remove the captured nodes so we don't accidentally include them again
-        #         output_nodes_ptau = output_nodes_ptau[len(optau_segi):]
-
-        #     # # Now get the output nodes which fall in iseg in iseg's segment tau space.
-        #     ostau_segi = 2.0 * (optau_segi - iptau_segi[0]) / (iptau_segi[-1] - iptau_segi[0]) - 1
-
-        #     # Create the interpolation matrix and add it to the blocks
-        #     L, D = lagrange_matrices(istau_segi, ostau_segi)
-        #     L_blocks.append(L)
-        #     D_blocks.append(D)
-
-        # self.interpolation_matrix = sp.block_diag(L_blocks, format='csr')
-        # self.differentiation_matrix = sp.block_diag(D_blocks, format='csr')
 
     def _add_output_configure(self, name, units, shape, desc='', src=None, rate=False):
         """
@@ -161,14 +100,12 @@ class TimeseriesOutputComp(om.ExplicitComponent):
             # If we're already pulling the source into this timeseries, use that as the
             # input for this output.
             input_name = self._sources[src]
-            input_units = self._units[input_name]
         else:
             input_name = f'input_values:{name}'
             self.add_input(input_name,
                            shape=(input_num_nodes,) + shape,
                            units=units, desc=desc)
             self._sources[src] = input_name
-            input_units = self._units[input_name] = units
             added_source = True
 
         output_name = name
@@ -178,18 +115,11 @@ class TimeseriesOutputComp(om.ExplicitComponent):
 
         size = np.prod(shape)
 
-        # Get any scaling that needs to be performed for the derivative
-        if input_units is None or units is None:
-            scale = 1.0
-        else:
-            scale, offset = unit_conversion(input_units, units)
-            self._conversion_factors[output_name] = scale, offset
-
         if not rate and self._no_interp:
             # Case 1: No outputs just echo inputs.
             # Jacobian values are just the scale factor
             jac_rows = jac_cols = np.arange(input_num_nodes * size, dtype=int)
-            jac_val = scale
+            jac_val = 1.0
         else:
             if rate:
                 # Case 2: The output is a rate
@@ -229,7 +159,7 @@ class TimeseriesOutputComp(om.ExplicitComponent):
 
             # There's a chance that the input for this output was pulled from another variable with
             # different units, so account for that with a conversion.
-            jac_val = np.squeeze(np.array(jac[jac_rows, jac_cols])) * scale
+            jac_val = np.squeeze(np.array(jac[jac_rows, jac_cols]))
 
         self.declare_partials(of=output_name, wrt=input_name,
                               rows=jac_rows, cols=jac_cols,
@@ -382,8 +312,4 @@ class TimeseriesOutputComp(om.ExplicitComponent):
             if is_rate:
                 interp_vals = self.differentiation_matrix.dot(interp_vals) / dt_dstau
 
-            if output_name in self._conversion_factors:
-                scale, offset = self._conversion_factors[output_name]
-                outputs[output_name] = scale * (interp_vals + offset)
-            else:
-                outputs[output_name] = interp_vals
+            outputs[output_name] = interp_vals
