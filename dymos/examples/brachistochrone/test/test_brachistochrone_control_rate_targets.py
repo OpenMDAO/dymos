@@ -140,7 +140,7 @@ class TestBrachistochroneControlRateTargets(unittest.TestCase):
                         p = om.Problem(model=om.Group())
                         p.driver = om.ScipyOptimizeDriver()
                         p.driver.declare_coloring()
-                        p.driver.options['maxiter'] = 300
+                        p.driver.options['maxiter'] = 500
 
                         traj = dm.Trajectory()
 
