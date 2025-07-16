@@ -45,9 +45,9 @@ jobs:
           # Pin PETSc back to 3.22.2
           - NAME: latest
             PY: '3.12'
-            NUMPY: 1
+            NUMPY: 2
             SCIPY: 1
-            PETSc: 3.21.0
+            PETSc: 3.22.2
             PYOPTSPARSE: 'latest'
             SNOPT: 7.7
             OPENMDAO: 'dev'

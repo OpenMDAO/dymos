@@ -157,13 +157,13 @@ jobs:
             JAX: 'latest'
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
 
-          # Python 3.13 (requires NumPy 2.1 which does not work yet with pyoptsparse)
+          # Python 3.13
           - NAME: python313
             PY: '3.13'
             NUMPY: 2
             SCIPY: 1
             PETSc: 3.22.2
-            # PYOPTSPARSE: 'latest'
+            PYOPTSPARSE: 'latest'
             SNOPT: 7.7
             OPENMDAO: 'dev'
             OPTIONAL: '[test]'
