@@ -37,7 +37,7 @@ jobs:
             PY: '3.13'
             NUMPY: '2.2'
             SCIPY: '1.15'
-            PETSc: '3.21'
+            PETSc: '3.23'
             PYOPTSPARSE: 'v2.13.1'
             OPENMDAO: 'latest'
             OPTIONAL: '[docs]'
