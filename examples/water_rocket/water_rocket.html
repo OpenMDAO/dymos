@@ -954,8 +954,8 @@ The design of a water rocket is somewhat constrained by the soda bottle used as 
 This means that the volume available for water and air is fixed, the initial launch pressure is limited by the bottle’s strength (since the pressure is directly related to the energy available for the rocket, it is easy to see that it should be as high as possible) and the nozzle throat area is also fixed.
 Given these manufacturing constraints, the design variables we are left with are the empty mass (it can be easily changed through adding ballast), the water volume at the launch, and the launch angle.
 With this considerations in mind, a natural formulation for the water rocket problem is</p>
-<div class="amsmath math notranslate nohighlight" id="equation-178c0ac6-6736-4d55-aa3b-4b9d4f715f3b">
-<span class="eqno">(89)<a class="headerlink" href="#equation-178c0ac6-6736-4d55-aa3b-4b9d4f715f3b" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-1523e166-ba15-4b72-a9a1-19e9bda3b1f3">
+<span class="eqno">(89)<a class="headerlink" href="#equation-1523e166-ba15-4b72-a9a1-19e9bda3b1f3" title="Permalink to this equation">#</a></span>\[\begin{align}
     \text{maximize}   &amp;\quad \text{range or height} \\
     \text{w.r.t.}     &amp;\quad \text{empty mass, initial water volume, launch angle, trajectory} \\
     \text{subject to} &amp;\quad \text{flight dynamics} \\
@@ -1501,8 +1501,8 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">_MassAdder</span></code> component calculates the rocket’s instantaneous mass by
 summing the water mass with the rockets empty mass, i.e.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-b2fd5077-5ac8-45a1-b14a-9d1302b896ab">
-<span class="eqno">(90)<a class="headerlink" href="#equation-b2fd5077-5ac8-45a1-b14a-9d1302b896ab" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-f119cdb7-a9fb-4ef8-bcdb-2f4c7d2be199">
+<span class="eqno">(90)<a class="headerlink" href="#equation-f119cdb7-a9fb-4ef8-bcdb-2f4c7d2be199" title="Permalink to this equation">#</a></span>\[\begin{align}
     m = m_\text{empty}+\rho_w V_w
 \end{align}\]</div>
 <div class="cell tag_remove-input docutils container">
@@ -2509,10 +2509,10 @@ Total colors vs. total size: 20 vs 613  (96.74% improvement)
 
 Sparsity computed using tolerance: 1e-12.
 Dense total jacobian for Problem &#39;problem&#39; was computed 3 times.
-Time to compute sparsity:   0.5279 sec
-Time to compute coloring:   0.8551 sec
-Memory to compute coloring:  -2.3594 MB
-Coloring created on: 2025-06-24 17:45:43
+Time to compute sparsity:   0.5271 sec
+Time to compute coloring:   0.8275 sec
+Memory to compute coloring:  -2.3477 MB
+Coloring created on: 2025-07-16 16:28:15
 
 List of user-set options:
 
@@ -2577,9 +2577,7 @@ iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  10 -2.7332373e+01 1.07e-01 3.06e+02  -0.6 1.88e+00    -  1.00e+00 1.00e+00h  1
+  10 -2.7332373e+01 1.07e-01 3.06e+02  -0.6 1.88e+00    -  1.00e+00 1.00e+00h  1
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  11 -3.0084122e+01 2.12e-02 2.34e+02  -1.7 2.75e+00    -  1.00e+00 1.00e+00f  1
@@ -2601,6 +2599,9 @@ iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  17 -3.0667694e+01 1.19e+00 2.15e+01  -5.6 2.34e+01    -  4.59e-01 1.00e+00H  1
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  18 -5.4939728e+01 1.74e+00 1.51e+01  -5.9 5.46e+01    -  4.89e-01 4.45e-01f  1
@@ -2625,9 +2626,6 @@ iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  23 -2.2677079e+01 3.85e-01 8.27e+02  -5.9 3.68e+00    -  6.63e-01 1.00e+00h  1
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
-</pre></div>
-</div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  24 -2.2735258e+01 5.53e-02 1.37e+01  -5.9 3.10e-01    -  1.00e+00 1.00e+00h  1
 </pre></div>
 </div>
@@ -2635,9 +2633,6 @@ iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  26 -2.4982269e+01 8.76e-02 3.07e+00  -6.4 2.23e+00    -  1.00e+00 1.00e+00f  1
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  27 -4.3310919e+01 1.41e+00 1.58e+01  -6.5 5.42e+03    -  1.92e-03 3.38e-03f  1
@@ -2656,22 +2651,16 @@ iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  31 -5.7308227e+01 1.92e+01 2.30e+02  -1.6 7.79e+01    -  1.00e+00 1.00e+00h  1
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  32 -5.7829089e+01 1.29e+01 2.11e+02  -1.8 1.13e+02    -  1.96e-01 3.46e-01h  1
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  32 -5.7829089e+01 1.29e+01 2.11e+02  -1.8 1.13e+02    -  1.96e-01 3.46e-01h  1
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  33 -3.3125565e+01 7.43e+01 2.39e+02  -1.8 4.80e+01    -  3.03e-01 1.00e+00h  1
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
-</pre></div>
-</div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  34 -3.3033167e+01 7.45e+00 5.66e+01  -1.8 1.29e+01    -  4.48e-01 1.00e+00h  1
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  35 -3.3716290e+01 6.50e-01 5.14e+01  -1.8 2.28e+00    -  6.54e-01 1.00e+00h  1
@@ -2681,9 +2670,6 @@ iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  37 -5.2622499e+01 6.10e+00 5.50e+01  -2.6 1.19e+01    -  6.87e-01 1.00e+00f  1
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  38 -5.2354474e+01 4.10e-01 1.06e+02  -2.7 4.58e+00    -  1.00e+00 1.00e+00h  1
@@ -2702,13 +2688,7 @@ iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  41 -5.8577610e+01 1.72e-01 1.03e+01  -3.3 6.54e+00    -  1.00e+00 4.76e-02h  1
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
-</pre></div>
-</div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  42 -5.2258700e+01 1.36e-01 4.14e+01  -4.0 6.32e+00    -  1.00e+00 1.00e+00h  1
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  43 -5.4408732e+01 4.33e-02 1.34e+01  -4.1 2.15e+00    -  1.00e+00 1.00e+00f  1
@@ -2724,9 +2704,6 @@ iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  47 -5.3522181e+01 1.06e-03 1.06e+01  -6.6 1.57e-01    -  1.00e+00 1.00e+00h  1
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  48 -5.3588569e+01 1.26e-03 5.57e+00  -7.8 2.17e-01    -  1.00e+00 1.00e+00h  1
@@ -2751,9 +2728,6 @@ iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  53 -5.3391966e+01 9.00e-05 1.43e-01 -11.0 3.01e-02    -  1.00e+00 1.00e+00h  1
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
-</pre></div>
-</div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  54 -5.3395647e+01 1.96e-05 1.34e-01 -11.0 1.35e-02    -  1.00e+00 1.00e+00H  1
 </pre></div>
 </div>
@@ -2764,6 +2738,9 @@ iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  57 -5.3388004e+01 4.82e-07 8.06e-05 -11.0 1.87e-04    -  1.00e+00 1.00e+00h  1
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  58 -5.3387977e+01 5.02e-08 5.45e-08 -11.0 2.78e-05    -  1.00e+00 1.00e+00h  1
@@ -2796,7 +2773,7 @@ Number of inequality constraint evaluations          = 0
 Number of equality constraint Jacobian evaluations   = 62
 Number of inequality constraint Jacobian evaluations = 0
 Number of Lagrangian Hessian evaluations             = 0
-Total seconds in IPOPT                               = 6.706
+Total seconds in IPOPT                               = 6.637
 
 EXIT: Optimal Solution Found.
 </pre></div>
@@ -2904,10 +2881,10 @@ Total colors vs. total size: 20 vs 613  (96.74% improvement)
 
 Sparsity computed using tolerance: 1e-12.
 Dense total jacobian for Problem &#39;problem6&#39; was computed 3 times.
-Time to compute sparsity:   0.5216 sec
-Time to compute coloring:   0.8529 sec
+Time to compute sparsity:   0.5195 sec
+Time to compute coloring:   0.8300 sec
 Memory to compute coloring:   0.0000 MB
-Coloring created on: 2025-06-24 17:45:56
+Coloring created on: 2025-07-16 16:28:27
 
 List of user-set options:
 
@@ -2978,10 +2955,16 @@ iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  11 -5.2073297e+01 4.41e-03 1.48e+04   0.9 9.79e-01    -  1.00e+00 1.00e+00f  1
 </pre></div>
 </div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  12 -6.1190692e+01 1.18e+00 2.98e+02   0.4 9.12e+00    -  1.00e+00 1.00e+00f  1
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  13 -7.0770515e+01 1.06e+00 4.12e+02  -0.8 9.58e+00    -  1.00e+00 1.00e+00f  1
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  14 -7.8653577e+01 7.43e-01 1.87e+02  -1.4 7.88e+00    -  1.00e+00 1.00e+00f  1
@@ -3003,21 +2986,19 @@ iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  20 -8.6314900e+01 5.24e-02 2.10e+01  -5.2 5.93e+00    -  1.00e+00 1.00e+00f  1
+  20 -8.6314900e+01 5.24e-02 2.10e+01  -5.2 5.93e+00    -  1.00e+00 1.00e+00f  1
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  21 -8.2646846e+01 4.62e-02 1.80e+01  -5.9 3.67e+00    -  1.00e+00 1.00e+00h  1
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  22 -8.6622097e+01 7.78e-02 3.98e+01  -6.0 4.92e+00    -  1.00e+00 1.00e+00f  1
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  23 -8.9263527e+01 1.58e-01 1.65e+01  -6.5 3.44e+00    -  1.00e+00 1.00e+00f  1
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  24 -7.9904100e+01 7.83e-02 4.89e+01  -7.1 1.43e+01    -  8.74e-01 1.00e+00H  1
@@ -3035,14 +3016,16 @@ iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  28 -8.4985862e+01 8.78e-04 3.35e+00  -9.9 9.14e-01    -  1.00e+00 1.00e+00h  1
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
-</pre></div>
-</div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  29 -8.5061347e+01 6.79e-04 4.50e-01 -11.0 3.11e-01    -  1.00e+00 1.00e+00h  1
 </pre></div>
 </div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
-  30 -8.5098262e+01 2.30e-03 2.81e+00 -11.0 1.67e-01    -  1.00e+00 1.00e+00h  1
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  30 -8.5098262e+01 2.30e-03 2.81e+00 -11.0 1.67e-01    -  1.00e+00 1.00e+00h  1
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  31 -8.5259423e+01 2.73e-03 9.01e-02 -11.0 1.61e-01    -  1.00e+00 1.00e+00h  1
@@ -3072,14 +3055,14 @@ iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  39 -8.5095999e+01 5.65e-04 6.27e-01 -11.0 4.25e-02    -  1.00e+00 1.00e+00h  1
 </pre></div>
 </div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
   40 -8.5134267e+01 6.21e-04 4.41e-02 -11.0 3.83e-02    -  1.00e+00 1.00e+00h  1
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  41 -8.5090262e+01 8.11e-05 4.47e-02 -11.0 4.40e-02    -  1.00e+00 1.00e+00h  1
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  42 -8.5097282e+01 7.71e-06 6.18e-04 -11.0 7.02e-03    -  1.00e+00 1.00e+00h  1
@@ -3100,10 +3083,16 @@ iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  47 -8.5096681e+01 4.98e-07 1.45e-05 -11.0 4.50e-05    -  1.00e+00 1.00e+00h  1
 </pre></div>
 </div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  48 -8.5096716e+01 1.97e-07 3.53e-04 -11.0 3.56e-05    -  1.00e+00 1.00e+00h  1
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  49 -8.5096729e+01 2.86e-07 7.10e-05 -11.0 2.29e-05    -  1.00e+00 1.00e+00h  1
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>iter    objective    inf_pr   inf_du lg(mu)  ||d||  lg(rg) alpha_du alpha_pr  ls
@@ -3133,7 +3122,7 @@ Number of inequality constraint evaluations          = 0
 Number of equality constraint Jacobian evaluations   = 53
 Number of inequality constraint Jacobian evaluations = 0
 Number of Lagrangian Hessian evaluations             = 0
-Total seconds in IPOPT                               = 5.997
+Total seconds in IPOPT                               = 5.949
 
 EXIT: Optimal Solution Found.
 
@@ -3144,11 +3133,11 @@ Optimization Problem -- Optimization using pyOpt_sparse
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    5.9983
-       User Objective Time :       0.2402
-       User Sensitivity Time :     3.4876
-       Interface Time :            0.8990
-       Opt Solver Time:            1.3716
+    Total Time:                    5.9508
+       User Objective Time :       0.2126
+       User Sensitivity Time :     3.4902
+       Interface Time :            0.8869
+       Opt Solver Time:            1.3611
     Calls to Objective Function :      58
     Calls to Sens Function :           54
 

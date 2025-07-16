@@ -943,13 +943,13 @@ Also, since the duration of the trajectory is small, we’re going to assume tha
 <h3>The Aerodynamic Model<a class="headerlink" href="#the-aerodynamic-model" title="Permalink to this heading">#</a></h3>
 <p>Both sets of equations of motion have common aerodynamic models.</p>
 <p>First, the lift coefficient is computed using a model which assumes linearity in lift wrt the angle of attack.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-810806ff-b4c1-473d-a764-b24382729ae7">
-<span class="eqno">(21)<a class="headerlink" href="#equation-810806ff-b4c1-473d-a764-b24382729ae7" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-a678bc11-402d-4daa-aafc-916567c26705">
+<span class="eqno">(21)<a class="headerlink" href="#equation-a678bc11-402d-4daa-aafc-916567c26705" title="Permalink to this equation">#</a></span>\[\begin{align}
     C_L &amp;= C_{L0} + \frac{\alpha}{\alpha_{max}} \left(C_{L-max} - C_{L0}\right)
 \end{align}\]</div>
 <p>Next, the drag-due-to-lift factor is computed (Equations 12.48 and 12.61 in Raymer[&#64;raymer2012aircraft]).</p>
-<div class="amsmath math notranslate nohighlight" id="equation-0c380bf8-4183-4c58-b4f9-f25b56c63c40">
-<span class="eqno">(22)<a class="headerlink" href="#equation-0c380bf8-4183-4c58-b4f9-f25b56c63c40" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-c2b543d8-ae85-4d5a-8365-a44b80f233d4">
+<span class="eqno">(22)<a class="headerlink" href="#equation-c2b543d8-ae85-4d5a-8365-a44b80f233d4" title="Permalink to this equation">#</a></span>\[\begin{align}
     K_{nom} &amp;= \frac{1}{ \pi  AR  e} \\
     b &amp;= \frac{span}{2} \\
     K &amp;= 33 K_{nom} \frac{ \left(\frac{h + h_w}{b} \right) ^{\frac{3}{2}}}{1.0 + 33 \left( \frac{h + h_w}{b}\right) ^{\frac{3}{2}}}
@@ -958,8 +958,8 @@ Also, since the duration of the trajectory is small, we’re going to assume tha
 This causes this problem to be difficult to solve using a shooting method.
 If the optimizer proposes a combination of initial states and a control history that results in altitude dropping significantly below zero, the propagation will fail.</p>
 <p>Finally, the lift and drag are computed after computing the dynamic pressure.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-8a4f0b53-8ee6-45f9-88a2-4cb7121f96ae">
-<span class="eqno">(23)<a class="headerlink" href="#equation-8a4f0b53-8ee6-45f9-88a2-4cb7121f96ae" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-a61d179c-50a7-4989-ae78-764b44d94695">
+<span class="eqno">(23)<a class="headerlink" href="#equation-a61d179c-50a7-4989-ae78-764b44d94695" title="Permalink to this equation">#</a></span>\[\begin{align}
     q &amp;= 0.5 \rho v^2 \\
     L &amp;= q  S  C_L \\
     D &amp;= q S \left( C_{D0} + K C_{L}^2 \right)
@@ -970,8 +970,8 @@ If the optimizer proposes a combination of initial states and a control history 
 <p>This model relies on the ratio of the current true airspeed to stall speed (<span class="math notranslate nohighlight">\(\frac{v}{v_{stall}}\)</span>).
 This constraint is used to trigger the beginning of rotation and is used as a boundary constraint at the end of the initial climb.
 Stall speed is given by Equation 5.6 in Raymer[&#64;raymer2012aircraft].</p>
-<div class="amsmath math notranslate nohighlight" id="equation-0e1e8255-9c18-40f0-aedf-cddb5e43da09">
-<span class="eqno">(24)<a class="headerlink" href="#equation-0e1e8255-9c18-40f0-aedf-cddb5e43da09" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-5f346089-3ac7-4611-9662-75b549390339">
+<span class="eqno">(24)<a class="headerlink" href="#equation-5f346089-3ac7-4611-9662-75b549390339" title="Permalink to this equation">#</a></span>\[\begin{align}
     W &amp;= m g \\
     v_{stall} &amp;= \sqrt{\frac{2 * W}{\rho S C_{L-max}}}
 \end{align}\]</div>
@@ -979,8 +979,8 @@ Stall speed is given by Equation 5.6 in Raymer[&#64;raymer2012aircraft].</p>
 <section id="runway-equations-of-motion">
 <h3>Runway Equations of Motion<a class="headerlink" href="#runway-equations-of-motion" title="Permalink to this heading">#</a></h3>
 <p>The runway equations of motion are used to integrate range and speed as the vehicle rolls along the runway.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-67d18b34-54d8-4d86-a934-cafc6e4caf56">
-<span class="eqno">(25)<a class="headerlink" href="#equation-67d18b34-54d8-4d86-a934-cafc6e4caf56" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-77c4ec42-4c4c-455e-8098-f2a31f7daee8">
+<span class="eqno">(25)<a class="headerlink" href="#equation-77c4ec42-4c4c-455e-8098-f2a31f7daee8" title="Permalink to this equation">#</a></span>\[\begin{align}
   F_r &amp;= mg - L \cos \alpha - T \sin \alpha \\
   \dot{v} &amp;= \frac{T \cos \alpha - D - F_r \mu_r}{m} \\
   \dot{r} &amp;= v
@@ -1007,8 +1007,8 @@ Stall speed is given by Equation 5.6 in Raymer[&#64;raymer2012aircraft].</p>
 <section id="flight-equations-of-motion">
 <h3>Flight Equations of Motion<a class="headerlink" href="#flight-equations-of-motion" title="Permalink to this heading">#</a></h3>
 <p>The flight equations of motion include two additional state variables: the flight-path angle (<span class="math notranslate nohighlight">\(\gamma\)</span>) and altitude (<span class="math notranslate nohighlight">\(h\)</span>).</p>
-<div class="amsmath math notranslate nohighlight" id="equation-370e886d-6f18-4e3b-a14b-245cc85c179b">
-<span class="eqno">(26)<a class="headerlink" href="#equation-370e886d-6f18-4e3b-a14b-245cc85c179b" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-fd03b0a0-a880-4095-a4ff-1a1e52edf2ec">
+<span class="eqno">(26)<a class="headerlink" href="#equation-fd03b0a0-a880-4095-a4ff-1a1e52edf2ec" title="Permalink to this equation">#</a></span>\[\begin{align}
   \dot{v} &amp;= \frac{T}{m} \cos \alpha - \frac{D}{m} - g \sin \gamma \\
   \dot{\gamma} &amp;= \frac{T}{m v} \sin \alpha + \frac{L}{m v} - \frac{g \cos \gamma}{v} \\
   \dot{h} &amp;= v \sin \gamma \\
@@ -1533,7 +1533,7 @@ First we define the problem and specify the optimizer settings.</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;dymos.phase.phase.Phase at 0x7fb82824be90&gt;
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;dymos.phase.phase.Phase at 0x7fb469fe65d0&gt;
 </pre></div>
 </div>
 </div>
@@ -1661,7 +1661,7 @@ By specifying these constraints as linear, we’re also letting the optimizer kn
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.001171 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000960 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
@@ -1673,13 +1673,13 @@ By specifying these constraints as linear, we’re also letting the optimizer kn
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000480 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000582 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000487 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000506 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
@@ -1691,13 +1691,13 @@ By specifying these constraints as linear, we’re also letting the optimizer kn
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.004331 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.004014 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000127 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000151 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
@@ -1709,25 +1709,25 @@ By specifying these constraints as linear, we’re also letting the optimizer kn
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000572 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000543 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000034 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000047 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000278 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000463 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000263 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000561 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
@@ -1739,13 +1739,13 @@ By specifying these constraints as linear, we’re also letting the optimizer kn
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.003902 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.004133 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000118 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000124 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
@@ -1756,30 +1756,30 @@ By specifying these constraints as linear, we’re also letting the optimizer kn
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Coloring for &#39;traj.phases.br_to_v1.rhs_all&#39; (class BalancedFieldODEComp)
 
-Jacobian shape: (132, 60)  (9.73% nonzero)
+Jacobian shape: (132, 60)  (9.72% nonzero)
 FWD solves: 16   REV solves: 0
 Total colors vs. total size: 16 vs 60  (73.33% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense partial jacobian for BalancedFieldODEComp &#39;traj.phases.br_to_v1.rhs_all&#39; was computed 3 times.
 Time to compute sparsity:   0.0174 sec
-Time to compute coloring:   0.0108 sec
-Memory to compute coloring:   0.2500 MB
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Coloring for &#39;traj.phases.rto.rhs_all&#39; (class BalancedFieldODEComp)
+Time to compute coloring:   0.0105 sec
+Memory to compute coloring:   0.1250 MB
 
-Jacobian shape: (132, 60)  (9.72% nonzero)
+Coloring for &#39;traj.phases.rto.rhs_all&#39; (class BalancedFieldODEComp)
+
+Jacobian shape: (132, 60)  (9.75% nonzero)
 FWD solves: 16   REV solves: 0
 Total colors vs. total size: 16 vs 60  (73.33% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense partial jacobian for BalancedFieldODEComp &#39;traj.phases.rto.rhs_all&#39; was computed 3 times.
-Time to compute sparsity:   0.0178 sec
-Time to compute coloring:   0.0103 sec
+Time to compute sparsity:   0.0174 sec
+Time to compute coloring:   0.0102 sec
 Memory to compute coloring:   0.0000 MB
-
-Coloring for &#39;traj.phases.v1_to_vr.rhs_all&#39; (class BalancedFieldODEComp)
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Coloring for &#39;traj.phases.v1_to_vr.rhs_all&#39; (class BalancedFieldODEComp)
 
 Jacobian shape: (132, 60)  (10.00% nonzero)
 FWD solves: 16   REV solves: 0
@@ -1787,20 +1787,20 @@ Total colors vs. total size: 16 vs 60  (73.33% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense partial jacobian for BalancedFieldODEComp &#39;traj.phases.v1_to_vr.rhs_all&#39; was computed 3 times.
-Time to compute sparsity:   0.0171 sec
-Time to compute coloring:   0.0105 sec
+Time to compute sparsity:   0.0251 sec
+Time to compute coloring:   0.0104 sec
 Memory to compute coloring:   0.0000 MB
 
 Coloring for &#39;traj.phases.rotate.rhs_all&#39; (class BalancedFieldODEComp)
 
-Jacobian shape: (132, 60)  (10.00% nonzero)
+Jacobian shape: (132, 60)  (9.99% nonzero)
 FWD solves: 16   REV solves: 0
 Total colors vs. total size: 16 vs 60  (73.33% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense partial jacobian for BalancedFieldODEComp &#39;traj.phases.rotate.rhs_all&#39; was computed 3 times.
-Time to compute sparsity:   0.0168 sec
-Time to compute coloring:   0.0101 sec
+Time to compute sparsity:   0.0171 sec
+Time to compute coloring:   0.0102 sec
 Memory to compute coloring:   0.0000 MB
 
 Coloring for &#39;traj.phases.climb.rhs_all&#39; (class BalancedFieldODEComp)
@@ -1811,8 +1811,8 @@ Total colors vs. total size: 16 vs 111  (85.59% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense partial jacobian for BalancedFieldODEComp &#39;traj.phases.climb.rhs_all&#39; was computed 3 times.
-Time to compute sparsity:   0.0302 sec
-Time to compute coloring:   0.0199 sec
+Time to compute sparsity:   0.0299 sec
+Time to compute coloring:   0.0193 sec
 Memory to compute coloring:   0.0000 MB
 </pre></div>
 </div>
@@ -1822,10 +1822,10 @@ Total colors vs. total size: 14 vs 166  (91.57% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem&#39; was computed 3 times.
-Time to compute sparsity:   1.0110 sec
-Time to compute coloring:   0.1471 sec
+Time to compute sparsity:   1.0460 sec
+Time to compute coloring:   0.1435 sec
 Memory to compute coloring:   0.0000 MB
-Coloring created on: 2025-06-24 17:36:51
+Coloring created on: 2025-07-16 16:19:32
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/total_jac.py:1731: DerivativesWarning:Constraints or objectives [(&#39;traj.climb.gam[path]&#39;, inds=[(0, 0)])] cannot be impacted by the design variables of the problem.
@@ -1841,11 +1841,11 @@ Coloring created on: 2025-06-24 17:36:51
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 25
-  runtime     : 3.3146E+00 s
+  runtime     : 3.2880E+00 s
   model_evals : 25
-  model_time  : 7.8013E-02 s
+  model_time  : 6.7907E-02 s
   deriv_evals : 24
-  deriv_time  : 1.2644E+00 s
+  deriv_time  : 1.2503E+00 s
   exit_status : SUCCESS
 </pre></div>
 </div>
