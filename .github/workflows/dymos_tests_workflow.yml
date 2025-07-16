@@ -82,6 +82,10 @@ jobs:
   test_ubuntu:
     runs-on: ubuntu-22.04
 
+    defaults:
+      run:
+        shell: bash -l {0}
+
     timeout-minutes: 90
 
     strategy:
@@ -90,99 +94,75 @@ jobs:
         include:
           # baseline versions
           - NAME: baseline
-            PY: '3.12'
-            NUMPY: 1.26
-            SCIPY: 1.13
-            PETSc: 3.21.0
-            PYOPTSPARSE: 'v2.11.0'
-            SNOPT: 7.7
+            PY: '3.13'
+            NUMPY: '2.2'
+            SCIPY: '1.15'
+            PETSc: '3.23'
+            PYOPTSPARSE: 'v2.13.1'
+            SNOPT: '7.7'
             OPENMDAO: 'latest'
             PEP517: true
             OPTIONAL: '[all]'
-            JAX: '0.4.28'
+            JAX: true
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.baseline }}
 
           # baseline versions except no pyoptsparse or SNOPT
           - NAME: no_pyoptsparse
-            PY: '3.12'
-            NUMPY: 1.26
-            SCIPY: 1.13
-            PETSc: 3.21.0
+            PY: '3.13'
+            NUMPY: '2.2'
+            SCIPY: '1.15'
+            PETSc: '3.23'
             OPENMDAO: 'latest'
             OPTIONAL: '[test]'
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.no_pyoptsparse }}
 
-          # numpy 2.x but no PETSc, pyoptsparse or SNOPT
-          - NAME: numpy2_no_pyoptsparse
-            PY: '3.12'
-            NUMPY: 2
-            SCIPY: 1.14
-            OPENMDAO: 'latest'
-            OPTIONAL: '[all]'
-            EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.numpy2_no_pyoptsparse }}
-
           # baseline versions except with pyoptsparse but no SNOPT
           - NAME: no_snopt
-            PY: '3.12'
-            NUMPY: 1.26
-            SCIPY: 1.13
-            PETSc: 3.21.0
-            PYOPTSPARSE: 'v2.11.0'
+            PY: '3.13'
+            NUMPY: '2.2'
+            SCIPY: '1.15'
+            PETSc: '3.23'
+            PYOPTSPARSE: 'v2.13.1'
             OPENMDAO: 'latest'
             OPTIONAL: '[all]'
-            JAX: '0.4.28'
+            JAX: true
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.no_snopt }}
 
           # baseline versions except no MPI/PETSc
           - NAME: no_mpi
-            PY: '3.12'
-            NUMPY: 1.26
-            SCIPY: 1.13
-            PYOPTSPARSE: 'v2.11.0'
+            PY: '3.13'
+            NUMPY: '2.2'
+            SCIPY: '1.15'
+            PYOPTSPARSE: 'v2.13.1'
             OPENMDAO: 'latest'
             OPTIONAL: '[test]'
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.no_mpi }}
 
-          # try latest versions
-          # Python 3.13
-          - NAME: python313
-            PY: '3.13'
-            NUMPY: 2
-            SCIPY: 1
-            PETSc: 3.22.2
+          # latest versions
+          - NAME: latest
+            PY: '3'
+            NUMPY: '2'
+            SCIPY: '1'
+            PETSc: '3'
             PYOPTSPARSE: 'latest'
-            SNOPT: 7.7
+            SNOPT: '7.7'
             OPENMDAO: 'dev'
-            OPTIONAL: '[test]'
-            JAX: 'latest'
-            EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.python313 }}
-
-          # Python 3.13, Dymos 2
-          - NAME: python313_dymos2
-            PY: '3.13'
-            NUMPY: 2
-            SCIPY: 1
-            PETSc: 3.22.2
-            PYOPTSPARSE: 'latest'
-            SNOPT: 7.7
-            OPENMDAO: 'dev'
-            OPTIONAL: '[test]'
-            JAX: 'latest'
-            DYMOS_2: true
-            EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.python313_dymos2 }}
+            OPTIONAL: '[all]'
+            JAX: true
+            EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
 
           # oldest supported versions
           - NAME: oldest
-            PY: 3.9
-            NUMPY: 1.25
-            SCIPY: 1.11
+            PY: '3.9'
+            NUMPY: '1.25'
+            SCIPY: '1.11'
             OPENMPI: '4.0'
             MPI4PY: '3.0'
-            PETSc: 3.13
+            PETSc: '3.13'
             PYOPTSPARSE: 'v2.10.2'
-            SNOPT: 7.2
+            SNOPT: '7.2'
             OPENMDAO: 3.36.0
-            MATPLOTLIB: 3.5
+            MATPLOTLIB: '3.5'
             OPTIONAL: '[test]'
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.oldest }}
 
@@ -206,7 +186,6 @@ jobs:
 
       - name: Create SSH key
         if: ${{ ! matrix.EXCLUDE }}
-        shell: bash
         env:
           SSH_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}
           SSH_KNOWN_HOSTS: ${{secrets.SSH_KNOWN_HOSTS}}
@@ -230,7 +209,6 @@ jobs:
 
       - name: Install Numpy/Scipy
         if: ${{ ! matrix.EXCLUDE }}
-        shell: bash -l {0}
         run: |
           echo "============================================================="
           echo "Install Numpy/Scipy"
@@ -239,25 +217,14 @@ jobs:
 
       - name: Install jax
         if: ${{ ! matrix.EXCLUDE && matrix.JAX }}
-        shell: bash -l {0}
         run: |
           echo "============================================================="
           echo "Install jax"
           echo "============================================================="
-          if [[ "${{ matrix.JAX }}" == "latest" ]]; then
-            {
-              python -m pip install jaxlib
-            } || {
-              echo "Failed to install jaxlib..."
-            }
-            python -m pip install jax
-          else
-            python -m pip install jaxlib==${{ matrix.JAX }} jax==${{ matrix.JAX }}
-          fi
+          python -m pip install jax
 
       - name: Install PETSc
         if: ${{ ! matrix.EXCLUDE && matrix.PETSc }}
-        shell: bash -l {0}
         run: |
           echo "============================================================="
           echo "Install PETSc"
@@ -284,7 +251,6 @@ jobs:
       - name: Install pyOptSparse
         id: build_pyoptsparse
         if: ${{ ! matrix.EXCLUDE && matrix.PYOPTSPARSE }}
-        shell: bash -l {0}
         run: |
           echo "============================================================="
           echo "Install pyoptsparse"
@@ -330,7 +296,6 @@ jobs:
 
       - name: Install OpenMDAO
         if: ${{ ! matrix.EXCLUDE && matrix.OPENMDAO }}
-        shell: bash -l {0}
         run: |
           echo "============================================================="
           echo "Install OpenMDAO"
@@ -345,7 +310,6 @@ jobs:
 
       - name: Install Matplotlib
         if: ${{ ! matrix.EXCLUDE && matrix.MATPLOTLIB }}
-        shell: bash -l {0}
         run: |
           echo "============================================================="
           echo "Install requested version of Matpltlib"
@@ -354,7 +318,6 @@ jobs:
 
       - name: Install Dymos
         if: ${{ ! matrix.EXCLUDE }}
-        shell: bash -l {0}
         run: |
           echo "============================================================="
           echo "Install Dymos"
@@ -398,7 +361,6 @@ jobs:
       - name: Display environment info
         id: env_info
         if: ${{ ! matrix.EXCLUDE }}
-        shell: bash -l {0}
         run: |
           printenv
 
@@ -432,16 +394,6 @@ jobs:
           path: ${{ matrix.NAME }}_environment.yml
           retention-days: 5
 
-      - name: Check NumPy 2.0 Compatibility
-        if: ${{ ! matrix.EXCLUDE }}
-        run: |
-          echo "============================================================="
-          echo "Check Dymos code for NumPy 2.0 compatibility"
-          echo "See: https://numpy.org/devdocs/numpy_2_0_migration_guide.html"
-          echo "============================================================="
-          python -m pip install ruff
-          ruff check . --select NPY201
-
       - name: Perform linting with Ruff
         if: ${{ ! matrix.EXCLUDE && matrix.NAME == 'baseline' }}
         run: |
@@ -455,7 +407,6 @@ jobs:
         if: ${{ ! matrix.EXCLUDE }}
         env:
           DYMOS_CHECK_PARTIALS: True
-        shell: bash -l {0}
         run: |
           echo "============================================================="
           echo "Run Tests"
@@ -473,10 +424,10 @@ jobs:
           else
             testflo dymos -n 4 --pre_announce --show_skipped --durations 20
           fi
+
       - name: Submit coverage
         if: github.event_name != 'workflow_dispatch'
         continue-on-error: true
-        shell: bash -l {0}
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COVERALLS_SERVICE_NAME: "github"

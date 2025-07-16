@@ -2,11 +2,6 @@ import unittest
 
 import numpy as np
 
-try:
-    import matplotlib
-except ImportError:
-    matplotlib = None
-
 import openmdao.api as om
 from openmdao.utils.testing_utils import use_tempdirs
 from dymos.utils.testing_utils import assert_timeseries_near_equal
@@ -119,7 +114,7 @@ class TestBrachistochroneControlRateTargets(unittest.TestCase):
 
         transcriptions = {'gauss-lobatto': dm.GaussLobatto(num_segments=10),
                           'radau': dm.Radau(num_segments=10),
-                          'birkhoff': dm.Birkhoff(num_nodes=30)}
+                          'birkhoff': dm.Birkhoff(num_nodes=25)}
 
         for tx_name, tx in transcriptions.items():
             for control_target_method in ('implicit', 'explicit'):
@@ -128,7 +123,8 @@ class TestBrachistochroneControlRateTargets(unittest.TestCase):
                     with self.subTest(f'{tx_name=} {control_target_method=} {control_type=}'):
 
                         p = om.Problem(model=om.Group())
-                        p.driver = om.ScipyOptimizeDriver()
+                        p.driver = om.ScipyOptimizeDriver(maxiter=300, disp=0)
+                        p.driver.declare_coloring()
 
                         traj = dm.Trajectory()
 
@@ -156,7 +152,7 @@ class TestBrachistochroneControlRateTargets(unittest.TestCase):
                                         units='m/s',
                                         fix_initial=True, fix_final=False, solve_segments=False)
 
-                        phase.add_control('int_theta', lower=0.0, upper=None, fix_initial=True,
+                        phase.add_control('int_theta', lower=1.0E-6, upper=None, fix_initial=True,
                                           rate_targets=_unspecified if control_target_method == 'implicit' else ['theta'],
                                           control_type=control_type, order=7,
                                           continuity=True, rate_continuity=True)
@@ -176,8 +172,8 @@ class TestBrachistochroneControlRateTargets(unittest.TestCase):
 
                         phase.set_state_val('x', [0, 10])
                         phase.set_state_val('y', [10, 5])
-                        phase.set_state_val('v', [1.0-6, 9.9])
-                        phase.set_control_val('int_theta', [0, 100], units='deg*s')
+                        phase.set_state_val('v', [0, 9.9])
+                        phase.set_control_val('int_theta', [1.0E-6, 100], units='deg*s')
 
                         # Solve for the optimal trajectory
                         dm.run_problem(p, simulate=True)
