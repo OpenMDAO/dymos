@@ -1,10 +1,12 @@
 
 <!DOCTYPE html>
 
-<html lang="en">
+
+<html lang="en" data-content_root="../" >
+
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Defining ODEs &#8212; Dymos</title>
   
@@ -12,53 +14,50 @@
   
   <script data-cfasync="false">
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
-    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=796348d33e8b1d947c94" rel="stylesheet">
-<link href="../_static/styles/bootstrap.css?digest=796348d33e8b1d947c94" rel="stylesheet">
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=796348d33e8b1d947c94" rel="stylesheet">
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
 
   
-  <link href="../_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=796348d33e8b1d947c94" rel="stylesheet">
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2">
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2">
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2">
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=4ec06e9971c5264fbd345897d5258098f11cc577" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/myfile.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/myfile.css?v=9678755d" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=796348d33e8b1d947c94">
-<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=796348d33e8b1d947c94">
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/clipboard.min.js"></script>
-    <script src="../_static/copybutton.js"></script>
-    <script src="../_static/scripts/sphinx-book-theme.js?digest=8bf782fb4ee92b3d3646425e50f299c4e1fd152d"></script>
+    <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
     <script>let toggleHintShow = 'Click to show';</script>
     <script>let toggleHintHide = 'Click to hide';</script>
     <script>let toggleOpenOnPrint = 'true';</script>
-    <script src="../_static/togglebutton.js"></script>
+    <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
-    <script src="../_static/design-tabs.js"></script>
-    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"
-const thebe_selector = ".thebe,.cell"
-const thebe_selector_input = "pre"
-const thebe_selector_output = ".output, .cell_output"
-</script>
-    <script async="async" src="../_static/sphinx-thebe.js"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
     <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'getting_started/defining_odes';</script>
@@ -66,432 +65,114 @@ const thebe_selector_output = ".output, .cell_output"
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="What is collocation?" href="collocation.html" />
     <link rel="prev" title="Optimal Control Transcriptions" href="transcriptions.html" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="docsearch:language" content="en">
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
   </head>
   
   
-  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="180" data-default-mode="">
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
 
   
   
-  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox" class="sidebar-toggle" name="__primary" id="__primary">
-  <label class="overlay overlay-primary" for="__primary"></label>
-
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
   
-  <input type="checkbox" class="sidebar-toggle" name="__secondary" id="__secondary">
-  <label class="overlay overlay-secondary" for="__secondary"></label>
-
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
   
   <div class="search-button__wrapper">
     <div class="search-button__overlay"></div>
     <div class="search-button__search-container">
-      
-<form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
   <i class="fa-solid fa-magnifying-glass"></i>
-  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search this book..." aria-label="Search this book..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form>
-    </div>
+</form></div>
   </div>
 
-  
-  <nav class="bd-header navbar navbar-expand-lg bd-navbar" id="navbar-main"><div class="bd-header__inner bd-page-width">
-  <label class="sidebar-toggle primary-toggle" for="__primary">
-      <span class="fa-solid fa-bars"></span>
-  </label>
-  <div id="navbar-start">
-    
-    
-  
-
-
-<a class="navbar-brand logo" href="../index.html">
-
-  
-  
-  
-  
-  
-  
-  
-
-  
-    <img src="../_static/dymos_logo.png" class="logo__image only-light" alt="Logo image">
-    <img src="../_static/dymos_logo.png" class="logo__image only-dark" alt="Logo image">
-  
-  
-</a>
-    
-  </div>
-
-  
-  <div class="col-lg-9 navbar-header-items">
-    <div id="navbar-center" class="mr-auto">
-      
-      <div class="navbar-center-item">
-        <nav class="navbar-nav">
-    <p class="sidebar-header-items__title" role="heading" aria-level="1" aria-label="Site Navigation">
-        Site Navigation
-    </p>
-    <ul id="navbar-main-elements" class="navbar-nav">
-        
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../installation.html">
-                        Installing Dymos
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="optimal_control.html">
-                        Optimal Control
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="transcriptions.html">
-                        Optimal Control Transcriptions
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item current active">
-                      <a class="nav-link nav-internal" href="#">
-                        Defining ODEs
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="collocation.html">
-                        What is collocation?
-                      </a>
-                    </li>
-                
-            <div class="nav-item dropdown">
-                <button class="btn dropdown-toggle nav-item" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    More
-                </button>
-                <div class="dropdown-menu">
-                    
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="intro_to_dymos/intro_ivp.html">
-                        Modeling Dynamic Systems with Dymos
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="intro_to_dymos/intro_segments.html">
-                        Segments of Phases
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../examples/examples.html">
-                        Dymos by Example
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../features/phases/phases_list.html">
-                        Phases
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../features/trajectories/trajectories.html">
-                        Organizing Phases into Trajectories
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../features/exploiting_sparsity.html">
-                        Exploiting Sparsity for Faster Derivative Calculation
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../features/plotting.html">
-                        Plotting Timeseries
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../faq/faq.html">
-                        Frequently Asked Questions
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../api/api.html">
-                        Dymos Reference API
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../contributing/contributing.html">
-                        Contributing to Dymos
-                      </a>
-                    </li>
-                
-                </div>
-            </div>
-            
-    </ul>
-</nav>
-      </div>
-      
-    </div>
-
-    <div id="navbar-end">
-      
-        <div class="navbar-end-item navbar-persistent--container">
-          
-<button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-toggle="tooltip">
-  <i class="fa-solid fa-magnifying-glass"></i>
-</button>
-        </div>
-      
-      
-      <div class="navbar-end-item">
-        <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-toggle="tooltip">
-    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
-    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
-    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
-</button>
-      </div>
-      
-      <div class="navbar-end-item">
-        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
-      </ul>
-      </div>
-      
-    </div>
-  </div>
-
-
-  
-  
-    <div class="navbar-persistent--mobile">
-<button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-toggle="tooltip">
-  <i class="fa-solid fa-magnifying-glass"></i>
-</button>
-    </div>
-  
-
-  
-  <label class="sidebar-toggle secondary-toggle" for="__secondary">
-      <span class="fa-solid fa-outdent"></span>
-  </label>
-  
-
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
 </div>
-  </nav>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
   
 
   <div class="bd-container">
     <div class="bd-container__inner bd-page-width">
       
+      
+      
       <div class="bd-sidebar-primary bd-sidebar">
         
+
   
   <div class="sidebar-header-items sidebar-primary__section">
     
     
-      <div class="sidebar-header-items__center">
-      
-      <div class="navbar-center-item">
-        <nav class="navbar-nav">
-    <p class="sidebar-header-items__title" role="heading" aria-level="1" aria-label="Site Navigation">
-        Site Navigation
-    </p>
-    <ul id="navbar-main-elements" class="navbar-nav">
-        
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../installation.html">
-                        Installing Dymos
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="optimal_control.html">
-                        Optimal Control
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="transcriptions.html">
-                        Optimal Control Transcriptions
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item current active">
-                      <a class="nav-link nav-internal" href="#">
-                        Defining ODEs
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="collocation.html">
-                        What is collocation?
-                      </a>
-                    </li>
-                
-            <div class="nav-item dropdown">
-                <button class="btn dropdown-toggle nav-item" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    More
-                </button>
-                <div class="dropdown-menu">
-                    
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="intro_to_dymos/intro_ivp.html">
-                        Modeling Dynamic Systems with Dymos
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="intro_to_dymos/intro_segments.html">
-                        Segments of Phases
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../examples/examples.html">
-                        Dymos by Example
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../features/phases/phases_list.html">
-                        Phases
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../features/trajectories/trajectories.html">
-                        Organizing Phases into Trajectories
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../features/exploiting_sparsity.html">
-                        Exploiting Sparsity for Faster Derivative Calculation
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../features/plotting.html">
-                        Plotting Timeseries
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../faq/faq.html">
-                        Frequently Asked Questions
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../api/api.html">
-                        Dymos Reference API
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../contributing/contributing.html">
-                        Contributing to Dymos
-                      </a>
-                    </li>
-                
-                </div>
-            </div>
-            
-    </ul>
-</nav>
-      </div>
-      
-      </div>
     
-
-    
-    
-    <div class="sidebar-header-items__end">
-      
-      <div class="navbar-end-item">
-        <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-toggle="tooltip">
-    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
-    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
-    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
-</button>
-      </div>
-      
-      <div class="navbar-end-item">
-        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
-      </ul>
-      </div>
-      
-    </div>
     
   </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
 
   
-  <div class="sidebar-start-items sidebar-primary__section">
-    <div class="sidebar-start-items__item">
+    
   
-
 
 <a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/dymos_logo.png" class="logo__image only-light" alt="Dymos - Home"/>
+    <script>document.write(`<img src="../_static/dymos_logo.png" class="logo__image only-dark" alt="Dymos - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
 
-  
-  
-  
-  
-  
-  
-  
-
-  
-    <img src="../_static/dymos_logo.png" class="logo__image only-light" alt="Logo image">
-    <img src="../_static/dymos_logo.png" class="logo__image only-dark" alt="Logo image">
-  
-  
-</a>
-    </div>
-    <div class="sidebar-start-items__item">
-<form class="bd-search d-flex align-items-center" action="../search.html" method="get">
-  <i class="fa-solid fa-magnifying-glass"></i>
-  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search this book..." aria-label="Search this book..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form>
-    </div>
-    <div class="sidebar-start-items__item"><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         
         <ul class="nav bd-sidenav bd-sidenav__home-link">
@@ -520,7 +201,7 @@ const thebe_selector_output = ".output, .cell_output"
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples and Tutorials</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../examples/examples.html">Dymos by Example</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../examples/examples.html">Dymos by Example</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../examples/brachistochrone/brachistochrone.html">The Brachistochrone</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/brachistochrone/brachistochrone_upstream_init_duration_states.html">The Brachistochrone with externally-sourced initial state values</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/vanderpol/vanderpol.html">The Van der Pol Oscillator</a></li>
@@ -550,11 +231,11 @@ const thebe_selector_output = ".output, .cell_output"
 <li class="toctree-l2"><a class="reference internal" href="../examples/brachistochrone/brachistochrone_tandem_phases.html">Brachistochrone with tandem phases</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../examples/implicit_duration/brachistochrone_implicit_duration.html">Boundary Balance</a></li>
 </ul>
-</li>
+</details></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Feature Reference</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../features/phases/phases_list.html">Phases</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../features/phases/phases_list.html">Phases</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../features/phases/phases.html">Phases of a Trajectory</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../features/phases/analytic_phases.html">Analytic Phases in Dymos</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../features/phases/segments.html">Segments</a></li>
@@ -565,14 +246,14 @@ const thebe_selector_output = ".output, .cell_output"
 
 <li class="toctree-l2"><a class="reference internal" href="../features/phases/calc_expressions.html">Calculation Expressions</a></li>
 </ul>
-</li>
+</details></li>
 <li class="toctree-l1"><a class="reference internal" href="../features/trajectories/trajectories.html">Organizing Phases into Trajectories</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../features/exploiting_sparsity.html">Exploiting Sparsity for Faster Derivative Calculation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../features/plotting.html">Plotting Timeseries</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Frequently Asked Questions</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../faq/faq.html">Frequently Asked Questions</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-3"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../faq/faq.html">Frequently Asked Questions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../faq/add_ode_output_to_timeseries.html">How do I add an ODE output to the timeseries outputs?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../faq/connect_scalar_parameters_to_ode.html">How do I connect a scalar input to the ODE?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../faq/upstream_analysis.html">How do I connect the outputs of an upstream analysis as inputs to Dymos?</a></li>
@@ -581,18 +262,18 @@ const thebe_selector_output = ".output, .cell_output"
 <li class="toctree-l2"><a class="reference internal" href="../faq/use_partial_coloring.html">How can I more efficiently use finite-differenced components in the ODE?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../faq/debugging.html">How can I debug models when things go wrong?</a></li>
 </ul>
-</li>
+</details></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Dymos API Reference</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../api/api.html">Dymos Reference API</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-4"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api/api.html">Dymos Reference API</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../api/run_problem_function.html">The run_problem function</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/phase_api.html">Phase Options</a></li>
 
 <li class="toctree-l2"><a class="reference internal" href="../api/transcriptions_api.html">The Transcriptions API</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/trajectory_api.html">The Trajectory API</a></li>
 </ul>
-</li>
+</details></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
 <ul class="nav bd-sidenav">
@@ -600,42 +281,47 @@ const thebe_selector_output = ".output, .cell_output"
 </ul>
 
     </div>
-</nav>
+</nav></div>
     </div>
-  </div>
   
-
   
-  <div class="sidebar-end-items sidebar-primary__section">
-    <div class="sidebar-end-items__item">
-    </div>
+  <div class="sidebar-primary-items__end sidebar-primary__section">
   </div>
-
   
   <div id="rtd-footer-container"></div>
 
+
       </div>
-      <main id="main-content" class="bd-main">
+      
+      <main id="main-content" class="bd-main" role="main">
         
         
 
 <div class="sbt-scroll-pixel-helper"></div>
 
-        <div class="bd-content">
-          <div class="bd-article-container">
-            
-            <div class="bd-header-article">
-                
-
-
-
-<div class="col py-1 d-flex header-article-main">
-    <div class="header-article__left">
-        <label class="sidebar-toggle primary-toggle btn btn-sm" for="__primary" data-toggle="tooltip" data-placement="right" title="Toggle primary sidebar">
-            <span class="fa-solid fa-bars"></span>
-        </label>
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
     </div>
-    <div class="header-article__right">
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
 
 
 <div class="dropdown dropdown-launch-buttons">
@@ -643,30 +329,129 @@ const thebe_selector_output = ".output, .cell_output"
     <i class="fas fa-rocket"></i>
   </button>
   <ul class="dropdown-menu">
+      
+      
+      
       <li><a href="https://colab.research.google.com/github/OpenMDAO/dymos/blob/master/docs/dymos_book/getting_started/defining_odes.ipynb" target="_blank"
    class="btn btn-sm dropdown-item"
-   data-toggle="tooltip"
-data-placement="left"
-title="Launch on Colab"
+   title="Launch on Colab"
+   data-bs-placement="left" data-bs-toggle="tooltip"
 >
   
 
 <span class="btn__icon-container">
   
-    <img src="../_static/images/logo_colab.png">
+    <img alt="Colab logo" src="../_static/images/logo_colab.png">
   </span>
 <span class="btn__text-container">Colab</span>
 </a>
-</a>
+</li>
       
   </ul>
 </div>
 
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/OpenMDAO/dymos" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/OpenMDAO/dymos/issues/new?title=Issue%20on%20page%20%2Fgetting_started/defining_odes.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/getting_started/defining_odes.ipynb" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.ipynb</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
 <button onclick="toggleFullScreen()"
-  class="btn btn-sm"
-  data-toggle="tooltip"
-data-placement="bottom"
-title="Fullscreen mode"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
 >
   
 
@@ -678,92 +463,35 @@ title="Fullscreen mode"
 
 
 
-<div class="dropdown dropdown-repository-buttons">
-  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
-    <i class="fab fa-github"></i>
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
   </button>
-  <ul class="dropdown-menu">
-      <li><a href="https://github.com/OpenMDAO/dymos" target="_blank"
-   class="btn btn-sm dropdown-item"
-   data-toggle="tooltip"
-data-placement="left"
-title="Source repository"
->
-  
-
-<span class="btn__icon-container">
-  <i class="fab fa-github"></i>
-  </span>
-<span class="btn__text-container">repository</span>
-</a>
-</a>
-      
-      <li><a href="https://github.com/OpenMDAO/dymos/issues/new?title=Issue%20on%20page%20%2Fgetting_started/defining_odes.html&body=Your%20issue%20content%20here." target="_blank"
-   class="btn btn-sm dropdown-item"
-   data-toggle="tooltip"
-data-placement="left"
-title="Open an issue"
->
-  
-
-<span class="btn__icon-container">
-  <i class="fas fa-lightbulb"></i>
-  </span>
-<span class="btn__text-container">open issue</span>
-</a>
-</a>
-      
-  </ul>
-</div>
+`);
+</script>
 
 
-
-<div class="dropdown dropdown-download-buttons">
-  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
-    <i class="fas fa-download"></i>
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
   </button>
-  <ul class="dropdown-menu">
-      <li><a href="../_sources/getting_started/defining_odes.ipynb" target="_blank"
-   class="btn btn-sm dropdown-item"
-   data-toggle="tooltip"
-data-placement="left"
-title="Download source file"
->
-  
-
-<span class="btn__icon-container">
-  <i class="fas fa-file"></i>
-  </span>
-<span class="btn__text-container">.ipynb</span>
-</a>
-</a>
-      
-      <li>
-<button onclick="printPdf(this)"
-  class="btn btn-sm dropdown-item"
-  data-toggle="tooltip"
-data-placement="left"
-title="Print to PDF"
->
-  
-
-<span class="btn__icon-container">
-  <i class="fas fa-file-pdf"></i>
-  </span>
-<span class="btn__text-container">.pdf</span>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
 </button>
-</a>
+</div></div>
       
-  </ul>
-</div>
-<label class="sidebar-toggle secondary-toggle btn btn-sm" for="__secondary" data-toggle="tooltip" data-placement="left" title="Toggle secondary sidebar">
-            <span class="fa-solid fa-list"></span>
-        </label>
     </div>
+  
 </div>
-            </div>
-            
-            
+</div>
+              
+              
 
 <div id="jb-print-docs-body" class="onlyprint">
     <h1>Defining ODEs</h1>
@@ -776,85 +504,39 @@ title="Print to PDF"
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#system-options">
-   System Options
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#variables-of-the-optimal-control-problem">
-   Variables of the Optimal Control Problem
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#time">
-     Time
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#states">
-     States
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#controls">
-     Controls
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#parameters">
-     Parameters
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#tagging-variables">
-     Tagging Variables
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#automatic-target-detection">
-   Automatic target detection
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#vectorizing-the-ode">
-   Vectorizing the ODE
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#dimensioned-inputs-and-outputs">
-   Dimensioned Inputs and Outputs
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#non-vector-inputs">
-   Non-Vector Inputs
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#providing-the-ode-to-the-phase">
-   Providing the ODE to the Phase
-  </a>
- </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#system-options">System Options</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#variables-of-the-optimal-control-problem">Variables of the Optimal Control Problem</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#time">Time</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#states">States</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#controls">Controls</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#parameters">Parameters</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tagging-variables">Tagging Variables</a></li>
 </ul>
-
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automatic-target-detection">Automatic target detection</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vectorizing-the-ode">Vectorizing the ODE</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dimensioned-inputs-and-outputs">Dimensioned Inputs and Outputs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#non-vector-inputs">Non-Vector Inputs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#providing-the-ode-to-the-phase">Providing the ODE to the Phase</a></li>
+</ul>
             </nav>
         </div>
     </div>
 </div>
 
-            <article class="bd-article" role="main">
               
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
   <section class="tex2jax_ignore mathjax_ignore" id="defining-odes">
-<h1>Defining ODEs<a class="headerlink" href="#defining-odes" title="Permalink to this heading">#</a></h1>
+<h1>Defining ODEs<a class="headerlink" href="#defining-odes" title="Link to this heading">#</a></h1>
 <p>Optimal control problems contain ordinary differential equations (ODE) or differential algebraic equations (DAE) that dictate the evolution of the state of the system.
 Typically this evolution occurs in time, and the ODE represents equations of motion (EOM).
 The equations of motion can define a variety of systems, not just mechanical ones.
 In other fields they are sometimes referred to as <em>process equations</em>.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-2daba535-58e8-40ba-b794-b4364c96b6cf">
-<span class="eqno">(4)<a class="headerlink" href="#equation-2daba535-58e8-40ba-b794-b4364c96b6cf" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-e74c15c9-8daf-4ef1-87b5-83710611c388">
+<span class="eqno">(4)<a class="headerlink" href="#equation-e74c15c9-8daf-4ef1-87b5-83710611c388" title="Permalink to this equation">#</a></span>\[\begin{align}
     \dot{\bar{x}} = f_{ode}(\bar{x},t,\bar{u},\bar{d})
 \end{align}\]</div>
 <p>To represent EOM, Dymos uses a standard OpenMDAO System (a Group or Component).
@@ -863,7 +545,7 @@ The ODE may also be a function of the current time <span class="math notranslate
 <p>Finally, the dynamics may be subject to some set of controllable parameters.
 In Dymos these are broken into the dynamic controls <span class="math notranslate nohighlight">\(\bar{u}\)</span> and the static parameters <span class="math notranslate nohighlight">\(\bar{d}\)</span>.</p>
 <section id="system-options">
-<h2>System Options<a class="headerlink" href="#system-options" title="Permalink to this heading">#</a></h2>
+<h2>System Options<a class="headerlink" href="#system-options" title="Link to this heading">#</a></h2>
 <p>ODE Systems in Dymos need to provide values at numerous points in time we call nodes.
 For performance reasons, it’s best if it can do so using vectorized mathematical operations to compute the values simultaneously rather than using the loop to perform the calculation at each node.
 Different optimal control transcriptions will need to have computed ODE values at different numbers of nodes, so each ODE system in Dymos is required to support the option <code class="docutils literal notranslate"><span class="pre">num_nodes</span></code>, which is defined in the <code class="docutils literal notranslate"><span class="pre">initialize</span></code> method.</p>
@@ -871,10 +553,10 @@ Different optimal control transcriptions will need to have computed ODE values a
 Since these options in OpenMDAO are typically provided as arguments to the instantiation of the ODE system, the user has the ability to provide additional input keyword arguments using the <code class="docutils literal notranslate"><span class="pre">ode_init_kwargs</span></code> option on Phase.</p>
 </section>
 <section id="variables-of-the-optimal-control-problem">
-<h2>Variables of the Optimal Control Problem<a class="headerlink" href="#variables-of-the-optimal-control-problem" title="Permalink to this heading">#</a></h2>
+<h2>Variables of the Optimal Control Problem<a class="headerlink" href="#variables-of-the-optimal-control-problem" title="Link to this heading">#</a></h2>
 <p>Dymos needs to know how state, time, and control variables are to be connected to the System, and needs to know which outputs to use as state time-derivatives.</p>
 <section id="time">
-<h3>Time<a class="headerlink" href="#time" title="Permalink to this heading">#</a></h3>
+<h3>Time<a class="headerlink" href="#time" title="Link to this heading">#</a></h3>
 <p>The following time options can be set via the <code class="docutils literal notranslate"><span class="pre">set_time_options</span></code> method of Phase:</p>
 <div class="cell tag_remove-input docutils container">
 <div class="cell_output docutils container">
@@ -924,7 +606,7 @@ Since these options in OpenMDAO are typically provided as arguments to the insta
 </div>
 </section>
 <section id="states">
-<h3>States<a class="headerlink" href="#states" title="Permalink to this heading">#</a></h3>
+<h3>States<a class="headerlink" href="#states" title="Link to this heading">#</a></h3>
 <p>States have the following options set via the <code class="docutils literal notranslate"><span class="pre">add_state</span></code> and <code class="docutils literal notranslate"><span class="pre">set_state_options</span></code> methods of Phase:</p>
 <div class="cell tag_remove-input docutils container">
 <div class="cell_output docutils container">
@@ -977,7 +659,7 @@ Since these options in OpenMDAO are typically provided as arguments to the insta
 </div>
 </section>
 <section id="controls">
-<h3>Controls<a class="headerlink" href="#controls" title="Permalink to this heading">#</a></h3>
+<h3>Controls<a class="headerlink" href="#controls" title="Link to this heading">#</a></h3>
 <p>Inputs to the ODE which are to be dynamic controls are added via the <code class="docutils literal notranslate"><span class="pre">add_control</span></code> and <code class="docutils literal notranslate"><span class="pre">set_control_options</span></code> methods of Phase. The available options are as follows:</p>
 <div class="cell tag_remove-input docutils container">
 <div class="cell_output docutils container">
@@ -1030,7 +712,7 @@ Since these options in OpenMDAO are typically provided as arguments to the insta
 </div>
 </section>
 <section id="parameters">
-<h3>Parameters<a class="headerlink" href="#parameters" title="Permalink to this heading">#</a></h3>
+<h3>Parameters<a class="headerlink" href="#parameters" title="Link to this heading">#</a></h3>
 <p>Inputs to the ODE which are non-time-varying can be specified using the <code class="docutils literal notranslate"><span class="pre">add_parameter</span></code> method of Phase.
 Parameters may be used as design variables (by setting <code class="docutils literal notranslate"><span class="pre">opt</span> <span class="pre">=</span> <span class="pre">True</span></code>), or they may be connected to an output external to the Phase or Trajectory.
 The available options are as follows:</p>
@@ -1084,7 +766,7 @@ This makes it easier to define the partials for the ODE in a way such that some 
 If an ODE input is only to be used as a static variable (and not sized as <code class="docutils literal notranslate"><span class="pre">num_nodes</span></code> in the first dimension), then the user may specify option <code class="docutils literal notranslate"><span class="pre">static_target</span> <span class="pre">=</span> <span class="pre">True</span></code> to override this behavior.</p>
 </section>
 <section id="tagging-variables">
-<h3>Tagging Variables<a class="headerlink" href="#tagging-variables" title="Permalink to this heading">#</a></h3>
+<h3>Tagging Variables<a class="headerlink" href="#tagging-variables" title="Link to this heading">#</a></h3>
 <p>Dymos will also automatically find and add any states that have been declared in components in the ODE. The syntax
 for declaring them is as follows.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="s1">&#39;vdot&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nn</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;acceleration magnitude&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m/s**2&#39;</span><span class="p">,</span>
@@ -1101,7 +783,7 @@ To avoid repetitive use of this option, users can add the tag ‘dymos.static_ta
 When connecting to multiple targets, a ‘dymos.static_target’ tag on one of them will result in all of them being considered static.
 Inputs tagged with ‘dymos.static_target’ cannot be used as controls or polynomial controls.</p>
 <p>Similarly, the tag ‘dymos.static_output’ is used to convey that an output of the ODE is not sized with <code class="docutils literal notranslate"><span class="pre">num_nodes</span></code> as its first dimension. These outputs may not be used as timeseries outputs, nor may they be used as boundary or path constraints. The general OpenMDAO <code class="docutils literal notranslate"><span class="pre">add_constraint</span></code> method can still be applied to them by using the full path to the output in the ODE.</p>
-<table class="table">
+<div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head text-left"><p>Tag</p></th>
 <th class="head text-center"><p>Applies to</p></th>
@@ -1131,15 +813,16 @@ Inputs tagged with ‘dymos.static_target’ cannot be used as controls or polyn
 </tr>
 </tbody>
 </table>
+</div>
 </section>
 </section>
 <section id="automatic-target-detection">
-<h2>Automatic target detection<a class="headerlink" href="#automatic-target-detection" title="Permalink to this heading">#</a></h2>
+<h2>Automatic target detection<a class="headerlink" href="#automatic-target-detection" title="Link to this heading">#</a></h2>
 <p>Dymos will attempt to automatically connect variables to targets in the same name if those targets
 exist at the top-level of the ODE and have the same name as the state, control, parameter, or ‘time’.</p>
 </section>
 <section id="vectorizing-the-ode">
-<h2>Vectorizing the ODE<a class="headerlink" href="#vectorizing-the-ode" title="Permalink to this heading">#</a></h2>
+<h2>Vectorizing the ODE<a class="headerlink" href="#vectorizing-the-ode" title="Link to this heading">#</a></h2>
 <p>In addition to specifying the ODE Options, a system used as an ODE is required to have a metadata
 entry called <code class="docutils literal notranslate"><span class="pre">num_nodes</span></code>.  When evaluating the dynamics, these systems will receive time, states,
 controls, and other inputs as <em>vectorized</em> values, where item in the vector represents the variable
@@ -1218,7 +901,7 @@ the <code class="docutils literal notranslate"><span class="pre">declare_partial
 The provided scalar value of <code class="docutils literal notranslate"><span class="pre">1.0</span></code> is broadcast to all <code class="docutils literal notranslate"><span class="pre">nn</span></code> values of the Jacobian matrix.</p>
 </section>
 <section id="dimensioned-inputs-and-outputs">
-<h2>Dimensioned Inputs and Outputs<a class="headerlink" href="#dimensioned-inputs-and-outputs" title="Permalink to this heading">#</a></h2>
+<h2>Dimensioned Inputs and Outputs<a class="headerlink" href="#dimensioned-inputs-and-outputs" title="Link to this heading">#</a></h2>
 <p>The above example assumes all inputs and outputs are scalar at each node.  Sometimes the user may
 encounter a situation in which the inputs and/or outputs are vectors, matrices, or tensors at
 each node.  In this case the dimension of the variable is <code class="docutils literal notranslate"><span class="pre">num_nodes</span></code>, with the dimension of the
@@ -1226,14 +909,14 @@ variable at a single node filling out the remaining indices. A 3-vector is thus 
 <code class="docutils literal notranslate"><span class="pre">(num_nodes,</span> <span class="pre">3)</span></code>, while a 3 x 3 matrix would be sized <code class="docutils literal notranslate"><span class="pre">(num_nodes,</span> <span class="pre">3,</span> <span class="pre">3)</span></code>.</p>
 </section>
 <section id="non-vector-inputs">
-<h2>Non-Vector Inputs<a class="headerlink" href="#non-vector-inputs" title="Permalink to this heading">#</a></h2>
+<h2>Non-Vector Inputs<a class="headerlink" href="#non-vector-inputs" title="Link to this heading">#</a></h2>
 <p>Declaring inputs as vectors means that they have the potential to be used either as parameters or as dynamic controls which can assume a different value at each node.
 For some quantities, such as gravitational acceleration in the Brachistochrone example, we can assume that the value will never need to be dynamic.
 To accommodate this, parameters can be declared static with the argument <code class="docutils literal notranslate"><span class="pre">static_target=True</span></code>.
 This prevents Dymos from “fanning out” the static value to the <em>n</em> nodes in the ODE system.</p>
 </section>
 <section id="providing-the-ode-to-the-phase">
-<h2>Providing the ODE to the Phase<a class="headerlink" href="#providing-the-ode-to-the-phase" title="Permalink to this heading">#</a></h2>
+<h2>Providing the ODE to the Phase<a class="headerlink" href="#providing-the-ode-to-the-phase" title="Link to this heading">#</a></h2>
 <p>Phases in Dymos are instantiated with both the <code class="docutils literal notranslate"><span class="pre">ode_class</span></code> and the <code class="docutils literal notranslate"><span class="pre">transcription</span></code> to be used.
 Internally, Dymos needs to instantiate the ODE multiple times.
 This instantiation takes the form:</p>
@@ -1349,117 +1032,72 @@ See <a class="reference external" href="https://docs.python.org/3/library/copy.h
     </script>
     <script>kernelName = 'python3'</script>
 
-            </article>
-            
+                </article>
+              
 
-            
-            
-            <footer class="bd-footer-article">
-                <!-- Previous / next buttons -->
-<div class='prev-next-area'>
-  <a class='left-prev' id="prev-link" href="transcriptions.html" title="previous page">
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="transcriptions.html"
+       title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
-          <p class="prev-next-subtitle">previous</p>
-          <p class="prev-next-title">Optimal Control Transcriptions</p>
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Optimal Control Transcriptions</p>
       </div>
-  </a>
-  <a class='right-next' id="next-link" href="collocation.html" title="next page">
-  <div class="prev-next-info">
-      <p class="prev-next-subtitle">next</p>
-      <p class="prev-next-title">What is collocation?</p>
-  </div>
-  <i class="fa-solid fa-angle-right"></i>
-  </a>
+    </a>
+    <a class="right-next"
+       href="collocation.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">What is collocation?</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
 </div>
-            </footer>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#system-options">System Options</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#variables-of-the-optimal-control-problem">Variables of the Optimal Control Problem</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#time">Time</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#states">States</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#controls">Controls</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#parameters">Parameters</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tagging-variables">Tagging Variables</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automatic-target-detection">Automatic target detection</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vectorizing-the-ode">Vectorizing the ODE</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dimensioned-inputs-and-outputs">Dimensioned Inputs and Outputs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#non-vector-inputs">Non-Vector Inputs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#providing-the-ode-to-the-phase">Providing the ODE to the Phase</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
             
           </div>
-          
-          
-          
-            <div class="bd-sidebar-secondary bd-toc">
-              
-<div class="toc-item">
-  
-<div class="tocsection onthispage">
-    <i class="fa-solid fa-list"></i> On this page
-</div>
-<nav id="bd-toc-nav" class="page-toc">
-    <ul class="visible nav section-nav flex-column">
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#system-options">
-   System Options
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#variables-of-the-optimal-control-problem">
-   Variables of the Optimal Control Problem
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#time">
-     Time
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#states">
-     States
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#controls">
-     Controls
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#parameters">
-     Parameters
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#tagging-variables">
-     Tagging Variables
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#automatic-target-detection">
-   Automatic target detection
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#vectorizing-the-ode">
-   Vectorizing the ODE
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#dimensioned-inputs-and-outputs">
-   Dimensioned Inputs and Outputs
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#non-vector-inputs">
-   Non-Vector Inputs
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#providing-the-ode-to-the-phase">
-   Providing the ODE to the Phase
-  </a>
- </li>
-</ul>
-
-</nav>
-</div>
-
-            </div>
-          
-          
-        </div>
-        <footer class="bd-footer-content">
-          <div class="bd-footer-content__inner">
+          <footer class="bd-footer-content">
             
 <div class="bd-footer-content__inner container">
   
@@ -1473,18 +1111,18 @@ By The Dymos Development Team
   
   <div class="footer-item">
     
-<p class="copyright">
 
-    &copy; Copyright 2022.<br>
-
-</p>
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
 
   </div>
   
   <div class="footer-item">
-    <p class="last-updated">
-Last updated on None.<br>
-</p>
+    
   </div>
   
   <div class="footer-item">
@@ -1492,19 +1130,18 @@ Last updated on None.<br>
   </div>
   
 </div>
-          </div>
-        </footer>
+          </footer>
         
 
       </main>
     </div>
   </div>
-
   
-    
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../_static/scripts/bootstrap.js?digest=796348d33e8b1d947c94"></script>
-<script src="../_static/scripts/pydata-sphinx-theme.js?digest=796348d33e8b1d947c94"></script>
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
 
+  <footer class="bd-footer">
+  </footer>
   </body>
 </html>

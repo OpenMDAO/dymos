@@ -1,10 +1,12 @@
 
 <!DOCTYPE html>
 
-<html lang="en">
+
+<html lang="en" data-content_root="../../" >
+
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Timeseries Outputs &#8212; Dymos</title>
   
@@ -12,484 +14,163 @@
   
   <script data-cfasync="false">
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
-    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../_static/styles/theme.css?digest=796348d33e8b1d947c94" rel="stylesheet">
-<link href="../../_static/styles/bootstrap.css?digest=796348d33e8b1d947c94" rel="stylesheet">
-<link href="../../_static/styles/pydata-sphinx-theme.css?digest=796348d33e8b1d947c94" rel="stylesheet">
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
 
   
-  <link href="../../_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=796348d33e8b1d947c94" rel="stylesheet">
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2">
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2">
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2">
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" href="../../_static/styles/sphinx-book-theme.css?digest=4ec06e9971c5264fbd345897d5258098f11cc577" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/togglebutton.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-thebe.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/myfile.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../_static/myfile.css?v=9678755d" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=796348d33e8b1d947c94">
-<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=796348d33e8b1d947c94">
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/clipboard.min.js"></script>
-    <script src="../../_static/copybutton.js"></script>
-    <script src="../../_static/scripts/sphinx-book-theme.js?digest=8bf782fb4ee92b3d3646425e50f299c4e1fd152d"></script>
+    <script src="../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
     <script>let toggleHintShow = 'Click to show';</script>
     <script>let toggleHintHide = 'Click to hide';</script>
     <script>let toggleOpenOnPrint = 'true';</script>
-    <script src="../../_static/togglebutton.js"></script>
+    <script src="../../_static/togglebutton.js?v=4a39c7ea"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
-    <script src="../../_static/design-tabs.js"></script>
-    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"
-const thebe_selector = ".thebe,.cell"
-const thebe_selector_input = "pre"
-const thebe_selector_output = ".output, .cell_output"
-</script>
-    <script async="async" src="../../_static/sphinx-thebe.js"></script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'features/phases/timeseries';</script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Calculation Expressions" href="calc_expressions.html" />
     <link rel="prev" title="Objective" href="objective.html" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="docsearch:language" content="en">
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
   </head>
   
   
-  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="180" data-default-mode="">
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
 
   
   
-  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox" class="sidebar-toggle" name="__primary" id="__primary">
-  <label class="overlay overlay-primary" for="__primary"></label>
-
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
   
-  <input type="checkbox" class="sidebar-toggle" name="__secondary" id="__secondary">
-  <label class="overlay overlay-secondary" for="__secondary"></label>
-
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
   
   <div class="search-button__wrapper">
     <div class="search-button__overlay"></div>
     <div class="search-button__search-container">
-      
-<form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
   <i class="fa-solid fa-magnifying-glass"></i>
-  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search this book..." aria-label="Search this book..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form>
-    </div>
+</form></div>
   </div>
 
-  
-  <nav class="bd-header navbar navbar-expand-lg bd-navbar" id="navbar-main"><div class="bd-header__inner bd-page-width">
-  <label class="sidebar-toggle primary-toggle" for="__primary">
-      <span class="fa-solid fa-bars"></span>
-  </label>
-  <div id="navbar-start">
-    
-    
-  
-
-
-<a class="navbar-brand logo" href="../../index.html">
-
-  
-  
-  
-  
-  
-  
-  
-
-  
-    <img src="../../_static/dymos_logo.png" class="logo__image only-light" alt="Logo image">
-    <img src="../../_static/dymos_logo.png" class="logo__image only-dark" alt="Logo image">
-  
-  
-</a>
-    
-  </div>
-
-  
-  <div class="col-lg-9 navbar-header-items">
-    <div id="navbar-center" class="mr-auto">
-      
-      <div class="navbar-center-item">
-        <nav class="navbar-nav">
-    <p class="sidebar-header-items__title" role="heading" aria-level="1" aria-label="Site Navigation">
-        Site Navigation
-    </p>
-    <ul id="navbar-main-elements" class="navbar-nav">
-        
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../installation.html">
-                        Installing Dymos
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../getting_started/optimal_control.html">
-                        Optimal Control
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../getting_started/transcriptions.html">
-                        Optimal Control Transcriptions
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../getting_started/defining_odes.html">
-                        Defining ODEs
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../getting_started/collocation.html">
-                        What is collocation?
-                      </a>
-                    </li>
-                
-            <div class="nav-item dropdown">
-                <button class="btn dropdown-toggle nav-item" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    More
-                </button>
-                <div class="dropdown-menu">
-                    
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../getting_started/intro_to_dymos/intro_ivp.html">
-                        Modeling Dynamic Systems with Dymos
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../getting_started/intro_to_dymos/intro_segments.html">
-                        Segments of Phases
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../examples/examples.html">
-                        Dymos by Example
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item current active">
-                      <a class="nav-link nav-internal" href="phases_list.html">
-                        Phases
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../trajectories/trajectories.html">
-                        Organizing Phases into Trajectories
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../exploiting_sparsity.html">
-                        Exploiting Sparsity for Faster Derivative Calculation
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../plotting.html">
-                        Plotting Timeseries
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../faq/faq.html">
-                        Frequently Asked Questions
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../api/api.html">
-                        Dymos Reference API
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../contributing/contributing.html">
-                        Contributing to Dymos
-                      </a>
-                    </li>
-                
-                </div>
-            </div>
-            
-    </ul>
-</nav>
-      </div>
-      
-    </div>
-
-    <div id="navbar-end">
-      
-        <div class="navbar-end-item navbar-persistent--container">
-          
-<button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-toggle="tooltip">
-  <i class="fa-solid fa-magnifying-glass"></i>
-</button>
-        </div>
-      
-      
-      <div class="navbar-end-item">
-        <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-toggle="tooltip">
-    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
-    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
-    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
-</button>
-      </div>
-      
-      <div class="navbar-end-item">
-        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
-      </ul>
-      </div>
-      
-    </div>
-  </div>
-
-
-  
-  
-    <div class="navbar-persistent--mobile">
-<button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-toggle="tooltip">
-  <i class="fa-solid fa-magnifying-glass"></i>
-</button>
-    </div>
-  
-
-  
-  <label class="sidebar-toggle secondary-toggle" for="__secondary">
-      <span class="fa-solid fa-outdent"></span>
-  </label>
-  
-
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
 </div>
-  </nav>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
   
 
   <div class="bd-container">
     <div class="bd-container__inner bd-page-width">
       
+      
+      
       <div class="bd-sidebar-primary bd-sidebar">
         
+
   
   <div class="sidebar-header-items sidebar-primary__section">
     
     
-      <div class="sidebar-header-items__center">
-      
-      <div class="navbar-center-item">
-        <nav class="navbar-nav">
-    <p class="sidebar-header-items__title" role="heading" aria-level="1" aria-label="Site Navigation">
-        Site Navigation
-    </p>
-    <ul id="navbar-main-elements" class="navbar-nav">
-        
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../installation.html">
-                        Installing Dymos
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../getting_started/optimal_control.html">
-                        Optimal Control
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../getting_started/transcriptions.html">
-                        Optimal Control Transcriptions
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../getting_started/defining_odes.html">
-                        Defining ODEs
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../getting_started/collocation.html">
-                        What is collocation?
-                      </a>
-                    </li>
-                
-            <div class="nav-item dropdown">
-                <button class="btn dropdown-toggle nav-item" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    More
-                </button>
-                <div class="dropdown-menu">
-                    
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../getting_started/intro_to_dymos/intro_ivp.html">
-                        Modeling Dynamic Systems with Dymos
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../getting_started/intro_to_dymos/intro_segments.html">
-                        Segments of Phases
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../examples/examples.html">
-                        Dymos by Example
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item current active">
-                      <a class="nav-link nav-internal" href="phases_list.html">
-                        Phases
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../trajectories/trajectories.html">
-                        Organizing Phases into Trajectories
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../exploiting_sparsity.html">
-                        Exploiting Sparsity for Faster Derivative Calculation
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../plotting.html">
-                        Plotting Timeseries
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../faq/faq.html">
-                        Frequently Asked Questions
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../api/api.html">
-                        Dymos Reference API
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../contributing/contributing.html">
-                        Contributing to Dymos
-                      </a>
-                    </li>
-                
-                </div>
-            </div>
-            
-    </ul>
-</nav>
-      </div>
-      
-      </div>
     
-
-    
-    
-    <div class="sidebar-header-items__end">
-      
-      <div class="navbar-end-item">
-        <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-toggle="tooltip">
-    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
-    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
-    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
-</button>
-      </div>
-      
-      <div class="navbar-end-item">
-        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
-      </ul>
-      </div>
-      
-    </div>
     
   </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
 
   
-  <div class="sidebar-start-items sidebar-primary__section">
-    <div class="sidebar-start-items__item">
+    
   
-
 
 <a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/dymos_logo.png" class="logo__image only-light" alt="Dymos - Home"/>
+    <script>document.write(`<img src="../../_static/dymos_logo.png" class="logo__image only-dark" alt="Dymos - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
 
-  
-  
-  
-  
-  
-  
-  
-
-  
-    <img src="../../_static/dymos_logo.png" class="logo__image only-light" alt="Logo image">
-    <img src="../../_static/dymos_logo.png" class="logo__image only-dark" alt="Logo image">
-  
-  
-</a>
-    </div>
-    <div class="sidebar-start-items__item">
-<form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
-  <i class="fa-solid fa-magnifying-glass"></i>
-  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search this book..." aria-label="Search this book..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form>
-    </div>
-    <div class="sidebar-start-items__item"><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         
         <ul class="nav bd-sidenav bd-sidenav__home-link">
@@ -518,7 +199,7 @@ const thebe_selector_output = ".output, .cell_output"
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples and Tutorials</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../examples/examples.html">Dymos by Example</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../examples/examples.html">Dymos by Example</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../examples/brachistochrone/brachistochrone.html">The Brachistochrone</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../examples/brachistochrone/brachistochrone_upstream_init_duration_states.html">The Brachistochrone with externally-sourced initial state values</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../examples/vanderpol/vanderpol.html">The Van der Pol Oscillator</a></li>
@@ -548,11 +229,11 @@ const thebe_selector_output = ".output, .cell_output"
 <li class="toctree-l2"><a class="reference internal" href="../../examples/brachistochrone/brachistochrone_tandem_phases.html">Brachistochrone with tandem phases</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../examples/implicit_duration/brachistochrone_implicit_duration.html">Boundary Balance</a></li>
 </ul>
-</li>
+</details></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Feature Reference</span></p>
 <ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="phases_list.html">Phases</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="phases_list.html">Phases</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="phases.html">Phases of a Trajectory</a></li>
 <li class="toctree-l2"><a class="reference internal" href="analytic_phases.html">Analytic Phases in Dymos</a></li>
 <li class="toctree-l2"><a class="reference internal" href="segments.html">Segments</a></li>
@@ -563,14 +244,14 @@ const thebe_selector_output = ".output, .cell_output"
 
 <li class="toctree-l2"><a class="reference internal" href="calc_expressions.html">Calculation Expressions</a></li>
 </ul>
-</li>
+</details></li>
 <li class="toctree-l1"><a class="reference internal" href="../trajectories/trajectories.html">Organizing Phases into Trajectories</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../exploiting_sparsity.html">Exploiting Sparsity for Faster Derivative Calculation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../plotting.html">Plotting Timeseries</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Frequently Asked Questions</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../faq/faq.html">Frequently Asked Questions</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-3"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../faq/faq.html">Frequently Asked Questions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../faq/add_ode_output_to_timeseries.html">How do I add an ODE output to the timeseries outputs?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../faq/connect_scalar_parameters_to_ode.html">How do I connect a scalar input to the ODE?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../faq/upstream_analysis.html">How do I connect the outputs of an upstream analysis as inputs to Dymos?</a></li>
@@ -579,18 +260,18 @@ const thebe_selector_output = ".output, .cell_output"
 <li class="toctree-l2"><a class="reference internal" href="../../faq/use_partial_coloring.html">How can I more efficiently use finite-differenced components in the ODE?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../faq/debugging.html">How can I debug models when things go wrong?</a></li>
 </ul>
-</li>
+</details></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Dymos API Reference</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../api/api.html">Dymos Reference API</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-4"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../api/api.html">Dymos Reference API</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../api/run_problem_function.html">The run_problem function</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/phase_api.html">Phase Options</a></li>
 
 <li class="toctree-l2"><a class="reference internal" href="../../api/transcriptions_api.html">The Transcriptions API</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/trajectory_api.html">The Trajectory API</a></li>
 </ul>
-</li>
+</details></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
 <ul class="nav bd-sidenav">
@@ -598,42 +279,47 @@ const thebe_selector_output = ".output, .cell_output"
 </ul>
 
     </div>
-</nav>
+</nav></div>
     </div>
-  </div>
   
-
   
-  <div class="sidebar-end-items sidebar-primary__section">
-    <div class="sidebar-end-items__item">
-    </div>
+  <div class="sidebar-primary-items__end sidebar-primary__section">
   </div>
-
   
   <div id="rtd-footer-container"></div>
 
+
       </div>
-      <main id="main-content" class="bd-main">
+      
+      <main id="main-content" class="bd-main" role="main">
         
         
 
 <div class="sbt-scroll-pixel-helper"></div>
 
-        <div class="bd-content">
-          <div class="bd-article-container">
-            
-            <div class="bd-header-article">
-                
-
-
-
-<div class="col py-1 d-flex header-article-main">
-    <div class="header-article__left">
-        <label class="sidebar-toggle primary-toggle btn btn-sm" for="__primary" data-toggle="tooltip" data-placement="right" title="Toggle primary sidebar">
-            <span class="fa-solid fa-bars"></span>
-        </label>
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
     </div>
-    <div class="header-article__right">
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
 
 
 <div class="dropdown dropdown-launch-buttons">
@@ -641,30 +327,129 @@ const thebe_selector_output = ".output, .cell_output"
     <i class="fas fa-rocket"></i>
   </button>
   <ul class="dropdown-menu">
+      
+      
+      
       <li><a href="https://colab.research.google.com/github/OpenMDAO/dymos/blob/master/docs/dymos_book/features/phases/timeseries.ipynb" target="_blank"
    class="btn btn-sm dropdown-item"
-   data-toggle="tooltip"
-data-placement="left"
-title="Launch on Colab"
+   title="Launch on Colab"
+   data-bs-placement="left" data-bs-toggle="tooltip"
 >
   
 
 <span class="btn__icon-container">
   
-    <img src="../../_static/images/logo_colab.png">
+    <img alt="Colab logo" src="../../_static/images/logo_colab.png">
   </span>
 <span class="btn__text-container">Colab</span>
 </a>
-</a>
+</li>
       
   </ul>
 </div>
 
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/OpenMDAO/dymos" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/OpenMDAO/dymos/issues/new?title=Issue%20on%20page%20%2Ffeatures/phases/timeseries.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../../_sources/features/phases/timeseries.ipynb" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.ipynb</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
 <button onclick="toggleFullScreen()"
-  class="btn btn-sm"
-  data-toggle="tooltip"
-data-placement="bottom"
-title="Fullscreen mode"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
 >
   
 
@@ -676,92 +461,35 @@ title="Fullscreen mode"
 
 
 
-<div class="dropdown dropdown-repository-buttons">
-  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
-    <i class="fab fa-github"></i>
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
   </button>
-  <ul class="dropdown-menu">
-      <li><a href="https://github.com/OpenMDAO/dymos" target="_blank"
-   class="btn btn-sm dropdown-item"
-   data-toggle="tooltip"
-data-placement="left"
-title="Source repository"
->
-  
-
-<span class="btn__icon-container">
-  <i class="fab fa-github"></i>
-  </span>
-<span class="btn__text-container">repository</span>
-</a>
-</a>
-      
-      <li><a href="https://github.com/OpenMDAO/dymos/issues/new?title=Issue%20on%20page%20%2Ffeatures/phases/timeseries.html&body=Your%20issue%20content%20here." target="_blank"
-   class="btn btn-sm dropdown-item"
-   data-toggle="tooltip"
-data-placement="left"
-title="Open an issue"
->
-  
-
-<span class="btn__icon-container">
-  <i class="fas fa-lightbulb"></i>
-  </span>
-<span class="btn__text-container">open issue</span>
-</a>
-</a>
-      
-  </ul>
-</div>
+`);
+</script>
 
 
-
-<div class="dropdown dropdown-download-buttons">
-  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
-    <i class="fas fa-download"></i>
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
   </button>
-  <ul class="dropdown-menu">
-      <li><a href="../../_sources/features/phases/timeseries.ipynb" target="_blank"
-   class="btn btn-sm dropdown-item"
-   data-toggle="tooltip"
-data-placement="left"
-title="Download source file"
->
-  
-
-<span class="btn__icon-container">
-  <i class="fas fa-file"></i>
-  </span>
-<span class="btn__text-container">.ipynb</span>
-</a>
-</a>
-      
-      <li>
-<button onclick="printPdf(this)"
-  class="btn btn-sm dropdown-item"
-  data-toggle="tooltip"
-data-placement="left"
-title="Print to PDF"
->
-  
-
-<span class="btn__icon-container">
-  <i class="fas fa-file-pdf"></i>
-  </span>
-<span class="btn__text-container">.pdf</span>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
 </button>
-</a>
+</div></div>
       
-  </ul>
-</div>
-<label class="sidebar-toggle secondary-toggle btn btn-sm" for="__secondary" data-toggle="tooltip" data-placement="left" title="Toggle secondary sidebar">
-            <span class="fa-solid fa-list"></span>
-        </label>
     </div>
+  
 </div>
-            </div>
-            
-            
+</div>
+              
+              
 
 <div id="jb-print-docs-body" class="onlyprint">
     <h1>Timeseries Outputs</h1>
@@ -774,33 +502,13 @@ title="Print to PDF"
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
- <li class="toc-h1 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#">
-   Timeseries Outputs
-  </a>
-  <ul class="visible nav section-nav flex-column">
-   <li class="toc-h2 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#paths-to-timeseries-outputs-in-dymos">
-     Paths to timeseries outputs in Dymos
-    </a>
-   </li>
-   <li class="toc-h2 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#adding-additional-timeseries-outputs">
-     Adding additional timeseries outputs
-    </a>
-   </li>
-   <li class="toc-h2 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#interpolated-timeseries-outputs">
-     Interpolated Timeseries Outputs
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h1 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#interpolating-timeseries-outputs">
-   Interpolating Timeseries Outputs
-  </a>
- </li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Timeseries Outputs</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#paths-to-timeseries-outputs-in-dymos">Paths to timeseries outputs in Dymos</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#adding-additional-timeseries-outputs">Adding additional timeseries outputs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#interpolated-timeseries-outputs">Interpolated Timeseries Outputs</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#interpolating-timeseries-outputs">Interpolating Timeseries Outputs</a></li>
 </ul>
 
             </nav>
@@ -808,10 +516,13 @@ title="Print to PDF"
     </div>
 </div>
 
-            <article class="bd-article" role="main">
               
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
   <section class="tex2jax_ignore mathjax_ignore" id="timeseries-outputs">
-<h1>Timeseries Outputs<a class="headerlink" href="#timeseries-outputs" title="Permalink to this heading">#</a></h1>
+<h1>Timeseries Outputs<a class="headerlink" href="#timeseries-outputs" title="Link to this heading">#</a></h1>
 <p>Different optimal control transcriptions work in different ways.
 The Radau Pseudospectral transcription keeps a contiguous vector of state values at all nodes.
 The Gauss Lobatto transcription keeps two separate continuous vectors; one at the discretization nodes and the other at the collocation nodes.
@@ -820,8 +531,8 @@ Retrieving a timeseries values of output values is thus transcription dependent.
 For the pseudospectral transcriptions, timeseries outputs are provided at all nodes.
 By default, the timeseries output will include the following variables for every problem.</p>
 <section id="paths-to-timeseries-outputs-in-dymos">
-<h2>Paths to timeseries outputs in Dymos<a class="headerlink" href="#paths-to-timeseries-outputs-in-dymos" title="Permalink to this heading">#</a></h2>
-<table class="table">
+<h2>Paths to timeseries outputs in Dymos<a class="headerlink" href="#paths-to-timeseries-outputs-in-dymos" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Path</p></th>
 <th class="head"><p>Description</p></th>
@@ -860,9 +571,10 @@ By default, the timeseries output will include the following variables for every
 </tr>
 </tbody>
 </table>
+</div>
 </section>
 <section id="adding-additional-timeseries-outputs">
-<h2>Adding additional timeseries outputs<a class="headerlink" href="#adding-additional-timeseries-outputs" title="Permalink to this heading">#</a></h2>
+<h2>Adding additional timeseries outputs<a class="headerlink" href="#adding-additional-timeseries-outputs" title="Link to this heading">#</a></h2>
 <p>In addition to these default values, any output of the ODE can be added to the timeseries output
 using the <code class="docutils literal notranslate"><span class="pre">add_timeseries_output</span></code> method on Phase.  These outputs are available as
 <code class="docutils literal notranslate"><span class="pre">&lt;phase</span> <span class="pre">path&gt;.timeseries.&lt;output</span> <span class="pre">name&gt;</span></code>.  A glob pattern can be used with <code class="docutils literal notranslate"><span class="pre">add_timeseries_output</span></code>
@@ -910,7 +622,7 @@ since Dymos doesn’t necessarily know the shape of ODE outputs until setup time
 </div></blockquote>
 </section>
 <section id="interpolated-timeseries-outputs">
-<h2>Interpolated Timeseries Outputs<a class="headerlink" href="#interpolated-timeseries-outputs" title="Permalink to this heading">#</a></h2>
+<h2>Interpolated Timeseries Outputs<a class="headerlink" href="#interpolated-timeseries-outputs" title="Link to this heading">#</a></h2>
 <p>Sometimes a user may want to interpolate the results of a phase onto a different grid.  This is particularly
 useful in the context of <a class="reference internal" href="../../examples/brachistochrone/brachistochrone_tandem_phases.html#examples-brachistochrone-tandem-phases"><span class="std std-ref">tandem phases</span></a>.  Additional timeseries may be added to a phase using the <code class="docutils literal notranslate"><span class="pre">add_timeseries</span></code> method.  By default all timeseries will provide times, states, controls, and parameters on the specified output grid.  Adding other variables is accomplished using the
 <code class="docutils literal notranslate"><span class="pre">timeseries</span></code> argument in the <code class="docutils literal notranslate"><span class="pre">add_timeseries_output</span></code> method.</p>
@@ -939,7 +651,7 @@ are to be provided.</p>
 </section>
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="interpolating-timeseries-outputs">
-<h1>Interpolating Timeseries Outputs<a class="headerlink" href="#interpolating-timeseries-outputs" title="Permalink to this heading">#</a></h1>
+<h1>Interpolating Timeseries Outputs<a class="headerlink" href="#interpolating-timeseries-outputs" title="Link to this heading">#</a></h1>
 <p>Outputs from the timeseries are provided at the node resolution used to solve the problem.
 Sometimes it is useful to visualize the data at a different resolution - for instance to see oscillatory behavior in the solution that may not be noticeable by only viewing the solution nodes.</p>
 <p>The Phase.interp method allows nodes to be provided as a sequence in the “tau space” (nondimensional time) of the phase. In phase tau space,
@@ -1039,13 +751,109 @@ the time-like variable is -1 at the start of the phase and +1 at the end of the 
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/recorders/sqlite_recorder.py:231: UserWarning:The existing case recorder file, /home/runner/work/dymos/dymos/docs/dymos_book/features/phases/problem_out/dymos_solution.db, is being overwritten.
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000622 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000054 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000275 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000102 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000005 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.002663 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000071 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000003 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000569 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000396 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000024 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000197 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000085 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000002 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.001591 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000073 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000003 sec).
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.13/site-packages/openmdao/recorders/sqlite_recorder.py:231: UserWarning:The existing case recorder file, /home/runner/work/dymos/dymos/docs/dymos_book/features/phases/problem_out/dymos_solution.db, is being overwritten.
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000394 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
@@ -1057,31 +865,31 @@ the time-like variable is -1 at the start of the phase and +1 at the end of the 
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000234 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000220 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000080 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000089 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000002 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000003 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.001319 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.001683 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000061 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000072 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
@@ -1090,133 +898,24 @@ the time-like variable is -1 at the start of the phase and +1 at the end of the 
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000002 sec).
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000363 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000026 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000190 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000071 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000002 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.001305 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000048 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000003 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000355 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000025 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000191 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000072 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000002 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.001318 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000045 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000003 sec).
-</pre></div>
-</div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (200, 145)  (4.17% nonzero)
 FWD solves: 17   REV solves: 0
 Total colors vs. total size: 17 vs 145  (88.28% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem&#39; was computed 3 times.
-Time to compute sparsity:   0.0744 sec
-Time to compute coloring:   0.1845 sec
+Time to compute sparsity:   0.0722 sec
+Time to compute coloring:   0.1646 sec
 Memory to compute coloring:   0.2500 MB
-Coloring created on: 2025-07-16 16:30:25
+Coloring created on: 2025-07-16 19:00:00
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/core/total_jac.py:1731: DerivativesWarning:Constraints or objectives [(&#39;traj.phase0.h[path]&#39;, inds=[(0, 0)]), (&#39;traj.phase0.mach[path]&#39;, inds=[(0, 0)])] cannot be impacted by the design variables of the problem.
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.13/site-packages/openmdao/core/total_jac.py:1731: DerivativesWarning:Constraints or objectives [(&#39;traj.phase0.h[path]&#39;, inds=[(np.int64(0), np.int64(0))]), (&#39;traj.phase0.mach[path]&#39;, inds=[(np.int64(0), np.int64(0))])] cannot be impacted by the design variables of the problem.
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>minimal_print is not available for this solution
-
-
-Optimization Problem -- Optimization using pyOpt_sparse
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
 ================================================================================
     Objective Function: _objfunc
-
-    Solution: 
---------------------------------------------------------------------------------
-    Total Time:                    7.8930
-       User Objective Time :       3.8951
-       User Sensitivity Time :     2.0129
-       Interface Time :            0.9470
-       Opt Solver Time:            1.0380
-    Calls to Objective Function :     568
-    Calls to Sens Function :          224
 
 
    Objectives
@@ -1225,370 +924,23 @@ Optimization Problem -- Optimization using pyOpt_sparse
 
    Variables (c - continuous, i - integer, d - discrete)
       Index  Name                            Type      Lower Bound            Value      Upper Bound     Status
-          0  traj.phase0.t_duration_0           c     5.000000E-01     3.253204E+00     4.000000E+00           
-          1  traj.phase0.states:r_0             c     0.000000E+00     2.637841E+00     1.000000E+03           
-          2  traj.phase0.states:r_1             c     0.000000E+00     7.739038E+00     1.000000E+03           
-          3  traj.phase0.states:r_2             c     0.000000E+00     9.490993E+00     1.000000E+03           
-          4  traj.phase0.states:r_3             c     0.000000E+00     1.327357E+01     1.000000E+03           
-          5  traj.phase0.states:r_4             c     0.000000E+00     1.833262E+01     1.000000E+03           
-          6  traj.phase0.states:r_5             c     0.000000E+00     1.996971E+01     1.000000E+03           
-          7  traj.phase0.states:r_6             c     0.000000E+00     2.400238E+01     1.000000E+03           
-          8  traj.phase0.states:r_7             c     0.000000E+00     3.025519E+01     1.000000E+03           
-          9  traj.phase0.states:r_8             c     0.000000E+00     3.242125E+01     1.000000E+03           
-         10  traj.phase0.states:r_9             c     0.000000E+00     3.780648E+01     1.000000E+03           
-         11  traj.phase0.states:r_10            c     0.000000E+00     4.608203E+01     1.000000E+03           
-         12  traj.phase0.states:r_11            c     0.000000E+00     4.885164E+01     1.000000E+03           
-         13  traj.phase0.states:r_12            c     0.000000E+00     5.518480E+01     1.000000E+03           
-         14  traj.phase0.states:r_13            c     0.000000E+00     6.405456E+01     1.000000E+03           
-         15  traj.phase0.states:r_14            c     0.000000E+00     6.691000E+01     1.000000E+03           
-         16  traj.phase0.states:r_15            c     0.000000E+00     7.362471E+01     1.000000E+03           
-         17  traj.phase0.states:r_16            c     0.000000E+00     8.329900E+01     1.000000E+03           
-         18  traj.phase0.states:r_17            c     0.000000E+00     8.646720E+01     1.000000E+03           
-         19  traj.phase0.states:r_18            c     0.000000E+00     9.388694E+01     1.000000E+03           
-         20  traj.phase0.states:r_19            c     0.000000E+00     1.038337E+02     1.000000E+03           
-         21  traj.phase0.states:r_20            c     0.000000E+00     1.067134E+02     1.000000E+03           
-         22  traj.phase0.states:r_21            c     0.000000E+00     1.119502E+02     1.000000E+03           
-         23  traj.phase0.states:r_22            c     0.000000E+00     1.177690E+02     1.000000E+03           
-         24  traj.phase0.states:r_23            c     0.000000E+00     1.196756E+02     1.000000E+03           
-         25  traj.phase0.states:h_0             c     0.000000E+00     4.999997E-03     1.000000E+00           
-         26  traj.phase0.states:h_1             c     0.000000E+00     6.309075E-02     1.000000E+00           
-         27  traj.phase0.states:h_2             c     0.000000E+00     1.121188E-01     1.000000E+00           
-         28  traj.phase0.states:h_3             c     0.000000E+00     2.248131E-01     1.000000E+00           
-         29  traj.phase0.states:h_4             c     0.000000E+00     3.707366E-01     1.000000E+00           
-         30  traj.phase0.states:h_5             c     0.000000E+00     4.035153E-01     1.000000E+00           
-         31  traj.phase0.states:h_6             c     0.000000E+00     4.460697E-01     1.000000E+00           
-         32  traj.phase0.states:h_7             c     0.000000E+00     4.381601E-01     1.000000E+00           
-         33  traj.phase0.states:h_8             c     0.000000E+00     4.216806E-01     1.000000E+00           
-         34  traj.phase0.states:h_9             c     0.000000E+00     3.787953E-01     1.000000E+00           
-         35  traj.phase0.states:h_10            c     0.000000E+00     3.493046E-01     1.000000E+00           
-         36  traj.phase0.states:h_11            c     0.000000E+00     3.567527E-01     1.000000E+00           
-         37  traj.phase0.states:h_12            c     0.000000E+00     3.853664E-01     1.000000E+00           
-         38  traj.phase0.states:h_13            c     0.000000E+00     4.275798E-01     1.000000E+00           
-         39  traj.phase0.states:h_14            c     0.000000E+00     4.347830E-01     1.000000E+00           
-         40  traj.phase0.states:h_15            c     0.000000E+00     4.442899E-01     1.000000E+00           
-         41  traj.phase0.states:h_16            c     0.000000E+00     4.487381E-01     1.000000E+00           
-         42  traj.phase0.states:h_17            c     0.000000E+00     4.508780E-01     1.000000E+00           
-         43  traj.phase0.states:h_18            c     0.000000E+00     4.651480E-01     1.000000E+00           
-         44  traj.phase0.states:h_19            c     0.000000E+00     5.588394E-01     1.000000E+00           
-         45  traj.phase0.states:h_20            c     0.000000E+00     6.204700E-01     1.000000E+00           
-         46  traj.phase0.states:h_21            c     0.000000E+00     7.973563E-01     1.000000E+00           
-         47  traj.phase0.states:h_22            c     0.000000E+00     9.850850E-01     1.000000E+00           
          48  traj.phase0.states:h_23            c     0.000000E+00     1.000000E+00     1.000000E+00          u
-         49  traj.phase0.states:v_0             c     1.000000E-01     2.229877E+00     1.000000E+19           
-         50  traj.phase0.states:v_1             c     1.000000E-01     3.039675E+00     1.000000E+19           
-         51  traj.phase0.states:v_2             c     1.000000E-01     3.066591E+00     1.000000E+19           
-         52  traj.phase0.states:v_3             c     1.000000E-01     3.022225E+00     1.000000E+19           
-         53  traj.phase0.states:v_4             c     1.000000E-01     2.828282E+00     1.000000E+19           
-         54  traj.phase0.states:v_5             c     1.000000E-01     2.811670E+00     1.000000E+19           
-         55  traj.phase0.states:v_6             c     1.000000E-01     2.943772E+00     1.000000E+19           
-         56  traj.phase0.states:v_7             c     1.000000E-01     3.386840E+00     1.000000E+19           
-         57  traj.phase0.states:v_8             c     1.000000E-01     3.559156E+00     1.000000E+19           
-         58  traj.phase0.states:v_9             c     1.000000E-01     3.969502E+00     1.000000E+19           
-         59  traj.phase0.states:v_10            c     1.000000E-01     4.345897E+00     1.000000E+19           
-         60  traj.phase0.states:v_11            c     1.000000E-01     4.380089E+00     1.000000E+19           
-         61  traj.phase0.states:v_12            c     1.000000E-01     4.431640E+00     1.000000E+19           
-         62  traj.phase0.states:v_13            c     1.000000E-01     4.517315E+00     1.000000E+19           
-         63  traj.phase0.states:v_14            c     1.000000E-01     4.574615E+00     1.000000E+19           
-         64  traj.phase0.states:v_15            c     1.000000E-01     4.734367E+00     1.000000E+19           
-         65  traj.phase0.states:v_16            c     1.000000E-01     4.983114E+00     1.000000E+19           
-         66  traj.phase0.states:v_17            c     1.000000E-01     5.055009E+00     1.000000E+19           
-         67  traj.phase0.states:v_18            c     1.000000E-01     5.177031E+00     1.000000E+19           
-         68  traj.phase0.states:v_19            c     1.000000E-01     4.990166E+00     1.000000E+19           
-         69  traj.phase0.states:v_20            c     1.000000E-01     4.776166E+00     1.000000E+19           
-         70  traj.phase0.states:v_21            c     1.000000E-01     4.012745E+00     1.000000E+19           
-         71  traj.phase0.states:v_22            c     1.000000E-01     3.067220E+00     1.000000E+19           
-         72  traj.phase0.states:v_23            c     1.000000E-01     2.950719E+00     1.000000E+19           
-         73  traj.phase0.states:gam_0           c    -1.500000E+00     4.619596E-02     1.500000E+00           
-         74  traj.phase0.states:gam_1           c    -1.500000E+00     4.272151E-01     1.500000E+00           
-         75  traj.phase0.states:gam_2           c    -1.500000E+00     4.879842E-01     1.500000E+00           
-         76  traj.phase0.states:gam_3           c    -1.500000E+00     5.639953E-01     1.500000E+00           
-         77  traj.phase0.states:gam_4           c    -1.500000E+00     4.317062E-01     1.500000E+00           
-         78  traj.phase0.states:gam_5           c    -1.500000E+00     3.265089E-01     1.500000E+00           
-         79  traj.phase0.states:gam_6           c    -1.500000E+00     9.876675E-02     1.500000E+00           
-         80  traj.phase0.states:gam_7           c    -1.500000E+00    -1.255408E-01     1.500000E+00           
-         81  traj.phase0.states:gam_8           c    -1.500000E+00    -1.629671E-01     1.500000E+00           
-         82  traj.phase0.states:gam_9           c    -1.500000E+00    -1.392728E-01     1.500000E+00           
-         83  traj.phase0.states:gam_10          c    -1.500000E+00     1.665424E-02     1.500000E+00           
-         84  traj.phase0.states:gam_11          c    -1.500000E+00     6.494147E-02     1.500000E+00           
-         85  traj.phase0.states:gam_12          c    -1.500000E+00     1.053948E-01     1.500000E+00           
-         86  traj.phase0.states:gam_13          c    -1.500000E+00     6.666145E-02     1.500000E+00           
-         87  traj.phase0.states:gam_14          c    -1.500000E+00     4.591452E-02     1.500000E+00           
-         88  traj.phase0.states:gam_15          c    -1.500000E+00     1.498458E-02     1.500000E+00           
-         89  traj.phase0.states:gam_16          c    -1.500000E+00     1.038247E-02     1.500000E+00           
-         90  traj.phase0.states:gam_17          c    -1.500000E+00     1.850381E-02     1.500000E+00           
-         91  traj.phase0.states:gam_18          c    -1.500000E+00     7.525466E-02     1.500000E+00           
-         92  traj.phase0.states:gam_19          c    -1.500000E+00     3.387760E-01     1.500000E+00           
-         93  traj.phase0.states:gam_20          c    -1.500000E+00     4.862929E-01     1.500000E+00           
-         94  traj.phase0.states:gam_21          c    -1.500000E+00     6.652374E-01     1.500000E+00           
-         95  traj.phase0.states:gam_22          c    -1.500000E+00     3.073217E-01     1.500000E+00           
-         96  traj.phase0.states:gam_23          c    -1.500000E+00     0.000000E+00     1.500000E+00           
-         97  traj.phase0.states:m_0             c     1.000000E-03     1.890596E+00     1.000000E+01           
-         98  traj.phase0.states:m_1             c     1.000000E-03     1.871835E+00     1.000000E+01           
-         99  traj.phase0.states:m_2             c     1.000000E-03     1.865977E+00     1.000000E+01           
-        100  traj.phase0.states:m_3             c     1.000000E-03     1.854296E+00     1.000000E+01           
-        101  traj.phase0.states:m_4             c     1.000000E-03     1.841664E+00     1.000000E+01           
-        102  traj.phase0.states:m_5             c     1.000000E-03     1.838504E+00     1.000000E+01           
-        103  traj.phase0.states:m_6             c     1.000000E-03     1.831626E+00     1.000000E+01           
-        104  traj.phase0.states:m_7             c     1.000000E-03     1.821751E+00     1.000000E+01           
-        105  traj.phase0.states:m_8             c     1.000000E-03     1.818164E+00     1.000000E+01           
-        106  traj.phase0.states:m_9             c     1.000000E-03     1.808560E+00     1.000000E+01           
-        107  traj.phase0.states:m_10            c     1.000000E-03     1.792732E+00     1.000000E+01           
-        108  traj.phase0.states:m_11            c     1.000000E-03     1.787323E+00     1.000000E+01           
-        109  traj.phase0.states:m_12            c     1.000000E-03     1.775341E+00     1.000000E+01           
-        110  traj.phase0.states:m_13            c     1.000000E-03     1.759503E+00     1.000000E+01           
-        111  traj.phase0.states:m_14            c     1.000000E-03     1.754667E+00     1.000000E+01           
-        112  traj.phase0.states:m_15            c     1.000000E-03     1.743366E+00     1.000000E+01           
-        113  traj.phase0.states:m_16            c     1.000000E-03     1.727256E+00     1.000000E+01           
-        114  traj.phase0.states:m_17            c     1.000000E-03     1.721989E+00     1.000000E+01           
-        115  traj.phase0.states:m_18            c     1.000000E-03     1.709806E+00     1.000000E+01           
-        116  traj.phase0.states:m_19            c     1.000000E-03     1.694530E+00     1.000000E+01           
-        117  traj.phase0.states:m_20            c     1.000000E-03     1.690605E+00     1.000000E+01           
-        118  traj.phase0.states:m_21            c     1.000000E-03     1.685074E+00     1.000000E+01           
-        119  traj.phase0.states:m_22            c     1.000000E-03     1.682152E+00     1.000000E+01           
-        120  traj.phase0.states:m_23            c     1.000000E-03     1.681652E+00     1.000000E+01           
-        121  traj.phase0.controls:alpha_0       c    -8.000000E+00     4.289002E+00     8.000000E+00           
-        122  traj.phase0.controls:alpha_1       c    -8.000000E+00     2.743100E+00     8.000000E+00           
-        123  traj.phase0.controls:alpha_2       c    -8.000000E+00     1.583497E+00     8.000000E+00           
-        124  traj.phase0.controls:alpha_3       c    -8.000000E+00     1.451648E+00     8.000000E+00           
-        125  traj.phase0.controls:alpha_4       c    -8.000000E+00     1.318112E+00     8.000000E+00           
-        126  traj.phase0.controls:alpha_5       c    -8.000000E+00     1.261674E+00     8.000000E+00           
-        127  traj.phase0.controls:alpha_6       c    -8.000000E+00     1.274690E+00     8.000000E+00           
-        128  traj.phase0.controls:alpha_7       c    -8.000000E+00     1.348987E+00     8.000000E+00           
-        129  traj.phase0.controls:alpha_8       c    -8.000000E+00     1.541789E+00     8.000000E+00           
-        130  traj.phase0.controls:alpha_9       c    -8.000000E+00     1.624621E+00     8.000000E+00           
-        131  traj.phase0.controls:alpha_10      c    -8.000000E+00     1.735723E+00     8.000000E+00           
-        132  traj.phase0.controls:alpha_11      c    -8.000000E+00     1.591575E+00     8.000000E+00           
-        133  traj.phase0.controls:alpha_12      c    -8.000000E+00     1.474096E+00     8.000000E+00           
-        134  traj.phase0.controls:alpha_13      c    -8.000000E+00     1.233286E+00     8.000000E+00           
-        135  traj.phase0.controls:alpha_14      c    -8.000000E+00     1.123528E+00     8.000000E+00           
-        136  traj.phase0.controls:alpha_15      c    -8.000000E+00     1.142545E+00     8.000000E+00           
-        137  traj.phase0.controls:alpha_16      c    -8.000000E+00     1.209549E+00     8.000000E+00           
-        138  traj.phase0.controls:alpha_17      c    -8.000000E+00     1.281857E+00     8.000000E+00           
-        139  traj.phase0.controls:alpha_18      c    -8.000000E+00     1.299876E+00     8.000000E+00           
-        140  traj.phase0.controls:alpha_19      c    -8.000000E+00     1.664441E+00     8.000000E+00           
-        141  traj.phase0.controls:alpha_20      c    -8.000000E+00     3.237875E+00     8.000000E+00           
-        142  traj.phase0.controls:alpha_21      c    -8.000000E+00     3.994453E+00     8.000000E+00           
-        143  traj.phase0.controls:alpha_22      c    -8.000000E+00     3.797222E+00     8.000000E+00           
-        144  traj.phase0.controls:alpha_23      c    -8.000000E+00    -3.278844E+00     8.000000E+00           
 
    Constraints (i - inequality, e - equality)
       Index  Name                                                        Type          Lower           Value           Upper    Status  Lagrange Multiplier (N/A)
-          0  traj.phase0.h[final]                                           e   2.000000E+01    2.000000E+01    2.000000E+01              9.00000E+100
-          1  traj.phase0.mach[final]                                        e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
-          2  traj.phase0.gam[final]                                         e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-          3  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    2.311541E-15    0.000000E+00              9.00000E+100
-          4  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    8.968778E-13    0.000000E+00              9.00000E+100
-          5  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    1.053369E-10    0.000000E+00              9.00000E+100
-          6  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    1.603088E-10    0.000000E+00              9.00000E+100
-          7  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    4.639494E-11    0.000000E+00              9.00000E+100
-          8  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00   -9.373298E-12    0.000000E+00              9.00000E+100
-          9  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    6.729126E-11    0.000000E+00              9.00000E+100
-         10  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    4.367922E-10    0.000000E+00              9.00000E+100
-         11  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    7.318119E-10    0.000000E+00              9.00000E+100
-         12  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    4.554429E-10    0.000000E+00              9.00000E+100
-         13  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    8.642851E-12    0.000000E+00              9.00000E+100
-         14  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    1.248907E-09    0.000000E+00              9.00000E+100
-         15  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    1.193351E-09    0.000000E+00              9.00000E+100
-         16  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    1.905588E-10    0.000000E+00              9.00000E+100
-         17  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    3.623028E-10    0.000000E+00              9.00000E+100
-         18  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    4.827306E-10    0.000000E+00              9.00000E+100
-         19  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    1.247469E-10    0.000000E+00              9.00000E+100
-         20  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    2.430458E-10    0.000000E+00              9.00000E+100
-         21  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    3.434476E-10    0.000000E+00              9.00000E+100
-         22  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    3.893328E-11    0.000000E+00              9.00000E+100
-         23  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    2.701394E-10    0.000000E+00              9.00000E+100
-         24  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    2.161291E-10    0.000000E+00              9.00000E+100
-         25  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    6.556686E-12    0.000000E+00              9.00000E+100
-         26  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    9.597517E-12    0.000000E+00              9.00000E+100
-         27  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00   -2.273737E-17    0.000000E+00              9.00000E+100
-         28  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00    1.933387E-14    0.000000E+00              9.00000E+100
-         29  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00    7.214304E-12    0.000000E+00              9.00000E+100
-         30  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00    1.569568E-11    0.000000E+00              9.00000E+100
-         31  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00    1.960372E-11    0.000000E+00              9.00000E+100
-         32  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00    1.128075E-12    0.000000E+00              9.00000E+100
-         33  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00   -5.812774E-12    0.000000E+00              9.00000E+100
-         34  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00   -7.312480E-12    0.000000E+00              9.00000E+100
-         35  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00    2.663750E-11    0.000000E+00              9.00000E+100
-         36  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00    2.606149E-11    0.000000E+00              9.00000E+100
-         37  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00   -9.735430E-12    0.000000E+00              9.00000E+100
-         38  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00   -1.271889E-11    0.000000E+00              9.00000E+100
-         39  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00    1.011416E-11    0.000000E+00              9.00000E+100
-         40  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00    1.369561E-11    0.000000E+00              9.00000E+100
-         41  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00   -1.004350E-11    0.000000E+00              9.00000E+100
-         42  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00   -4.553530E-12    0.000000E+00              9.00000E+100
-         43  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00    2.545141E-12    0.000000E+00              9.00000E+100
-         44  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00   -8.838872E-13    0.000000E+00              9.00000E+100
-         45  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00    4.250721E-12    0.000000E+00              9.00000E+100
-         46  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00    3.120573E-12    0.000000E+00              9.00000E+100
-         47  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00    2.101971E-12    0.000000E+00              9.00000E+100
-         48  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00    6.576074E-12    0.000000E+00              9.00000E+100
-         49  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00    1.380914E-12    0.000000E+00              9.00000E+100
-         50  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00   -7.035752E-14    0.000000E+00              9.00000E+100
-         51  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    3.635259E-13    0.000000E+00              9.00000E+100
-         52  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    7.317471E-13    0.000000E+00              9.00000E+100
-         53  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    7.320171E-11    0.000000E+00              9.00000E+100
-         54  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    3.104896E-10    0.000000E+00              9.00000E+100
-         55  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    7.900239E-10    0.000000E+00              9.00000E+100
-         56  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    5.729797E-10    0.000000E+00              9.00000E+100
-         57  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    6.023762E-10    0.000000E+00              9.00000E+100
-         58  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    7.958567E-11    0.000000E+00              9.00000E+100
-         59  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00   -1.156114E-11    0.000000E+00              9.00000E+100
-         60  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    9.949802E-11    0.000000E+00              9.00000E+100
-         61  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    2.893422E-10    0.000000E+00              9.00000E+100
-         62  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    3.640424E-11    0.000000E+00              9.00000E+100
-         63  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00   -6.839497E-12    0.000000E+00              9.00000E+100
-         64  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    1.941596E-10    0.000000E+00              9.00000E+100
-         65  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    8.835580E-11    0.000000E+00              9.00000E+100
-         66  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    1.671391E-11    0.000000E+00              9.00000E+100
-         67  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    4.075084E-11    0.000000E+00              9.00000E+100
-         68  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    1.415209E-11    0.000000E+00              9.00000E+100
-         69  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    1.081855E-11    0.000000E+00              9.00000E+100
-         70  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    1.196382E-10    0.000000E+00              9.00000E+100
-         71  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    2.760585E-11    0.000000E+00              9.00000E+100
-         72  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00   -9.919761E-12    0.000000E+00              9.00000E+100
-         73  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    3.533605E-11    0.000000E+00              9.00000E+100
-         74  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    4.783806E-12    0.000000E+00              9.00000E+100
-         75  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00   -7.054263E-17    0.000000E+00              9.00000E+100
-         76  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00    3.170891E-13    0.000000E+00              9.00000E+100
-         77  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00   -1.224973E-13    0.000000E+00              9.00000E+100
-         78  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00   -6.610331E-11    0.000000E+00              9.00000E+100
-         79  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00   -2.037327E-10    0.000000E+00              9.00000E+100
-         80  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00   -2.485481E-10    0.000000E+00              9.00000E+100
-         81  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00   -2.946858E-10    0.000000E+00              9.00000E+100
-         82  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00   -6.007939E-11    0.000000E+00              9.00000E+100
-         83  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00   -2.263583E-10    0.000000E+00              9.00000E+100
-         84  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00   -4.429040E-11    0.000000E+00              9.00000E+100
-         85  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00   -1.280139E-10    0.000000E+00              9.00000E+100
-         86  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00   -6.673900E-11    0.000000E+00              9.00000E+100
-         87  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00   -6.879511E-11    0.000000E+00              9.00000E+100
-         88  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00   -1.557599E-10    0.000000E+00              9.00000E+100
-         89  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00   -6.338778E-11    0.000000E+00              9.00000E+100
-         90  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00   -1.437799E-11    0.000000E+00              9.00000E+100
-         91  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00   -2.493831E-11    0.000000E+00              9.00000E+100
-         92  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00   -1.621102E-11    0.000000E+00              9.00000E+100
-         93  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00   -1.052774E-11    0.000000E+00              9.00000E+100
-         94  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00   -7.448279E-11    0.000000E+00              9.00000E+100
-         95  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00   -7.973151E-12    0.000000E+00              9.00000E+100
-         96  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00    8.845411E-12    0.000000E+00              9.00000E+100
-         97  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00   -1.128028E-11    0.000000E+00              9.00000E+100
-         98  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00   -2.685135E-12    0.000000E+00              9.00000E+100
-         99  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00   -9.751813E-17    0.000000E+00              9.00000E+100
-        100  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00    5.092613E-16    0.000000E+00              9.00000E+100
-        101  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00   -7.434854E-14    0.000000E+00              9.00000E+100
-        102  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00   -1.154362E-13    0.000000E+00              9.00000E+100
-        103  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00    1.785665E-13    0.000000E+00              9.00000E+100
-        104  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00    7.632870E-13    0.000000E+00              9.00000E+100
-        105  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00    7.352560E-13    0.000000E+00              9.00000E+100
-        106  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00    9.583143E-14    0.000000E+00              9.00000E+100
-        107  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00    8.264553E-13    0.000000E+00              9.00000E+100
-        108  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00    1.350821E-12    0.000000E+00              9.00000E+100
-        109  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00    6.662601E-13    0.000000E+00              9.00000E+100
-        110  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00   -8.408230E-14    0.000000E+00              9.00000E+100
-        111  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00   -4.818118E-15    0.000000E+00              9.00000E+100
-        112  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00   -1.698260E-13    0.000000E+00              9.00000E+100
-        113  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00    2.772043E-15    0.000000E+00              9.00000E+100
-        114  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00   -3.752642E-15    0.000000E+00              9.00000E+100
-        115  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00   -1.403358E-14    0.000000E+00              9.00000E+100
-        116  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00   -3.756254E-15    0.000000E+00              9.00000E+100
-        117  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00   -3.726998E-14    0.000000E+00              9.00000E+100
-        118  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00   -2.252452E-13    0.000000E+00              9.00000E+100
-        119  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00   -3.050837E-13    0.000000E+00              9.00000E+100
-        120  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00    7.835762E-15    0.000000E+00              9.00000E+100
-        121  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00    9.808698E-15    0.000000E+00              9.00000E+100
-        122  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00    1.855553E-16    0.000000E+00              9.00000E+100
-        123  traj.phase0.continuity_comp.defect_control_rates:alpha_rate    e   0.000000E+00   -7.336433E-13    0.000000E+00              9.00000E+100
-        124  traj.phase0.continuity_comp.defect_control_rates:alpha_rate    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        125  traj.phase0.continuity_comp.defect_control_rates:alpha_rate    e   0.000000E+00   -3.668217E-13    0.000000E+00              9.00000E+100
-        126  traj.phase0.continuity_comp.defect_control_rates:alpha_rate    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        127  traj.phase0.continuity_comp.defect_control_rates:alpha_rate    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        128  traj.phase0.continuity_comp.defect_control_rates:alpha_rate    e   0.000000E+00   -1.834108E-13    0.000000E+00              9.00000E+100
-        129  traj.phase0.continuity_comp.defect_control_rates:alpha_rate    e   0.000000E+00    1.354418E-12    0.000000E+00              9.00000E+100
-        130  traj.phase0.continuity_comp.defect_controls:alpha              e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        131  traj.phase0.continuity_comp.defect_controls:alpha              e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        132  traj.phase0.continuity_comp.defect_controls:alpha              e   0.000000E+00   -2.220446E-16    0.000000E+00              9.00000E+100
-        133  traj.phase0.continuity_comp.defect_controls:alpha              e   0.000000E+00   -2.220446E-16    0.000000E+00              9.00000E+100
-        134  traj.phase0.continuity_comp.defect_controls:alpha              e   0.000000E+00    2.220446E-16    0.000000E+00              9.00000E+100
-        135  traj.phase0.continuity_comp.defect_controls:alpha              e   0.000000E+00    2.220446E-16    0.000000E+00              9.00000E+100
-        136  traj.phase0.continuity_comp.defect_controls:alpha              e   0.000000E+00    4.440892E-16    0.000000E+00              9.00000E+100
         137  traj.phase0.h[path]                                            i   5.000000E-03    5.000000E-03    1.000000E+00         l    9.00000E+100
         138  traj.phase0.h[path]                                            i   5.000000E-03    4.999997E-03    1.000000E+00         l    9.00000E+100
-        139  traj.phase0.h[path]                                            i   5.000000E-03    6.309075E-02    1.000000E+00              9.00000E+100
-        140  traj.phase0.h[path]                                            i   5.000000E-03    1.121188E-01    1.000000E+00              9.00000E+100
-        141  traj.phase0.h[path]                                            i   5.000000E-03    1.121188E-01    1.000000E+00              9.00000E+100
-        142  traj.phase0.h[path]                                            i   5.000000E-03    2.248131E-01    1.000000E+00              9.00000E+100
-        143  traj.phase0.h[path]                                            i   5.000000E-03    3.707366E-01    1.000000E+00              9.00000E+100
-        144  traj.phase0.h[path]                                            i   5.000000E-03    4.035153E-01    1.000000E+00              9.00000E+100
-        145  traj.phase0.h[path]                                            i   5.000000E-03    4.035153E-01    1.000000E+00              9.00000E+100
-        146  traj.phase0.h[path]                                            i   5.000000E-03    4.460697E-01    1.000000E+00              9.00000E+100
-        147  traj.phase0.h[path]                                            i   5.000000E-03    4.381601E-01    1.000000E+00              9.00000E+100
-        148  traj.phase0.h[path]                                            i   5.000000E-03    4.216806E-01    1.000000E+00              9.00000E+100
-        149  traj.phase0.h[path]                                            i   5.000000E-03    4.216806E-01    1.000000E+00              9.00000E+100
-        150  traj.phase0.h[path]                                            i   5.000000E-03    3.787953E-01    1.000000E+00              9.00000E+100
-        151  traj.phase0.h[path]                                            i   5.000000E-03    3.493046E-01    1.000000E+00              9.00000E+100
-        152  traj.phase0.h[path]                                            i   5.000000E-03    3.567527E-01    1.000000E+00              9.00000E+100
-        153  traj.phase0.h[path]                                            i   5.000000E-03    3.567527E-01    1.000000E+00              9.00000E+100
-        154  traj.phase0.h[path]                                            i   5.000000E-03    3.853664E-01    1.000000E+00              9.00000E+100
-        155  traj.phase0.h[path]                                            i   5.000000E-03    4.275798E-01    1.000000E+00              9.00000E+100
-        156  traj.phase0.h[path]                                            i   5.000000E-03    4.347830E-01    1.000000E+00              9.00000E+100
-        157  traj.phase0.h[path]                                            i   5.000000E-03    4.347830E-01    1.000000E+00              9.00000E+100
-        158  traj.phase0.h[path]                                            i   5.000000E-03    4.442899E-01    1.000000E+00              9.00000E+100
-        159  traj.phase0.h[path]                                            i   5.000000E-03    4.487381E-01    1.000000E+00              9.00000E+100
-        160  traj.phase0.h[path]                                            i   5.000000E-03    4.508780E-01    1.000000E+00              9.00000E+100
-        161  traj.phase0.h[path]                                            i   5.000000E-03    4.508780E-01    1.000000E+00              9.00000E+100
-        162  traj.phase0.h[path]                                            i   5.000000E-03    4.651480E-01    1.000000E+00              9.00000E+100
-        163  traj.phase0.h[path]                                            i   5.000000E-03    5.588394E-01    1.000000E+00              9.00000E+100
-        164  traj.phase0.h[path]                                            i   5.000000E-03    6.204700E-01    1.000000E+00              9.00000E+100
-        165  traj.phase0.h[path]                                            i   5.000000E-03    6.204700E-01    1.000000E+00              9.00000E+100
-        166  traj.phase0.h[path]                                            i   5.000000E-03    7.973563E-01    1.000000E+00              9.00000E+100
-        167  traj.phase0.h[path]                                            i   5.000000E-03    9.850850E-01    1.000000E+00              9.00000E+100
-        168  traj.phase0.mach[path]                                         i   1.000000E-01    4.000084E-01    1.800000E+00              9.00000E+100
-        169  traj.phase0.mach[path]                                         i   1.000000E-01    6.560335E-01    1.800000E+00              9.00000E+100
-        170  traj.phase0.mach[path]                                         i   1.000000E-01    9.062569E-01    1.800000E+00              9.00000E+100
-        171  traj.phase0.mach[path]                                         i   1.000000E-01    9.248643E-01    1.800000E+00              9.00000E+100
-        172  traj.phase0.mach[path]                                         i   1.000000E-01    9.248643E-01    1.800000E+00              9.00000E+100
-        173  traj.phase0.mach[path]                                         i   1.000000E-01    9.368865E-01    1.800000E+00              9.00000E+100
-        174  traj.phase0.mach[path]                                         i   1.000000E-01    9.106928E-01    1.800000E+00              9.00000E+100
-        175  traj.phase0.mach[path]                                         i   1.000000E-01    9.134688E-01    1.800000E+00              9.00000E+100
-        176  traj.phase0.mach[path]                                         i   1.000000E-01    9.134688E-01    1.800000E+00              9.00000E+100
-        177  traj.phase0.mach[path]                                         i   1.000000E-01    9.677785E-01    1.800000E+00              9.00000E+100
-        178  traj.phase0.mach[path]                                         i   1.000000E-01    1.110968E+00    1.800000E+00              9.00000E+100
-        179  traj.phase0.mach[path]                                         i   1.000000E-01    1.162135E+00    1.800000E+00              9.00000E+100
-        180  traj.phase0.mach[path]                                         i   1.000000E-01    1.162135E+00    1.800000E+00              9.00000E+100
-        181  traj.phase0.mach[path]                                         i   1.000000E-01    1.280952E+00    1.800000E+00              9.00000E+100
-        182  traj.phase0.mach[path]                                         i   1.000000E-01    1.391323E+00    1.800000E+00              9.00000E+100
-        183  traj.phase0.mach[path]                                         i   1.000000E-01    1.405068E+00    1.800000E+00              9.00000E+100
-        184  traj.phase0.mach[path]                                         i   1.000000E-01    1.405068E+00    1.800000E+00              9.00000E+100
-        185  traj.phase0.mach[path]                                         i   1.000000E-01    1.432640E+00    1.800000E+00              9.00000E+100
-        186  traj.phase0.mach[path]                                         i   1.000000E-01    1.477416E+00    1.800000E+00              9.00000E+100
-        187  traj.phase0.mach[path]                                         i   1.000000E-01    1.499169E+00    1.800000E+00              9.00000E+100
-        188  traj.phase0.mach[path]                                         i   1.000000E-01    1.499169E+00    1.800000E+00              9.00000E+100
-        189  traj.phase0.mach[path]                                         i   1.000000E-01    1.555666E+00    1.800000E+00              9.00000E+100
-        190  traj.phase0.mach[path]                                         i   1.000000E-01    1.639453E+00    1.800000E+00              9.00000E+100
-        191  traj.phase0.mach[path]                                         i   1.000000E-01    1.664111E+00    1.800000E+00              9.00000E+100
-        192  traj.phase0.mach[path]                                         i   1.000000E-01    1.664111E+00    1.800000E+00              9.00000E+100
-        193  traj.phase0.mach[path]                                         i   1.000000E-01    1.711187E+00    1.800000E+00              9.00000E+100
-        194  traj.phase0.mach[path]                                         i   1.000000E-01    1.691709E+00    1.800000E+00              9.00000E+100
-        195  traj.phase0.mach[path]                                         i   1.000000E-01    1.618692E+00    1.800000E+00              9.00000E+100
-        196  traj.phase0.mach[path]                                         i   1.000000E-01    1.618692E+00    1.800000E+00              9.00000E+100
-        197  traj.phase0.mach[path]                                         i   1.000000E-01    1.359961E+00    1.800000E+00              9.00000E+100
-        198  traj.phase0.mach[path]                                         i   1.000000E-01    1.039512E+00    1.800000E+00              9.00000E+100
-
-
-   Exit Status
-      Inform  Description
-           0  Solve Succeeded
---------------------------------------------------------------------------------
 </pre></div>
 </div>
 <div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Problem: problem
 Driver:  pyOptSparseDriver
   success     : True
-  iterations  : 569
-  runtime     : 8.2901E+00 s
-  model_evals : 569
-  model_time  : 3.6940E+00 s
-  deriv_evals : 224
-  deriv_time  : 1.5289E+00 s
+  iterations  : 300
+  runtime     : 7.7395E+00 s
+  model_evals : 300
+  model_time  : 3.2206E+00 s
+  deriv_evals : 149
+  deriv_time  : 1.5615E+00 s
   exit_status : SUCCESS
 </pre></div>
 </div>
@@ -1621,7 +973,7 @@ Remember that the timeseries provides values at the nodes only. The fitting poly
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/4b3c15c5c891b15ed976dc5b3e7567d9f5bf6f13a71854fd66a9e0c3ed0bba95.png" src="../../_images/4b3c15c5c891b15ed976dc5b3e7567d9f5bf6f13a71854fd66a9e0c3ed0bba95.png" />
+<img alt="../../_images/ff38696c8e55a0302645492441c0e11a7a44f2ebeb872a3e70b154db4efe207d.png" src="../../_images/ff38696c8e55a0302645492441c0e11a7a44f2ebeb872a3e70b154db4efe207d.png" />
 </div>
 </div>
 <p>Both the <code class="docutils literal notranslate"><span class="pre">simulate</span></code> method and the <code class="docutils literal notranslate"><span class="pre">interp</span></code> method can provide more dense output. The difference is that simulate is effectively finding a different solution for the states, by starting from the initial values and propagating the ODE forward in time using the interpolated control splines as inputs. The <code class="docutils literal notranslate"><span class="pre">interp</span></code> method is making some assumptions about the interpolation (for instance, cubic interpolation in this case), so it may not be a perfectly accurate representation of the underlying interpolating polynomials.</p>
@@ -1647,82 +999,66 @@ Remember that the timeseries provides values at the nodes only. The fitting poly
     </script>
     <script>kernelName = 'python3'</script>
 
-            </article>
-            
+                </article>
+              
 
-            
-            
-            <footer class="bd-footer-article">
-                <!-- Previous / next buttons -->
-<div class='prev-next-area'>
-  <a class='left-prev' id="prev-link" href="objective.html" title="previous page">
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="objective.html"
+       title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
-          <p class="prev-next-subtitle">previous</p>
-          <p class="prev-next-title">Objective</p>
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Objective</p>
       </div>
-  </a>
-  <a class='right-next' id="next-link" href="calc_expressions.html" title="next page">
-  <div class="prev-next-info">
-      <p class="prev-next-subtitle">next</p>
-      <p class="prev-next-title">Calculation Expressions</p>
-  </div>
-  <i class="fa-solid fa-angle-right"></i>
-  </a>
+    </a>
+    <a class="right-next"
+       href="calc_expressions.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Calculation Expressions</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
 </div>
-            </footer>
-            
-          </div>
-          
-          
-          
-            <div class="bd-sidebar-secondary bd-toc">
+                </footer>
               
-<div class="toc-item">
-  
-<div class="tocsection onthispage">
-    <i class="fa-solid fa-list"></i> On this page
-</div>
-<nav id="bd-toc-nav" class="page-toc">
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
- <li class="toc-h1 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#">
-   Timeseries Outputs
-  </a>
-  <ul class="visible nav section-nav flex-column">
-   <li class="toc-h2 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#paths-to-timeseries-outputs-in-dymos">
-     Paths to timeseries outputs in Dymos
-    </a>
-   </li>
-   <li class="toc-h2 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#adding-additional-timeseries-outputs">
-     Adding additional timeseries outputs
-    </a>
-   </li>
-   <li class="toc-h2 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#interpolated-timeseries-outputs">
-     Interpolated Timeseries Outputs
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toc-h1 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#interpolating-timeseries-outputs">
-   Interpolating Timeseries Outputs
-  </a>
- </li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Timeseries Outputs</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#paths-to-timeseries-outputs-in-dymos">Paths to timeseries outputs in Dymos</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#adding-additional-timeseries-outputs">Adding additional timeseries outputs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#interpolated-timeseries-outputs">Interpolated Timeseries Outputs</a></li>
+</ul>
+</li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#interpolating-timeseries-outputs">Interpolating Timeseries Outputs</a></li>
 </ul>
 
-</nav>
-</div>
+  </nav></div>
 
-            </div>
-          
-          
-        </div>
-        <footer class="bd-footer-content">
-          <div class="bd-footer-content__inner">
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
             
 <div class="bd-footer-content__inner container">
   
@@ -1736,18 +1072,18 @@ By The Dymos Development Team
   
   <div class="footer-item">
     
-<p class="copyright">
 
-    &copy; Copyright 2022.<br>
-
-</p>
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
 
   </div>
   
   <div class="footer-item">
-    <p class="last-updated">
-Last updated on None.<br>
-</p>
+    
   </div>
   
   <div class="footer-item">
@@ -1755,19 +1091,18 @@ Last updated on None.<br>
   </div>
   
 </div>
-          </div>
-        </footer>
+          </footer>
         
 
       </main>
     </div>
   </div>
-
   
-    
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../../_static/scripts/bootstrap.js?digest=796348d33e8b1d947c94"></script>
-<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=796348d33e8b1d947c94"></script>
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
 
+  <footer class="bd-footer">
+  </footer>
   </body>
 </html>

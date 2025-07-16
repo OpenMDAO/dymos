@@ -8,32 +8,53 @@ msgstr ""
 "Language: el\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+msgid "By the"
+msgstr "Από το"
+
+msgid "By"
+msgstr "Με"
+
+msgid "Contents"
+msgstr "Περιεχόμενα"
+
 msgid "Copyright"
 msgstr "Πνευματική ιδιοκτησία"
 
-msgid "Print to PDF"
-msgstr "Εκτύπωση σε PDF"
+msgid "Download notebook file"
+msgstr "Λήψη αρχείου σημειωματάριου"
+
+msgid "Download source file"
+msgstr "Λήψη αρχείου προέλευσης"
+
+msgid "Download this page"
+msgstr "Λήψη αυτής της σελίδας"
 
 msgid "Edit this page"
 msgstr "Επεξεργαστείτε αυτήν τη σελίδα"
 
-msgid "suggest edit"
-msgstr "προτείνω επεξεργασία"
+msgid "Fullscreen mode"
+msgstr "ΛΕΙΤΟΥΡΓΙΑ ΠΛΗΡΟΥΣ ΟΘΟΝΗΣ"
+
+msgid "Last updated on"
+msgstr "Τελευταία ενημέρωση στις"
+
+msgid "Launch"
+msgstr "Εκτόξευση"
+
+msgid "Open an issue"
+msgstr "Ανοίξτε ένα ζήτημα"
+
+msgid "Print to PDF"
+msgstr "Εκτύπωση σε PDF"
+
+msgid "Source repository"
+msgstr "Αποθήκη πηγής"
 
 msgid "Sphinx Book Theme"
 msgstr "Θέμα βιβλίου Sphinx"
 
-msgid "open issue"
-msgstr "ανοιχτό ζήτημα"
-
-msgid "By the"
-msgstr "Από το"
-
 msgid "Theme by the"
 msgstr "Θέμα από το"
-
-msgid "Download notebook file"
-msgstr "Λήψη αρχείου σημειωματάριου"
 
 msgid "Toggle navigation"
 msgstr "Εναλλαγή πλοήγησης"
@@ -41,41 +62,14 @@ msgstr "Εναλλαγή πλοήγησης"
 msgid "next page"
 msgstr "επόμενη σελίδα"
 
-msgid "Contents"
-msgstr "Περιεχόμενα"
-
-msgid "Source repository"
-msgstr "Αποθήκη πηγής"
-
-msgid "Search the docs ..."
-msgstr "Αναζήτηση στα έγγραφα ..."
-
-msgid "Last updated on"
-msgstr "Τελευταία ενημέρωση στις"
-
-msgid "Search this book..."
-msgstr "Αναζήτηση σε αυτό το βιβλίο ..."
-
-msgid "Download this page"
-msgstr "Λήψη αυτής της σελίδας"
-
-msgid "Launch"
-msgstr "Εκτόξευση"
-
-msgid "Download source file"
-msgstr "Λήψη αρχείου προέλευσης"
+msgid "open issue"
+msgstr "ανοιχτό ζήτημα"
 
 msgid "previous page"
 msgstr "προηγούμενη σελίδα"
 
-msgid "By"
-msgstr "Με"
-
-msgid "Open an issue"
-msgstr "Ανοίξτε ένα ζήτημα"
-
-msgid "Fullscreen mode"
-msgstr "ΛΕΙΤΟΥΡΓΙΑ ΠΛΗΡΟΥΣ ΟΘΟΝΗΣ"
-
 msgid "repository"
 msgstr "αποθήκη"
+
+msgid "suggest edit"
+msgstr "προτείνω επεξεργασία"

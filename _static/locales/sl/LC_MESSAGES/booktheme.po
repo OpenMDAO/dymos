@@ -8,32 +8,53 @@ msgstr ""
 "Language: sl\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+msgid "By the"
+msgstr "Avtor"
+
+msgid "By"
+msgstr "Avtor"
+
+msgid "Contents"
+msgstr "Vsebina"
+
 msgid "Copyright"
 msgstr "avtorske pravice"
 
-msgid "Print to PDF"
-msgstr "Natisni v PDF"
+msgid "Download notebook file"
+msgstr "Prenesite datoteko zvezka"
+
+msgid "Download source file"
+msgstr "Prenesite izvorno datoteko"
+
+msgid "Download this page"
+msgstr "Prenesite to stran"
 
 msgid "Edit this page"
 msgstr "Uredite to stran"
 
-msgid "suggest edit"
-msgstr "predlagajte urejanje"
+msgid "Fullscreen mode"
+msgstr "Celozaslonski način"
+
+msgid "Last updated on"
+msgstr "Nazadnje posodobljeno dne"
+
+msgid "Launch"
+msgstr "Kosilo"
+
+msgid "Open an issue"
+msgstr "Odprite številko"
+
+msgid "Print to PDF"
+msgstr "Natisni v PDF"
+
+msgid "Source repository"
+msgstr "Izvorno skladišče"
 
 msgid "Sphinx Book Theme"
 msgstr "Tema knjige Sphinx"
 
-msgid "open issue"
-msgstr "odprto vprašanje"
-
-msgid "By the"
-msgstr "Avtor"
-
 msgid "Theme by the"
 msgstr "Tema avtorja"
-
-msgid "Download notebook file"
-msgstr "Prenesite datoteko zvezka"
 
 msgid "Toggle navigation"
 msgstr "Preklopi navigacijo"
@@ -41,41 +62,14 @@ msgstr "Preklopi navigacijo"
 msgid "next page"
 msgstr "Naslednja stran"
 
-msgid "Contents"
-msgstr "Vsebina"
-
-msgid "Source repository"
-msgstr "Izvorno skladišče"
-
-msgid "Search the docs ..."
-msgstr "Poiščite dokumente ..."
-
-msgid "Last updated on"
-msgstr "Nazadnje posodobljeno dne"
-
-msgid "Search this book..."
-msgstr "Poiščite to knjigo ..."
-
-msgid "Download this page"
-msgstr "Prenesite to stran"
-
-msgid "Launch"
-msgstr "Kosilo"
-
-msgid "Download source file"
-msgstr "Prenesite izvorno datoteko"
+msgid "open issue"
+msgstr "odprto vprašanje"
 
 msgid "previous page"
 msgstr "Prejšnja stran"
 
-msgid "By"
-msgstr "Avtor"
-
-msgid "Open an issue"
-msgstr "Odprite številko"
-
-msgid "Fullscreen mode"
-msgstr "Celozaslonski način"
-
 msgid "repository"
 msgstr "odlagališče"
+
+msgid "suggest edit"
+msgstr "predlagajte urejanje"

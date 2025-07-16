@@ -1,10 +1,12 @@
 
 <!DOCTYPE html>
 
-<html lang="en">
+
+<html lang="en" data-content_root="../../" >
+
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Two-Burn Orbit Raise &#8212; Dymos</title>
   
@@ -12,53 +14,50 @@
   
   <script data-cfasync="false">
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
-    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../_static/styles/theme.css?digest=796348d33e8b1d947c94" rel="stylesheet">
-<link href="../../_static/styles/bootstrap.css?digest=796348d33e8b1d947c94" rel="stylesheet">
-<link href="../../_static/styles/pydata-sphinx-theme.css?digest=796348d33e8b1d947c94" rel="stylesheet">
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
 
   
-  <link href="../../_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=796348d33e8b1d947c94" rel="stylesheet">
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2">
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2">
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2">
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
 
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" href="../../_static/styles/sphinx-book-theme.css?digest=4ec06e9971c5264fbd345897d5258098f11cc577" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/togglebutton.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-thebe.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/myfile.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../_static/myfile.css?v=9678755d" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=796348d33e8b1d947c94">
-<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=796348d33e8b1d947c94">
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
 
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/clipboard.min.js"></script>
-    <script src="../../_static/copybutton.js"></script>
-    <script src="../../_static/scripts/sphinx-book-theme.js?digest=8bf782fb4ee92b3d3646425e50f299c4e1fd152d"></script>
+    <script src="../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
     <script>let toggleHintShow = 'Click to show';</script>
     <script>let toggleHintHide = 'Click to hide';</script>
     <script>let toggleOpenOnPrint = 'true';</script>
-    <script src="../../_static/togglebutton.js"></script>
+    <script src="../../_static/togglebutton.js?v=4a39c7ea"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
-    <script src="../../_static/design-tabs.js"></script>
-    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"
-const thebe_selector = ".thebe,.cell"
-const thebe_selector_input = "pre"
-const thebe_selector_output = ".output, .cell_output"
-</script>
-    <script async="async" src="../../_static/sphinx-thebe.js"></script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
     <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'examples/finite_burn_orbit_raise/finite_burn_orbit_raise';</script>
@@ -66,432 +65,114 @@ const thebe_selector_output = ".output, .cell_output"
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="The Length-Constrained Brachistochrone" href="../length_constrained_brachistochrone/length_constrained_brachistochrone.html" />
     <link rel="prev" title="Hyper-Sensitive Problem" href="../hypersensitive/hypersensitive.html" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="docsearch:language" content="en">
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
   </head>
   
   
-  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="180" data-default-mode="">
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
 
   
   
-  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox" class="sidebar-toggle" name="__primary" id="__primary">
-  <label class="overlay overlay-primary" for="__primary"></label>
-
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
   
-  <input type="checkbox" class="sidebar-toggle" name="__secondary" id="__secondary">
-  <label class="overlay overlay-secondary" for="__secondary"></label>
-
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
   
   <div class="search-button__wrapper">
     <div class="search-button__overlay"></div>
     <div class="search-button__search-container">
-      
-<form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
   <i class="fa-solid fa-magnifying-glass"></i>
-  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search this book..." aria-label="Search this book..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form>
-    </div>
+</form></div>
   </div>
 
-  
-  <nav class="bd-header navbar navbar-expand-lg bd-navbar" id="navbar-main"><div class="bd-header__inner bd-page-width">
-  <label class="sidebar-toggle primary-toggle" for="__primary">
-      <span class="fa-solid fa-bars"></span>
-  </label>
-  <div id="navbar-start">
-    
-    
-  
-
-
-<a class="navbar-brand logo" href="../../index.html">
-
-  
-  
-  
-  
-  
-  
-  
-
-  
-    <img src="../../_static/dymos_logo.png" class="logo__image only-light" alt="Logo image">
-    <img src="../../_static/dymos_logo.png" class="logo__image only-dark" alt="Logo image">
-  
-  
-</a>
-    
-  </div>
-
-  
-  <div class="col-lg-9 navbar-header-items">
-    <div id="navbar-center" class="mr-auto">
-      
-      <div class="navbar-center-item">
-        <nav class="navbar-nav">
-    <p class="sidebar-header-items__title" role="heading" aria-level="1" aria-label="Site Navigation">
-        Site Navigation
-    </p>
-    <ul id="navbar-main-elements" class="navbar-nav">
-        
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../installation.html">
-                        Installing Dymos
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../getting_started/optimal_control.html">
-                        Optimal Control
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../getting_started/transcriptions.html">
-                        Optimal Control Transcriptions
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../getting_started/defining_odes.html">
-                        Defining ODEs
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../getting_started/collocation.html">
-                        What is collocation?
-                      </a>
-                    </li>
-                
-            <div class="nav-item dropdown">
-                <button class="btn dropdown-toggle nav-item" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    More
-                </button>
-                <div class="dropdown-menu">
-                    
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../getting_started/intro_to_dymos/intro_ivp.html">
-                        Modeling Dynamic Systems with Dymos
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../getting_started/intro_to_dymos/intro_segments.html">
-                        Segments of Phases
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item current active">
-                      <a class="nav-link nav-internal" href="../examples.html">
-                        Dymos by Example
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../features/phases/phases_list.html">
-                        Phases
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../features/trajectories/trajectories.html">
-                        Organizing Phases into Trajectories
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../features/exploiting_sparsity.html">
-                        Exploiting Sparsity for Faster Derivative Calculation
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../features/plotting.html">
-                        Plotting Timeseries
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../faq/faq.html">
-                        Frequently Asked Questions
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../api/api.html">
-                        Dymos Reference API
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../contributing/contributing.html">
-                        Contributing to Dymos
-                      </a>
-                    </li>
-                
-                </div>
-            </div>
-            
-    </ul>
-</nav>
-      </div>
-      
-    </div>
-
-    <div id="navbar-end">
-      
-        <div class="navbar-end-item navbar-persistent--container">
-          
-<button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-toggle="tooltip">
-  <i class="fa-solid fa-magnifying-glass"></i>
-</button>
-        </div>
-      
-      
-      <div class="navbar-end-item">
-        <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-toggle="tooltip">
-    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
-    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
-    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
-</button>
-      </div>
-      
-      <div class="navbar-end-item">
-        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
-      </ul>
-      </div>
-      
-    </div>
-  </div>
-
-
-  
-  
-    <div class="navbar-persistent--mobile">
-<button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-toggle="tooltip">
-  <i class="fa-solid fa-magnifying-glass"></i>
-</button>
-    </div>
-  
-
-  
-  <label class="sidebar-toggle secondary-toggle" for="__secondary">
-      <span class="fa-solid fa-outdent"></span>
-  </label>
-  
-
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
 </div>
-  </nav>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
   
 
   <div class="bd-container">
     <div class="bd-container__inner bd-page-width">
       
+      
+      
       <div class="bd-sidebar-primary bd-sidebar">
         
+
   
   <div class="sidebar-header-items sidebar-primary__section">
     
     
-      <div class="sidebar-header-items__center">
-      
-      <div class="navbar-center-item">
-        <nav class="navbar-nav">
-    <p class="sidebar-header-items__title" role="heading" aria-level="1" aria-label="Site Navigation">
-        Site Navigation
-    </p>
-    <ul id="navbar-main-elements" class="navbar-nav">
-        
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../installation.html">
-                        Installing Dymos
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../getting_started/optimal_control.html">
-                        Optimal Control
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../getting_started/transcriptions.html">
-                        Optimal Control Transcriptions
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../getting_started/defining_odes.html">
-                        Defining ODEs
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../getting_started/collocation.html">
-                        What is collocation?
-                      </a>
-                    </li>
-                
-            <div class="nav-item dropdown">
-                <button class="btn dropdown-toggle nav-item" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    More
-                </button>
-                <div class="dropdown-menu">
-                    
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../getting_started/intro_to_dymos/intro_ivp.html">
-                        Modeling Dynamic Systems with Dymos
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../getting_started/intro_to_dymos/intro_segments.html">
-                        Segments of Phases
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item current active">
-                      <a class="nav-link nav-internal" href="../examples.html">
-                        Dymos by Example
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../features/phases/phases_list.html">
-                        Phases
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../features/trajectories/trajectories.html">
-                        Organizing Phases into Trajectories
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../features/exploiting_sparsity.html">
-                        Exploiting Sparsity for Faster Derivative Calculation
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../features/plotting.html">
-                        Plotting Timeseries
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../faq/faq.html">
-                        Frequently Asked Questions
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../api/api.html">
-                        Dymos Reference API
-                      </a>
-                    </li>
-                
-
-                    <li class="nav-item">
-                      <a class="nav-link nav-internal" href="../../contributing/contributing.html">
-                        Contributing to Dymos
-                      </a>
-                    </li>
-                
-                </div>
-            </div>
-            
-    </ul>
-</nav>
-      </div>
-      
-      </div>
     
-
-    
-    
-    <div class="sidebar-header-items__end">
-      
-      <div class="navbar-end-item">
-        <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-toggle="tooltip">
-    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
-    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
-    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
-</button>
-      </div>
-      
-      <div class="navbar-end-item">
-        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
-      </ul>
-      </div>
-      
-    </div>
     
   </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
 
   
-  <div class="sidebar-start-items sidebar-primary__section">
-    <div class="sidebar-start-items__item">
+    
   
-
 
 <a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/dymos_logo.png" class="logo__image only-light" alt="Dymos - Home"/>
+    <script>document.write(`<img src="../../_static/dymos_logo.png" class="logo__image only-dark" alt="Dymos - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
 
-  
-  
-  
-  
-  
-  
-  
-
-  
-    <img src="../../_static/dymos_logo.png" class="logo__image only-light" alt="Logo image">
-    <img src="../../_static/dymos_logo.png" class="logo__image only-dark" alt="Logo image">
-  
-  
-</a>
-    </div>
-    <div class="sidebar-start-items__item">
-<form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
-  <i class="fa-solid fa-magnifying-glass"></i>
-  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search this book..." aria-label="Search this book..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form>
-    </div>
-    <div class="sidebar-start-items__item"><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         
         <ul class="nav bd-sidenav bd-sidenav__home-link">
@@ -520,7 +201,7 @@ const thebe_selector_output = ".output, .cell_output"
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples and Tutorials</span></p>
 <ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="../examples.html">Dymos by Example</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../examples.html">Dymos by Example</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../brachistochrone/brachistochrone.html">The Brachistochrone</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../brachistochrone/brachistochrone_upstream_init_duration_states.html">The Brachistochrone with externally-sourced initial state values</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../vanderpol/vanderpol.html">The Van der Pol Oscillator</a></li>
@@ -550,11 +231,11 @@ const thebe_selector_output = ".output, .cell_output"
 <li class="toctree-l2"><a class="reference internal" href="../brachistochrone/brachistochrone_tandem_phases.html">Brachistochrone with tandem phases</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../implicit_duration/brachistochrone_implicit_duration.html">Boundary Balance</a></li>
 </ul>
-</li>
+</details></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Feature Reference</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../features/phases/phases_list.html">Phases</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../features/phases/phases_list.html">Phases</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../features/phases/phases.html">Phases of a Trajectory</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../features/phases/analytic_phases.html">Analytic Phases in Dymos</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../features/phases/segments.html">Segments</a></li>
@@ -565,14 +246,14 @@ const thebe_selector_output = ".output, .cell_output"
 
 <li class="toctree-l2"><a class="reference internal" href="../../features/phases/calc_expressions.html">Calculation Expressions</a></li>
 </ul>
-</li>
+</details></li>
 <li class="toctree-l1"><a class="reference internal" href="../../features/trajectories/trajectories.html">Organizing Phases into Trajectories</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../features/exploiting_sparsity.html">Exploiting Sparsity for Faster Derivative Calculation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../features/plotting.html">Plotting Timeseries</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Frequently Asked Questions</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../faq/faq.html">Frequently Asked Questions</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-3"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../faq/faq.html">Frequently Asked Questions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../faq/add_ode_output_to_timeseries.html">How do I add an ODE output to the timeseries outputs?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../faq/connect_scalar_parameters_to_ode.html">How do I connect a scalar input to the ODE?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../faq/upstream_analysis.html">How do I connect the outputs of an upstream analysis as inputs to Dymos?</a></li>
@@ -581,18 +262,18 @@ const thebe_selector_output = ".output, .cell_output"
 <li class="toctree-l2"><a class="reference internal" href="../../faq/use_partial_coloring.html">How can I more efficiently use finite-differenced components in the ODE?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../faq/debugging.html">How can I debug models when things go wrong?</a></li>
 </ul>
-</li>
+</details></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Dymos API Reference</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../api/api.html">Dymos Reference API</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-4"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../api/api.html">Dymos Reference API</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../api/run_problem_function.html">The run_problem function</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/phase_api.html">Phase Options</a></li>
 
 <li class="toctree-l2"><a class="reference internal" href="../../api/transcriptions_api.html">The Transcriptions API</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/trajectory_api.html">The Trajectory API</a></li>
 </ul>
-</li>
+</details></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
 <ul class="nav bd-sidenav">
@@ -600,42 +281,47 @@ const thebe_selector_output = ".output, .cell_output"
 </ul>
 
     </div>
-</nav>
+</nav></div>
     </div>
-  </div>
   
-
   
-  <div class="sidebar-end-items sidebar-primary__section">
-    <div class="sidebar-end-items__item">
-    </div>
+  <div class="sidebar-primary-items__end sidebar-primary__section">
   </div>
-
   
   <div id="rtd-footer-container"></div>
 
+
       </div>
-      <main id="main-content" class="bd-main">
+      
+      <main id="main-content" class="bd-main" role="main">
         
         
 
 <div class="sbt-scroll-pixel-helper"></div>
 
-        <div class="bd-content">
-          <div class="bd-article-container">
-            
-            <div class="bd-header-article">
-                
-
-
-
-<div class="col py-1 d-flex header-article-main">
-    <div class="header-article__left">
-        <label class="sidebar-toggle primary-toggle btn btn-sm" for="__primary" data-toggle="tooltip" data-placement="right" title="Toggle primary sidebar">
-            <span class="fa-solid fa-bars"></span>
-        </label>
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
     </div>
-    <div class="header-article__right">
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
 
 
 <div class="dropdown dropdown-launch-buttons">
@@ -643,30 +329,129 @@ const thebe_selector_output = ".output, .cell_output"
     <i class="fas fa-rocket"></i>
   </button>
   <ul class="dropdown-menu">
+      
+      
+      
       <li><a href="https://colab.research.google.com/github/OpenMDAO/dymos/blob/master/docs/dymos_book/examples/finite_burn_orbit_raise/finite_burn_orbit_raise.ipynb" target="_blank"
    class="btn btn-sm dropdown-item"
-   data-toggle="tooltip"
-data-placement="left"
-title="Launch on Colab"
+   title="Launch on Colab"
+   data-bs-placement="left" data-bs-toggle="tooltip"
 >
   
 
 <span class="btn__icon-container">
   
-    <img src="../../_static/images/logo_colab.png">
+    <img alt="Colab logo" src="../../_static/images/logo_colab.png">
   </span>
 <span class="btn__text-container">Colab</span>
 </a>
-</a>
+</li>
       
   </ul>
 </div>
 
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/OpenMDAO/dymos" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/OpenMDAO/dymos/issues/new?title=Issue%20on%20page%20%2Fexamples/finite_burn_orbit_raise/finite_burn_orbit_raise.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../../_sources/examples/finite_burn_orbit_raise/finite_burn_orbit_raise.ipynb" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.ipynb</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
 <button onclick="toggleFullScreen()"
-  class="btn btn-sm"
-  data-toggle="tooltip"
-data-placement="bottom"
-title="Fullscreen mode"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
 >
   
 
@@ -678,92 +463,35 @@ title="Fullscreen mode"
 
 
 
-<div class="dropdown dropdown-repository-buttons">
-  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
-    <i class="fab fa-github"></i>
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
   </button>
-  <ul class="dropdown-menu">
-      <li><a href="https://github.com/OpenMDAO/dymos" target="_blank"
-   class="btn btn-sm dropdown-item"
-   data-toggle="tooltip"
-data-placement="left"
-title="Source repository"
->
-  
-
-<span class="btn__icon-container">
-  <i class="fab fa-github"></i>
-  </span>
-<span class="btn__text-container">repository</span>
-</a>
-</a>
-      
-      <li><a href="https://github.com/OpenMDAO/dymos/issues/new?title=Issue%20on%20page%20%2Fexamples/finite_burn_orbit_raise/finite_burn_orbit_raise.html&body=Your%20issue%20content%20here." target="_blank"
-   class="btn btn-sm dropdown-item"
-   data-toggle="tooltip"
-data-placement="left"
-title="Open an issue"
->
-  
-
-<span class="btn__icon-container">
-  <i class="fas fa-lightbulb"></i>
-  </span>
-<span class="btn__text-container">open issue</span>
-</a>
-</a>
-      
-  </ul>
-</div>
+`);
+</script>
 
 
-
-<div class="dropdown dropdown-download-buttons">
-  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
-    <i class="fas fa-download"></i>
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
   </button>
-  <ul class="dropdown-menu">
-      <li><a href="../../_sources/examples/finite_burn_orbit_raise/finite_burn_orbit_raise.ipynb" target="_blank"
-   class="btn btn-sm dropdown-item"
-   data-toggle="tooltip"
-data-placement="left"
-title="Download source file"
->
-  
-
-<span class="btn__icon-container">
-  <i class="fas fa-file"></i>
-  </span>
-<span class="btn__text-container">.ipynb</span>
-</a>
-</a>
-      
-      <li>
-<button onclick="printPdf(this)"
-  class="btn btn-sm dropdown-item"
-  data-toggle="tooltip"
-data-placement="left"
-title="Print to PDF"
->
-  
-
-<span class="btn__icon-container">
-  <i class="fas fa-file-pdf"></i>
-  </span>
-<span class="btn__text-container">.pdf</span>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
 </button>
-</a>
+</div></div>
       
-  </ul>
-</div>
-<label class="sidebar-toggle secondary-toggle btn btn-sm" for="__secondary" data-toggle="tooltip" data-placement="left" title="Toggle secondary sidebar">
-            <span class="fa-solid fa-list"></span>
-        </label>
     </div>
+  
 </div>
-            </div>
-            
-            
+</div>
+              
+              
 
 <div id="jb-print-docs-body" class="onlyprint">
     <h1>Two-Burn Orbit Raise</h1>
@@ -776,39 +504,29 @@ title="Print to PDF"
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#building-and-running-the-problem">
-   Building and running the problem
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#plotting-the-results">
-   Plotting the results
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#references">
-   References
-  </a>
- </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#building-and-running-the-problem">Building and running the problem</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#plotting-the-results">Plotting the results</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
 </ul>
-
             </nav>
         </div>
     </div>
 </div>
 
-            <article class="bd-article" role="main">
               
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
   <section class="tex2jax_ignore mathjax_ignore" id="two-burn-orbit-raise">
-<h1>Two-Burn Orbit Raise<a class="headerlink" href="#two-burn-orbit-raise" title="Permalink to this heading">#</a></h1>
+<h1>Two-Burn Orbit Raise<a class="headerlink" href="#two-burn-orbit-raise" title="Link to this heading">#</a></h1>
 <p>This example demonstrates the use of a Trajectory to encapsulate a
 three-phase orbit raising maneuver with a burn-coast-burn phase
 sequence. This example is based on the problem provided in
 Enright <span id="id1">[<a class="reference internal" href="#id24" title="Paul J Enright and Brace A Conway. Optimal finite-thrust spacecraft trajectories using collocation and nonlinear programming. Journal of Guidance, Control, and Dynamics, 14(5):981–985, 1991.">EC91</a>]</span>.</p>
 <p>The dynamics are given by</p>
-<div class="amsmath math notranslate nohighlight" id="equation-01d57cdf-6014-4bc0-ba1f-16e3b1084c2b">
-<span class="eqno">(58)<a class="headerlink" href="#equation-01d57cdf-6014-4bc0-ba1f-16e3b1084c2b" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-98fa5960-ed2c-419f-a163-83259ac3f7ac">
+<span class="eqno">(58)<a class="headerlink" href="#equation-98fa5960-ed2c-419f-a163-83259ac3f7ac" title="Permalink to this equation">#</a></span>\[\begin{align}
   \frac{dr}{dt} &amp;= v_r \\
   \frac{d\theta}{dt} &amp;= \frac{v_\theta}{r} \\
   \frac{dv_r}{dt} &amp;= \frac{v^2_\theta}{r} - \frac{1}{r^2} + a_{thrust} \sin u_1 \\
@@ -817,8 +535,8 @@ Enright <span id="id1">[<a class="reference internal" href="#id24" title="Paul J
   \frac{d \Delta v}{dt} &amp;= a_{thrust}
 \end{align}\]</div>
 <p>The initial conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-d3bc1829-648f-4657-b4af-a65a2c6605f5">
-<span class="eqno">(59)<a class="headerlink" href="#equation-d3bc1829-648f-4657-b4af-a65a2c6605f5" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-84790dd9-ede4-47a9-91e5-2bc3497ce107">
+<span class="eqno">(59)<a class="headerlink" href="#equation-84790dd9-ede4-47a9-91e5-2bc3497ce107" title="Permalink to this equation">#</a></span>\[\begin{align}
   r &amp;= 1 \rm{\,DU} \\
   \theta &amp;= 0 \rm{\,rad} \\
   v_r &amp;= 0 \rm{\,DU/TU}\\
@@ -827,8 +545,8 @@ Enright <span id="id1">[<a class="reference internal" href="#id24" title="Paul J
   \Delta v &amp;= 0 \rm{\,DU/TU}
 \end{align}\]</div>
 <p>and the final conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-b4424ee3-19ff-4368-8bb8-bd05ba60e692">
-<span class="eqno">(60)<a class="headerlink" href="#equation-b4424ee3-19ff-4368-8bb8-bd05ba60e692" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-61af30fa-5f59-4e61-95a0-93cfcd29ad23">
+<span class="eqno">(60)<a class="headerlink" href="#equation-61af30fa-5f59-4e61-95a0-93cfcd29ad23" title="Permalink to this equation">#</a></span>\[\begin{align}
   r &amp;= 3 \rm{\,DU} \\
   \theta &amp;= \rm{free} \\
   v_r &amp;= 0 \rm{\,DU/TU}\\
@@ -837,7 +555,7 @@ Enright <span id="id1">[<a class="reference internal" href="#id24" title="Paul J
   \Delta v &amp;= \rm{free}
 \end{align}\]</div>
 <section id="building-and-running-the-problem">
-<h2>Building and running the problem<a class="headerlink" href="#building-and-running-the-problem" title="Permalink to this heading">#</a></h2>
+<h2>Building and running the problem<a class="headerlink" href="#building-and-running-the-problem" title="Link to this heading">#</a></h2>
 <p>The following code instantiates our problem, our trajectory, three
 phases, and links them accordingly. The spacecraft initial position,
 velocity, and acceleration magnitude are fixed. The objective is to
@@ -851,10 +569,10 @@ specified a different ODE for the coast phase, as in the example.</p>
 <p>This example runs inconsistently with SLSQP but is solved handily by
 IPOPT and SNOPT.</p>
 <div class="cell tag_hide-output tag_remove-input docutils container">
-<details class="hide above-output">
+<details class="admonition hide above-output">
 <summary aria-label="Toggle hidden content">
-<span class="collapsed">Show code cell outputs</span>
-<span class="expanded">Hide code cell outputs</span>
+<p class="collapsed admonition-title">Show code cell outputs</p>
+<p class="expanded admonition-title">Hide code cell outputs</p>
 </summary>
 <div class="cell_output docutils container">
 <div class="output text_html"><style>pre { line-height: 125%; }
@@ -1268,25 +986,25 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.001014 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.001500 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000032 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000042 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000364 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000544 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000250 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000255 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
@@ -1298,13 +1016,13 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.003626 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.003989 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000102 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000085 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
@@ -1316,25 +1034,25 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000533 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000637 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000028 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000037 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000215 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000236 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000245 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000268 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
@@ -1346,19 +1064,19 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.003679 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.004094 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000075 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000113 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000003 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000004 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (112, 204)  (3.64% nonzero)
@@ -1367,10 +1085,10 @@ Total colors vs. total size: 13 vs 204  (93.63% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem&#39; was computed 3 times.
-Time to compute sparsity:   0.4328 sec
-Time to compute coloring:   0.1322 sec
-Memory to compute coloring:   0.2500 MB
-Coloring created on: 2025-07-16 16:23:44
+Time to compute sparsity:   0.4589 sec
+Time to compute coloring:   0.1195 sec
+Memory to compute coloring:   0.1250 MB
+Coloring created on: 2025-07-16 18:51:52
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1379,13 +1097,13 @@ Coloring created on: 2025-07-16 16:23:44
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    1.9069
-       User Objective Time :       0.0810
-       User Sensitivity Time :     1.5883
-       Interface Time :            0.1492
-       Opt Solver Time:            0.0884
-    Calls to Objective Function :      24
-    Calls to Sens Function :           24
+    Total Time:                    3.0118
+       User Objective Time :       0.1325
+       User Sensitivity Time :     2.4690
+       Interface Time :            0.2123
+       Opt Solver Time:            0.1980
+    Calls to Objective Function :      28
+    Calls to Sens Function :           28
 
 
    Objectives
@@ -1453,7 +1171,7 @@ Coloring created on: 2025-07-16 16:23:44
          56  traj.burn1.controls:u1_1        c    -3.000000E-01    -2.977418E-02     3.000000E-01           
          57  traj.burn1.controls:u1_2        c    -3.000000E-01    -1.798095E-02     3.000000E-01           
          58  traj.burn1.controls:u1_3        c    -3.000000E-01    -1.798095E-02     3.000000E-01           
-         59  traj.burn1.controls:u1_4        c    -3.000000E-01    -3.205163E-03     3.000000E-01           
+         59  traj.burn1.controls:u1_4        c    -3.000000E-01    -3.205161E-03     3.000000E-01           
          60  traj.burn1.controls:u1_5        c    -3.000000E-01     1.467911E-02     3.000000E-01           
          61  traj.burn1.controls:u1_6        c    -3.000000E-01     1.467911E-02     3.000000E-01           
          62  traj.burn1.controls:u1_7        c    -3.000000E-01     3.450564E-02     3.000000E-01           
@@ -1488,8 +1206,8 @@ Coloring created on: 2025-07-16 16:23:44
          91  traj.burn2.states:vr_0          c    -1.000000E+21     3.335965E-02     1.000000E+21           
          92  traj.burn2.states:vr_1          c    -1.000000E+21     2.176356E-02     1.000000E+21           
          93  traj.burn2.states:vr_2          c    -1.000000E+21     2.176356E-02     1.000000E+21           
-         94  traj.burn2.states:vr_3          c    -1.000000E+21     1.234449E-02     1.000000E+21           
-         95  traj.burn2.states:vr_4          c    -1.000000E+21     1.234449E-02     1.000000E+21           
+         94  traj.burn2.states:vr_3          c    -1.000000E+21     1.234448E-02     1.000000E+21           
+         95  traj.burn2.states:vr_4          c    -1.000000E+21     1.234448E-02     1.000000E+21           
          96  traj.burn2.states:vr_5          c    -1.000000E+21     5.372873E-03     1.000000E+21           
          97  traj.burn2.states:vr_6          c    -1.000000E+21     5.372873E-03     1.000000E+21           
          98  traj.burn2.states:vr_7          c    -1.000000E+21     1.148444E-03     1.000000E+21           
@@ -1527,17 +1245,17 @@ Coloring created on: 2025-07-16 16:23:44
         130  traj.burn2.controls:u1_1        c    -9.000000E-01     1.315257E-02     9.000000E-01           
         131  traj.burn2.controls:u1_2        c    -9.000000E-01     1.113035E-02     9.000000E-01           
         132  traj.burn2.controls:u1_3        c    -9.000000E-01     1.113035E-02     9.000000E-01           
-        133  traj.burn2.controls:u1_4        c    -9.000000E-01     9.453511E-03     9.000000E-01           
-        134  traj.burn2.controls:u1_5        c    -9.000000E-01     8.188741E-03     9.000000E-01           
-        135  traj.burn2.controls:u1_6        c    -9.000000E-01     8.188741E-03     9.000000E-01           
-        136  traj.burn2.controls:u1_7        c    -9.000000E-01     7.310468E-03     9.000000E-01           
-        137  traj.burn2.controls:u1_8        c    -9.000000E-01     6.793118E-03     9.000000E-01           
-        138  traj.burn2.controls:u1_9        c    -9.000000E-01     6.793118E-03     9.000000E-01           
-        139  traj.burn2.controls:u1_10       c    -9.000000E-01     6.670237E-03     9.000000E-01           
+        133  traj.burn2.controls:u1_4        c    -9.000000E-01     9.453512E-03     9.000000E-01           
+        134  traj.burn2.controls:u1_5        c    -9.000000E-01     8.188743E-03     9.000000E-01           
+        135  traj.burn2.controls:u1_6        c    -9.000000E-01     8.188743E-03     9.000000E-01           
+        136  traj.burn2.controls:u1_7        c    -9.000000E-01     7.310470E-03     9.000000E-01           
+        137  traj.burn2.controls:u1_8        c    -9.000000E-01     6.793120E-03     9.000000E-01           
+        138  traj.burn2.controls:u1_9        c    -9.000000E-01     6.793120E-03     9.000000E-01           
+        139  traj.burn2.controls:u1_10       c    -9.000000E-01     6.670239E-03     9.000000E-01           
         140  traj.burn2.controls:u1_11       c    -9.000000E-01     6.975374E-03     9.000000E-01           
         141  traj.burn2.controls:u1_12       c    -9.000000E-01     6.975374E-03     9.000000E-01           
-        142  traj.burn2.controls:u1_13       c    -9.000000E-01     7.640931E-03     9.000000E-01           
-        143  traj.burn2.controls:u1_14       c    -9.000000E-01     8.599316E-03     9.000000E-01           
+        142  traj.burn2.controls:u1_13       c    -9.000000E-01     7.640932E-03     9.000000E-01           
+        143  traj.burn2.controls:u1_14       c    -9.000000E-01     8.599319E-03     9.000000E-01           
         144  traj.coast.t_initial_0          c     5.000000E-01     2.228030E+00     2.000000E+01           
         145  traj.coast.t_duration_0         c     1.000000E-02     1.477288E-01     1.000000E+00           
         146  traj.coast.states:r_0           c    -1.000000E+21     1.289870E+00     1.000000E+21           
@@ -1580,14 +1298,14 @@ Coloring created on: 2025-07-16 16:23:44
         183  traj.coast.states:vt_7          c    -1.000000E+21     4.374743E-01     1.000000E+21           
         184  traj.coast.states:vt_8          c    -1.000000E+21     4.374743E-01     1.000000E+21           
         185  traj.coast.states:vt_9          c    -1.000000E+21     4.217795E-01     1.000000E+21           
-        186  traj.coast.states:accel_0       c    -1.000000E+21     3.697785E-32     1.000000E+21           
-        187  traj.coast.states:accel_1       c    -1.000000E+21     7.395571E-32     1.000000E+21           
-        188  traj.coast.states:accel_2       c    -1.000000E+21     1.972152E-31     1.000000E+21           
-        189  traj.coast.states:accel_3       c    -1.000000E+21     4.930381E-32     1.000000E+21           
-        190  traj.coast.states:accel_4       c    -1.000000E+21    -4.930381E-32     1.000000E+21           
-        191  traj.coast.states:accel_5       c    -1.000000E+21     7.395571E-32     1.000000E+21           
-        192  traj.coast.states:accel_6       c    -1.000000E+21     2.465190E-32     1.000000E+21           
-        193  traj.coast.states:accel_7       c    -1.000000E+21    -7.395571E-32     1.000000E+21           
+        186  traj.coast.states:accel_0       c    -1.000000E+21    -1.997352E-34     1.000000E+21           
+        187  traj.coast.states:accel_1       c    -1.000000E+21    -2.275651E-34     1.000000E+21           
+        188  traj.coast.states:accel_2       c    -1.000000E+21    -4.502437E-34     1.000000E+21           
+        189  traj.coast.states:accel_3       c    -1.000000E+21    -4.176829E-34     1.000000E+21           
+        190  traj.coast.states:accel_4       c    -1.000000E+21    -3.593210E-34     1.000000E+21           
+        191  traj.coast.states:accel_5       c    -1.000000E+21    -6.149545E-34     1.000000E+21           
+        192  traj.coast.states:accel_6       c    -1.000000E+21    -3.785084E-34     1.000000E+21           
+        193  traj.coast.states:accel_7       c    -1.000000E+21    -2.970169E-34     1.000000E+21           
         194  traj.coast.states:deltav_0      c    -1.000000E+21     2.411959E-01     1.000000E+21           
         195  traj.coast.states:deltav_1      c    -1.000000E+21     2.411959E-01     1.000000E+21           
         196  traj.coast.states:deltav_2      c    -1.000000E+21     2.411959E-01     1.000000E+21           
@@ -1600,198 +1318,198 @@ Coloring created on: 2025-07-16 16:23:44
         203  traj.coast.states:deltav_9      c    -1.000000E+21     2.411959E-01     1.000000E+21           
 
    Constraints (i - inequality, e - equality)
-      Index  Name                                                    Type          Lower           Value           Upper    Status  Lagrange Multiplier (N/A)
-          0  traj.linkages.burn1:time_final|coast:time_initial          e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-          1  traj.linkages.burn1:r_final|coast:r_initial                e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-          2  traj.linkages.burn1:theta_final|coast:theta_initial        e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-          3  traj.linkages.burn1:vr_final|coast:vr_initial              e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-          4  traj.linkages.burn1:vt_final|coast:vt_initial              e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-          5  traj.linkages.burn1:deltav_final|coast:deltav_initial      e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-          6  traj.linkages.coast:time_final|burn2:time_initial          e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-          7  traj.linkages.coast:r_final|burn2:r_initial                e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-          8  traj.linkages.coast:theta_final|burn2:theta_initial        e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-          9  traj.linkages.coast:vr_final|burn2:vr_initial              e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         10  traj.linkages.coast:vt_final|burn2:vt_initial              e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         11  traj.linkages.coast:deltav_final|burn2:deltav_initial      e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         12  traj.linkages.burn1:accel_final|burn2:accel_initial        e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         13  traj.burn1.collocation_constraint.defects:r                e   0.000000E+00    6.087400E-15    0.000000E+00              9.00000E+100
-         14  traj.burn1.collocation_constraint.defects:r                e   0.000000E+00   -6.957029E-15    0.000000E+00              9.00000E+100
-         15  traj.burn1.collocation_constraint.defects:r                e   0.000000E+00    1.484166E-14    0.000000E+00              9.00000E+100
-         16  traj.burn1.collocation_constraint.defects:r                e   0.000000E+00   -3.153853E-14    0.000000E+00              9.00000E+100
-         17  traj.burn1.collocation_constraint.defects:r                e   0.000000E+00    2.226249E-14    0.000000E+00              9.00000E+100
-         18  traj.burn1.collocation_constraint.defects:theta            e   0.000000E+00   -4.947221E-15    0.000000E+00              9.00000E+100
-         19  traj.burn1.collocation_constraint.defects:theta            e   0.000000E+00   -4.947221E-15    0.000000E+00              9.00000E+100
-         20  traj.burn1.collocation_constraint.defects:theta            e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         21  traj.burn1.collocation_constraint.defects:theta            e   0.000000E+00    4.947221E-15    0.000000E+00              9.00000E+100
-         22  traj.burn1.collocation_constraint.defects:theta            e   0.000000E+00    4.947221E-15    0.000000E+00              9.00000E+100
-         23  traj.burn1.collocation_constraint.defects:vr               e   0.000000E+00   -2.288090E-14    0.000000E+00              9.00000E+100
-         24  traj.burn1.collocation_constraint.defects:vr               e   0.000000E+00   -1.236805E-15    0.000000E+00              9.00000E+100
-         25  traj.burn1.collocation_constraint.defects:vr               e   0.000000E+00    9.276039E-15    0.000000E+00              9.00000E+100
-         26  traj.burn1.collocation_constraint.defects:vr               e   0.000000E+00    8.039234E-15    0.000000E+00              9.00000E+100
-         27  traj.burn1.collocation_constraint.defects:vr               e   0.000000E+00    4.328818E-15    0.000000E+00              9.00000E+100
-         28  traj.burn1.collocation_constraint.defects:vt               e   0.000000E+00    4.019617E-15    0.000000E+00              9.00000E+100
-         29  traj.burn1.collocation_constraint.defects:vt               e   0.000000E+00    1.437786E-14    0.000000E+00              9.00000E+100
-         30  traj.burn1.collocation_constraint.defects:vt               e   0.000000E+00    8.348435E-15    0.000000E+00              9.00000E+100
-         31  traj.burn1.collocation_constraint.defects:vt               e   0.000000E+00    1.298645E-14    0.000000E+00              9.00000E+100
-         32  traj.burn1.collocation_constraint.defects:vt               e   0.000000E+00    2.473610E-15    0.000000E+00              9.00000E+100
-         33  traj.burn1.collocation_constraint.defects:accel            e   0.000000E+00    3.865016E-18    0.000000E+00              9.00000E+100
-         34  traj.burn1.collocation_constraint.defects:accel            e   0.000000E+00   -9.662540E-18    0.000000E+00              9.00000E+100
-         35  traj.burn1.collocation_constraint.defects:accel            e   0.000000E+00    8.309785E-18    0.000000E+00              9.00000E+100
-         36  traj.burn1.collocation_constraint.defects:accel            e   0.000000E+00    5.411023E-18    0.000000E+00              9.00000E+100
-         37  traj.burn1.collocation_constraint.defects:accel            e   0.000000E+00   -3.865016E-18    0.000000E+00              9.00000E+100
-         38  traj.burn1.collocation_constraint.defects:deltav           e   0.000000E+00    6.184026E-18    0.000000E+00              9.00000E+100
-         39  traj.burn1.collocation_constraint.defects:deltav           e   0.000000E+00   -3.092013E-18    0.000000E+00              9.00000E+100
-         40  traj.burn1.collocation_constraint.defects:deltav           e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         41  traj.burn1.collocation_constraint.defects:deltav           e   0.000000E+00    9.276039E-18    0.000000E+00              9.00000E+100
-         42  traj.burn1.collocation_constraint.defects:deltav           e   0.000000E+00    9.276039E-18    0.000000E+00              9.00000E+100
-         43  traj.burn1.continuity_comp.defect_states:r                 e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         44  traj.burn1.continuity_comp.defect_states:r                 e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         45  traj.burn1.continuity_comp.defect_states:r                 e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         46  traj.burn1.continuity_comp.defect_states:r                 e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         47  traj.burn1.continuity_comp.defect_states:theta             e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         48  traj.burn1.continuity_comp.defect_states:theta             e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         49  traj.burn1.continuity_comp.defect_states:theta             e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         50  traj.burn1.continuity_comp.defect_states:theta             e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         51  traj.burn1.continuity_comp.defect_states:vr                e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         52  traj.burn1.continuity_comp.defect_states:vr                e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         53  traj.burn1.continuity_comp.defect_states:vr                e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         54  traj.burn1.continuity_comp.defect_states:vr                e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         55  traj.burn1.continuity_comp.defect_states:vt                e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         56  traj.burn1.continuity_comp.defect_states:vt                e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         57  traj.burn1.continuity_comp.defect_states:vt                e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         58  traj.burn1.continuity_comp.defect_states:vt                e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         59  traj.burn1.continuity_comp.defect_states:accel             e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         60  traj.burn1.continuity_comp.defect_states:accel             e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         61  traj.burn1.continuity_comp.defect_states:accel             e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         62  traj.burn1.continuity_comp.defect_states:accel             e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         63  traj.burn1.continuity_comp.defect_states:deltav            e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         64  traj.burn1.continuity_comp.defect_states:deltav            e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         65  traj.burn1.continuity_comp.defect_states:deltav            e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         66  traj.burn1.continuity_comp.defect_states:deltav            e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         67  traj.burn1.continuity_comp.defect_control_rates:u1_rate    e   0.000000E+00   -1.978888E-18    0.000000E+00              9.00000E+100
-         68  traj.burn1.continuity_comp.defect_control_rates:u1_rate    e   0.000000E+00   -3.957777E-18    0.000000E+00              9.00000E+100
-         69  traj.burn1.continuity_comp.defect_control_rates:u1_rate    e   0.000000E+00   -7.915553E-18    0.000000E+00              9.00000E+100
-         70  traj.burn1.continuity_comp.defect_control_rates:u1_rate    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         71  traj.burn1.continuity_comp.defect_controls:u1              e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         72  traj.burn1.continuity_comp.defect_controls:u1              e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         73  traj.burn1.continuity_comp.defect_controls:u1              e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         74  traj.burn1.continuity_comp.defect_controls:u1              e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-         75  traj.burn2.collocation_constraint.defects:r                e   0.000000E+00   -7.875515E-15    0.000000E+00              9.00000E+100
-         76  traj.burn2.collocation_constraint.defects:r                e   0.000000E+00   -1.376003E-14    0.000000E+00              9.00000E+100
-         77  traj.burn2.collocation_constraint.defects:r                e   0.000000E+00   -1.577315E-14    0.000000E+00              9.00000E+100
-         78  traj.burn2.collocation_constraint.defects:r                e   0.000000E+00    5.338095E-14    0.000000E+00              9.00000E+100
-         79  traj.burn2.collocation_constraint.defects:r                e   0.000000E+00   -5.461426E-17    0.000000E+00              9.00000E+100
-         80  traj.burn2.collocation_constraint.defects:theta            e   0.000000E+00   -6.088038E-14    0.000000E+00              9.00000E+100
-         81  traj.burn2.collocation_constraint.defects:theta            e   0.000000E+00    7.928608E-14    0.000000E+00              9.00000E+100
-         82  traj.burn2.collocation_constraint.defects:theta            e   0.000000E+00   -1.238845E-14    0.000000E+00              9.00000E+100
-         83  traj.burn2.collocation_constraint.defects:theta            e   0.000000E+00   -7.079114E-16    0.000000E+00              9.00000E+100
-         84  traj.burn2.collocation_constraint.defects:theta            e   0.000000E+00   -2.619272E-14    0.000000E+00              9.00000E+100
-         85  traj.burn2.collocation_constraint.defects:vr               e   0.000000E+00   -8.848893E-16    0.000000E+00              9.00000E+100
-         86  traj.burn2.collocation_constraint.defects:vr               e   0.000000E+00    2.654668E-15    0.000000E+00              9.00000E+100
-         87  traj.burn2.collocation_constraint.defects:vr               e   0.000000E+00    4.424446E-16    0.000000E+00              9.00000E+100
-         88  traj.burn2.collocation_constraint.defects:vr               e   0.000000E+00   -9.733782E-15    0.000000E+00              9.00000E+100
-         89  traj.burn2.collocation_constraint.defects:vr               e   0.000000E+00   -9.955004E-16    0.000000E+00              9.00000E+100
-         90  traj.burn2.collocation_constraint.defects:vt               e   0.000000E+00    8.317959E-14    0.000000E+00              9.00000E+100
-         91  traj.burn2.collocation_constraint.defects:vt               e   0.000000E+00   -2.831646E-14    0.000000E+00              9.00000E+100
-         92  traj.burn2.collocation_constraint.defects:vt               e   0.000000E+00    1.061867E-14    0.000000E+00              9.00000E+100
-         93  traj.burn2.collocation_constraint.defects:vt               e   0.000000E+00    2.831646E-14    0.000000E+00              9.00000E+100
-         94  traj.burn2.collocation_constraint.defects:vt               e   0.000000E+00   -3.539557E-15    0.000000E+00              9.00000E+100
-         95  traj.burn2.collocation_constraint.defects:accel            e   0.000000E+00   -1.548556E-17    0.000000E+00              9.00000E+100
-         96  traj.burn2.collocation_constraint.defects:accel            e   0.000000E+00    9.070115E-18    0.000000E+00              9.00000E+100
-         97  traj.burn2.collocation_constraint.defects:accel            e   0.000000E+00    1.327334E-17    0.000000E+00              9.00000E+100
-         98  traj.burn2.collocation_constraint.defects:accel            e   0.000000E+00   -6.194225E-18    0.000000E+00              9.00000E+100
-         99  traj.burn2.collocation_constraint.defects:accel            e   0.000000E+00   -9.955004E-18    0.000000E+00              9.00000E+100
-        100  traj.burn2.collocation_constraint.defects:deltav           e   0.000000E+00    1.061867E-17    0.000000E+00              9.00000E+100
-        101  traj.burn2.collocation_constraint.defects:deltav           e   0.000000E+00    1.415823E-17    0.000000E+00              9.00000E+100
-        102  traj.burn2.collocation_constraint.defects:deltav           e   0.000000E+00   -1.061867E-17    0.000000E+00              9.00000E+100
-        103  traj.burn2.collocation_constraint.defects:deltav           e   0.000000E+00   -1.061867E-17    0.000000E+00              9.00000E+100
-        104  traj.burn2.collocation_constraint.defects:deltav           e   0.000000E+00   -1.769779E-17    0.000000E+00              9.00000E+100
-        105  traj.burn2.continuity_comp.defect_states:r                 e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        106  traj.burn2.continuity_comp.defect_states:r                 e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        107  traj.burn2.continuity_comp.defect_states:r                 e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        108  traj.burn2.continuity_comp.defect_states:r                 e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        109  traj.burn2.continuity_comp.defect_states:theta             e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        110  traj.burn2.continuity_comp.defect_states:theta             e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        111  traj.burn2.continuity_comp.defect_states:theta             e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        112  traj.burn2.continuity_comp.defect_states:theta             e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        113  traj.burn2.continuity_comp.defect_states:vr                e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        114  traj.burn2.continuity_comp.defect_states:vr                e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        115  traj.burn2.continuity_comp.defect_states:vr                e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        116  traj.burn2.continuity_comp.defect_states:vr                e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        117  traj.burn2.continuity_comp.defect_states:vt                e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        118  traj.burn2.continuity_comp.defect_states:vt                e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        119  traj.burn2.continuity_comp.defect_states:vt                e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        120  traj.burn2.continuity_comp.defect_states:vt                e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        121  traj.burn2.continuity_comp.defect_states:accel             e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        122  traj.burn2.continuity_comp.defect_states:accel             e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        123  traj.burn2.continuity_comp.defect_states:accel             e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        124  traj.burn2.continuity_comp.defect_states:accel             e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        125  traj.burn2.continuity_comp.defect_states:deltav            e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        126  traj.burn2.continuity_comp.defect_states:deltav            e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        127  traj.burn2.continuity_comp.defect_states:deltav            e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        128  traj.burn2.continuity_comp.defect_states:deltav            e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        129  traj.burn2.continuity_comp.defect_control_rates:u1_rate    e   0.000000E+00   -3.256393E-15    0.000000E+00              9.00000E+100
-        130  traj.burn2.continuity_comp.defect_control_rates:u1_rate    e   0.000000E+00   -2.831646E-16    0.000000E+00              9.00000E+100
-        131  traj.burn2.continuity_comp.defect_control_rates:u1_rate    e   0.000000E+00   -2.583877E-15    0.000000E+00              9.00000E+100
-        132  traj.burn2.continuity_comp.defect_control_rates:u1_rate    e   0.000000E+00   -8.140981E-16    0.000000E+00              9.00000E+100
-        133  traj.burn2.continuity_comp.defect_controls:u1              e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        134  traj.burn2.continuity_comp.defect_controls:u1              e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        135  traj.burn2.continuity_comp.defect_controls:u1              e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        136  traj.burn2.continuity_comp.defect_controls:u1              e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        137  traj.coast.collocation_constraint.defects:r                e   0.000000E+00   -1.230090E-14    0.000000E+00              9.00000E+100
-        138  traj.coast.collocation_constraint.defects:r                e   0.000000E+00   -8.200598E-15    0.000000E+00              9.00000E+100
-        139  traj.coast.collocation_constraint.defects:r                e   0.000000E+00    2.665194E-14    0.000000E+00              9.00000E+100
-        140  traj.coast.collocation_constraint.defects:r                e   0.000000E+00   -1.435105E-14    0.000000E+00              9.00000E+100
-        141  traj.coast.collocation_constraint.defects:r                e   0.000000E+00   -1.435105E-14    0.000000E+00              9.00000E+100
-        142  traj.coast.collocation_constraint.defects:theta            e   0.000000E+00   -1.640120E-14    0.000000E+00              9.00000E+100
-        143  traj.coast.collocation_constraint.defects:theta            e   0.000000E+00    8.200598E-15    0.000000E+00              9.00000E+100
-        144  traj.coast.collocation_constraint.defects:theta            e   0.000000E+00   -1.435105E-14    0.000000E+00              9.00000E+100
-        145  traj.coast.collocation_constraint.defects:theta            e   0.000000E+00    1.025075E-14    0.000000E+00              9.00000E+100
-        146  traj.coast.collocation_constraint.defects:theta            e   0.000000E+00    3.485254E-14    0.000000E+00              9.00000E+100
-        147  traj.coast.collocation_constraint.defects:vr               e   0.000000E+00    6.662986E-15    0.000000E+00              9.00000E+100
-        148  traj.coast.collocation_constraint.defects:vr               e   0.000000E+00    4.612836E-15    0.000000E+00              9.00000E+100
-        149  traj.coast.collocation_constraint.defects:vr               e   0.000000E+00   -1.025075E-15    0.000000E+00              9.00000E+100
-        150  traj.coast.collocation_constraint.defects:vr               e   0.000000E+00   -3.075224E-15    0.000000E+00              9.00000E+100
-        151  traj.coast.collocation_constraint.defects:vr               e   0.000000E+00    5.125374E-16    0.000000E+00              9.00000E+100
-        152  traj.coast.collocation_constraint.defects:vt               e   0.000000E+00    4.100299E-15    0.000000E+00              9.00000E+100
-        153  traj.coast.collocation_constraint.defects:vt               e   0.000000E+00    1.025075E-15    0.000000E+00              9.00000E+100
-        154  traj.coast.collocation_constraint.defects:vt               e   0.000000E+00    5.125374E-16    0.000000E+00              9.00000E+100
-        155  traj.coast.collocation_constraint.defects:vt               e   0.000000E+00    5.381642E-15    0.000000E+00              9.00000E+100
-        156  traj.coast.collocation_constraint.defects:vt               e   0.000000E+00   -4.612836E-15    0.000000E+00              9.00000E+100
-        157  traj.coast.collocation_constraint.defects:accel            e   0.000000E+00    2.773339E-32    0.000000E+00              9.00000E+100
-        158  traj.coast.collocation_constraint.defects:accel            e   0.000000E+00    9.244464E-32    0.000000E+00              9.00000E+100
-        159  traj.coast.collocation_constraint.defects:accel            e   0.000000E+00   -7.395571E-32    0.000000E+00              9.00000E+100
-        160  traj.coast.collocation_constraint.defects:accel            e   0.000000E+00   -3.697785E-32    0.000000E+00              9.00000E+100
-        161  traj.coast.collocation_constraint.defects:accel            e   0.000000E+00    5.546678E-32    0.000000E+00              9.00000E+100
-        162  traj.coast.collocation_constraint.defects:deltav           e   0.000000E+00   -2.048511E-32    0.000000E+00              9.00000E+100
-        163  traj.coast.collocation_constraint.defects:deltav           e   0.000000E+00   -1.502241E-31    0.000000E+00              9.00000E+100
-        164  traj.coast.collocation_constraint.defects:deltav           e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        165  traj.coast.collocation_constraint.defects:deltav           e   0.000000E+00   -5.462696E-32    0.000000E+00              9.00000E+100
-        166  traj.coast.collocation_constraint.defects:deltav           e   0.000000E+00    4.097022E-32    0.000000E+00              9.00000E+100
-        167  traj.coast.continuity_comp.defect_states:r                 e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        168  traj.coast.continuity_comp.defect_states:r                 e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        169  traj.coast.continuity_comp.defect_states:r                 e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        170  traj.coast.continuity_comp.defect_states:r                 e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        171  traj.coast.continuity_comp.defect_states:theta             e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        172  traj.coast.continuity_comp.defect_states:theta             e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        173  traj.coast.continuity_comp.defect_states:theta             e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        174  traj.coast.continuity_comp.defect_states:theta             e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        175  traj.coast.continuity_comp.defect_states:vr                e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        176  traj.coast.continuity_comp.defect_states:vr                e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        177  traj.coast.continuity_comp.defect_states:vr                e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        178  traj.coast.continuity_comp.defect_states:vr                e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        179  traj.coast.continuity_comp.defect_states:vt                e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        180  traj.coast.continuity_comp.defect_states:vt                e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        181  traj.coast.continuity_comp.defect_states:vt                e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        182  traj.coast.continuity_comp.defect_states:vt                e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        183  traj.coast.continuity_comp.defect_states:accel             e   0.000000E+00    3.697785E-32    0.000000E+00              9.00000E+100
-        184  traj.coast.continuity_comp.defect_states:accel             e   0.000000E+00   -1.479114E-31    0.000000E+00              9.00000E+100
-        185  traj.coast.continuity_comp.defect_states:accel             e   0.000000E+00    1.232595E-31    0.000000E+00              9.00000E+100
-        186  traj.coast.continuity_comp.defect_states:accel             e   0.000000E+00   -9.860761E-32    0.000000E+00              9.00000E+100
-        187  traj.coast.continuity_comp.defect_states:deltav            e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        188  traj.coast.continuity_comp.defect_states:deltav            e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        189  traj.coast.continuity_comp.defect_states:deltav            e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
-        190  traj.coast.continuity_comp.defect_states:deltav            e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+      Index  Name                                                    Type          Lower           Value           Upper    Status  Lagrange Multiplier
+          0  traj.linkages.burn1:time_final|coast:time_initial          e   0.000000E+00    0.000000E+00    0.000000E+00               3.29178E-11
+          1  traj.linkages.burn1:r_final|coast:r_initial                e   0.000000E+00    0.000000E+00    0.000000E+00              -6.46260E+01
+          2  traj.linkages.burn1:theta_final|coast:theta_initial        e   0.000000E+00    0.000000E+00    0.000000E+00              -1.38544E-09
+          3  traj.linkages.burn1:vr_final|coast:vr_initial              e   0.000000E+00    0.000000E+00    0.000000E+00              -2.24803E+01
+          4  traj.linkages.burn1:vt_final|coast:vt_initial              e   0.000000E+00    0.000000E+00    0.000000E+00              -9.84946E+01
+          5  traj.linkages.burn1:deltav_final|coast:deltav_initial      e   0.000000E+00    0.000000E+00    0.000000E+00               1.00000E+02
+          6  traj.linkages.coast:time_final|burn2:time_initial          e   0.000000E+00    1.776357E-15    0.000000E+00              -6.19767E-12
+          7  traj.linkages.coast:r_final|burn2:r_initial                e   0.000000E+00    0.000000E+00    0.000000E+00              -1.76856E+01
+          8  traj.linkages.coast:theta_final|burn2:theta_initial        e   0.000000E+00    0.000000E+00    0.000000E+00              -7.74646E-10
+          9  traj.linkages.coast:vr_final|burn2:vr_initial              e   0.000000E+00    0.000000E+00    0.000000E+00              -2.71580E+00
+         10  traj.linkages.coast:vt_final|burn2:vt_initial              e   0.000000E+00    0.000000E+00    0.000000E+00              -1.00155E+02
+         11  traj.linkages.coast:deltav_final|burn2:deltav_initial      e   0.000000E+00    0.000000E+00    0.000000E+00               1.00000E+02
+         12  traj.linkages.burn1:accel_final|burn2:accel_initial        e   0.000000E+00    0.000000E+00    0.000000E+00              -2.53581E-01
+         13  traj.burn1.collocation_constraint.defects:r                e   0.000000E+00   -1.694810E-14    0.000000E+00               1.28817E+00
+         14  traj.burn1.collocation_constraint.defects:r                e   0.000000E+00    7.111630E-15    0.000000E+00               1.29152E+00
+         15  traj.burn1.collocation_constraint.defects:r                e   0.000000E+00    1.515086E-14    0.000000E+00               1.23041E+00
+         16  traj.burn1.collocation_constraint.defects:r                e   0.000000E+00   -1.360486E-14    0.000000E+00               1.10376E+00
+         17  traj.burn1.collocation_constraint.defects:r                e   0.000000E+00    3.710415E-15    0.000000E+00               9.43352E-01
+         18  traj.burn1.collocation_constraint.defects:theta            e   0.000000E+00    4.947221E-15    0.000000E+00               2.17462E-11
+         19  traj.burn1.collocation_constraint.defects:theta            e   0.000000E+00   -4.947221E-15    0.000000E+00               2.18368E-11
+         20  traj.burn1.collocation_constraint.defects:theta            e   0.000000E+00   -4.947221E-15    0.000000E+00               2.13391E-11
+         21  traj.burn1.collocation_constraint.defects:theta            e   0.000000E+00   -1.731527E-14    0.000000E+00               2.03210E-11
+         22  traj.burn1.collocation_constraint.defects:theta            e   0.000000E+00    1.484166E-14    0.000000E+00               1.90093E-11
+         23  traj.burn1.collocation_constraint.defects:vr               e   0.000000E+00    8.039234E-15    0.000000E+00              -6.92120E-02
+         24  traj.burn1.collocation_constraint.defects:vr               e   0.000000E+00    1.051284E-14    0.000000E+00              -6.34585E-03
+         25  traj.burn1.collocation_constraint.defects:vr               e   0.000000E+00    1.113125E-14    0.000000E+00               8.57711E-02
+         26  traj.burn1.collocation_constraint.defects:vr               e   0.000000E+00    6.802428E-15    0.000000E+00               1.83634E-01
+         27  traj.burn1.collocation_constraint.defects:vr               e   0.000000E+00    6.184026E-15    0.000000E+00               2.66192E-01
+         28  traj.burn1.collocation_constraint.defects:vt               e   0.000000E+00    3.092013E-16    0.000000E+00               1.35529E+00
+         29  traj.burn1.collocation_constraint.defects:vt               e   0.000000E+00    3.246614E-15    0.000000E+00               1.40601E+00
+         30  traj.burn1.collocation_constraint.defects:vt               e   0.000000E+00    6.454577E-15    0.000000E+00               1.41796E+00
+         31  traj.burn1.collocation_constraint.defects:vt               e   0.000000E+00   -3.092013E-15    0.000000E+00               1.39112E+00
+         32  traj.burn1.collocation_constraint.defects:vt               e   0.000000E+00    2.473610E-15    0.000000E+00               1.34093E+00
+         33  traj.burn1.collocation_constraint.defects:accel            e   0.000000E+00    6.570527E-18    0.000000E+00               1.48289E+01
+         34  traj.burn1.collocation_constraint.defects:accel            e   0.000000E+00   -1.256130E-17    0.000000E+00               1.17352E+01
+         35  traj.burn1.collocation_constraint.defects:accel            e   0.000000E+00   -6.763778E-18    0.000000E+00               7.42535E+00
+         36  traj.burn1.collocation_constraint.defects:accel            e   0.000000E+00    2.705511E-18    0.000000E+00               3.46704E+00
+         37  traj.burn1.collocation_constraint.defects:accel            e   0.000000E+00    8.116534E-18    0.000000E+00               9.70278E-01
+         38  traj.burn1.collocation_constraint.defects:deltav           e   0.000000E+00   -3.092013E-18    0.000000E+00              -1.33333E+02
+         39  traj.burn1.collocation_constraint.defects:deltav           e   0.000000E+00    0.000000E+00    0.000000E+00              -1.33333E+02
+         40  traj.burn1.collocation_constraint.defects:deltav           e   0.000000E+00   -1.236805E-17    0.000000E+00              -1.33333E+02
+         41  traj.burn1.collocation_constraint.defects:deltav           e   0.000000E+00    3.092013E-18    0.000000E+00              -1.33333E+02
+         42  traj.burn1.collocation_constraint.defects:deltav           e   0.000000E+00    2.782812E-17    0.000000E+00              -1.33333E+02
+         43  traj.burn1.continuity_comp.defect_states:r                 e   0.000000E+00    0.000000E+00    0.000000E+00               9.73892E+01
+         44  traj.burn1.continuity_comp.defect_states:r                 e   0.000000E+00    0.000000E+00    0.000000E+00               9.54877E+01
+         45  traj.burn1.continuity_comp.defect_states:r                 e   0.000000E+00    0.000000E+00    0.000000E+00               8.82063E+01
+         46  traj.burn1.continuity_comp.defect_states:r                 e   0.000000E+00    0.000000E+00    0.000000E+00               7.69316E+01
+         47  traj.burn1.continuity_comp.defect_states:theta             e   0.000000E+00    0.000000E+00    0.000000E+00               1.63436E-09
+         48  traj.burn1.continuity_comp.defect_states:theta             e   0.000000E+00    0.000000E+00    0.000000E+00               1.61910E-09
+         49  traj.burn1.continuity_comp.defect_states:theta             e   0.000000E+00    0.000000E+00    0.000000E+00               1.56225E-09
+         50  traj.burn1.continuity_comp.defect_states:theta             e   0.000000E+00    0.000000E+00    0.000000E+00               1.47489E-09
+         51  traj.burn1.continuity_comp.defect_states:vr                e   0.000000E+00    0.000000E+00    0.000000E+00              -3.32087E+00
+         52  traj.burn1.continuity_comp.defect_states:vr                e   0.000000E+00    0.000000E+00    0.000000E+00               2.74187E+00
+         53  traj.burn1.continuity_comp.defect_states:vr                e   0.000000E+00    0.000000E+00    0.000000E+00               1.01921E+01
+         54  traj.burn1.continuity_comp.defect_states:vr                e   0.000000E+00    0.000000E+00    0.000000E+00               1.71505E+01
+         55  traj.burn1.continuity_comp.defect_states:vt                e   0.000000E+00    0.000000E+00    0.000000E+00               1.03967E+02
+         56  traj.burn1.continuity_comp.defect_states:vt                e   0.000000E+00    0.000000E+00    0.000000E+00               1.06421E+02
+         57  traj.burn1.continuity_comp.defect_states:vt                e   0.000000E+00    0.000000E+00    0.000000E+00               1.05753E+02
+         58  traj.burn1.continuity_comp.defect_states:vt                e   0.000000E+00    0.000000E+00    0.000000E+00               1.02612E+02
+         59  traj.burn1.continuity_comp.defect_states:accel             e   0.000000E+00    0.000000E+00    0.000000E+00               1.02191E+01
+         60  traj.burn1.continuity_comp.defect_states:accel             e   0.000000E+00    0.000000E+00    0.000000E+00               7.23618E+00
+         61  traj.burn1.continuity_comp.defect_states:accel             e   0.000000E+00    0.000000E+00    0.000000E+00               3.95428E+00
+         62  traj.burn1.continuity_comp.defect_states:accel             e   0.000000E+00    0.000000E+00    0.000000E+00               1.43810E+00
+         63  traj.burn1.continuity_comp.defect_states:deltav            e   0.000000E+00    0.000000E+00    0.000000E+00              -1.00000E+02
+         64  traj.burn1.continuity_comp.defect_states:deltav            e   0.000000E+00    0.000000E+00    0.000000E+00              -1.00000E+02
+         65  traj.burn1.continuity_comp.defect_states:deltav            e   0.000000E+00    0.000000E+00    0.000000E+00              -1.00000E+02
+         66  traj.burn1.continuity_comp.defect_states:deltav            e   0.000000E+00    0.000000E+00    0.000000E+00              -1.00000E+02
+         67  traj.burn1.continuity_comp.defect_control_rates:u1_rate    e   0.000000E+00    9.894441E-19    0.000000E+00               5.04690E-03
+         68  traj.burn1.continuity_comp.defect_control_rates:u1_rate    e   0.000000E+00    0.000000E+00    0.000000E+00               1.13756E-03
+         69  traj.burn1.continuity_comp.defect_control_rates:u1_rate    e   0.000000E+00    0.000000E+00    0.000000E+00               6.27088E-06
+         70  traj.burn1.continuity_comp.defect_control_rates:u1_rate    e   0.000000E+00    2.572555E-17    0.000000E+00              -3.21095E-03
+         71  traj.burn1.continuity_comp.defect_controls:u1              e   0.000000E+00    0.000000E+00    0.000000E+00               2.73331E-06
+         72  traj.burn1.continuity_comp.defect_controls:u1              e   0.000000E+00    0.000000E+00    0.000000E+00              -3.57484E-06
+         73  traj.burn1.continuity_comp.defect_controls:u1              e   0.000000E+00    0.000000E+00    0.000000E+00              -1.98447E-06
+         74  traj.burn1.continuity_comp.defect_controls:u1              e   0.000000E+00    0.000000E+00    0.000000E+00               2.87365E-06
+         75  traj.burn2.collocation_constraint.defects:r                e   0.000000E+00    1.424672E-14    0.000000E+00               2.35342E-01
+         76  traj.burn2.collocation_constraint.defects:r                e   0.000000E+00    1.738807E-14    0.000000E+00               2.34619E-01
+         77  traj.burn2.collocation_constraint.defects:r                e   0.000000E+00   -2.165766E-14    0.000000E+00               2.34151E-01
+         78  traj.burn2.collocation_constraint.defects:r                e   0.000000E+00    4.184973E-14    0.000000E+00               2.33858E-01
+         79  traj.burn2.collocation_constraint.defects:r                e   0.000000E+00   -3.649961E-14    0.000000E+00               2.33656E-01
+         80  traj.burn2.collocation_constraint.defects:theta            e   0.000000E+00    2.300712E-14    0.000000E+00               9.32591E-12
+         81  traj.burn2.collocation_constraint.defects:theta            e   0.000000E+00   -3.044019E-14    0.000000E+00               7.30781E-12
+         82  traj.burn2.collocation_constraint.defects:theta            e   0.000000E+00   -2.265317E-14    0.000000E+00               5.26321E-12
+         83  traj.burn2.collocation_constraint.defects:theta            e   0.000000E+00   -3.185601E-15    0.000000E+00               3.18509E-12
+         84  traj.burn2.collocation_constraint.defects:theta            e   0.000000E+00    4.813798E-14    0.000000E+00               1.06945E-12
+         85  traj.burn2.collocation_constraint.defects:vr               e   0.000000E+00    8.848893E-16    0.000000E+00               3.07736E-03
+         86  traj.burn2.collocation_constraint.defects:vr               e   0.000000E+00   -8.848893E-16    0.000000E+00               2.22200E-03
+         87  traj.burn2.collocation_constraint.defects:vr               e   0.000000E+00    0.000000E+00    0.000000E+00               1.71840E-03
+         88  traj.burn2.collocation_constraint.defects:vr               e   0.000000E+00    4.866891E-15    0.000000E+00               1.57232E-03
+         89  traj.burn2.collocation_constraint.defects:vr               e   0.000000E+00   -2.212223E-15    0.000000E+00               1.78995E-03
+         90  traj.burn2.collocation_constraint.defects:vt               e   0.000000E+00   -5.132358E-14    0.000000E+00               1.33588E-01
+         91  traj.burn2.collocation_constraint.defects:vt               e   0.000000E+00   -5.309336E-15    0.000000E+00               1.33637E-01
+         92  traj.burn2.collocation_constraint.defects:vt               e   0.000000E+00   -4.070491E-14    0.000000E+00               1.33621E-01
+         93  traj.burn2.collocation_constraint.defects:vt               e   0.000000E+00    5.309336E-14    0.000000E+00               1.33544E-01
+         94  traj.burn2.collocation_constraint.defects:vt               e   0.000000E+00   -3.539557E-15    0.000000E+00               1.33407E-01
+         95  traj.burn2.collocation_constraint.defects:accel            e   0.000000E+00   -1.327334E-18    0.000000E+00               2.96116E-01
+         96  traj.burn2.collocation_constraint.defects:accel            e   0.000000E+00    1.305212E-17    0.000000E+00               2.06628E-01
+         97  traj.burn2.collocation_constraint.defects:accel            e   0.000000E+00   -1.172478E-17    0.000000E+00               1.19542E-01
+         98  traj.burn2.collocation_constraint.defects:accel            e   0.000000E+00    1.216723E-17    0.000000E+00               4.87446E-02
+         99  traj.burn2.collocation_constraint.defects:accel            e   0.000000E+00   -6.857892E-18    0.000000E+00               7.52728E-03
+        100  traj.burn2.collocation_constraint.defects:deltav           e   0.000000E+00   -2.477690E-17    0.000000E+00              -1.33333E+02
+        101  traj.burn2.collocation_constraint.defects:deltav           e   0.000000E+00   -1.769779E-18    0.000000E+00              -1.33333E+02
+        102  traj.burn2.collocation_constraint.defects:deltav           e   0.000000E+00    1.946756E-17    0.000000E+00              -1.33333E+02
+        103  traj.burn2.collocation_constraint.defects:deltav           e   0.000000E+00   -3.893513E-17    0.000000E+00              -1.33333E+02
+        104  traj.burn2.collocation_constraint.defects:deltav           e   0.000000E+00    4.601424E-17    0.000000E+00              -1.33333E+02
+        105  traj.burn2.continuity_comp.defect_states:r                 e   0.000000E+00    0.000000E+00    0.000000E+00               1.76199E+01
+        106  traj.burn2.continuity_comp.defect_states:r                 e   0.000000E+00    0.000000E+00    0.000000E+00               1.75762E+01
+        107  traj.burn2.continuity_comp.defect_states:r                 e   0.000000E+00    0.000000E+00    0.000000E+00               1.75486E+01
+        108  traj.burn2.continuity_comp.defect_states:r                 e   0.000000E+00    0.000000E+00    0.000000E+00               1.75312E+01
+        109  traj.burn2.continuity_comp.defect_states:theta             e   0.000000E+00    0.000000E+00    0.000000E+00               6.23765E-10
+        110  traj.burn2.continuity_comp.defect_states:theta             e   0.000000E+00    0.000000E+00    0.000000E+00               4.71413E-10
+        111  traj.burn2.continuity_comp.defect_states:theta             e   0.000000E+00    0.000000E+00    0.000000E+00               3.16811E-10
+        112  traj.burn2.continuity_comp.defect_states:theta             e   0.000000E+00    0.000000E+00    0.000000E+00               1.59545E-10
+        113  traj.burn2.continuity_comp.defect_states:vr                e   0.000000E+00    0.000000E+00    0.000000E+00               1.94361E+00
+        114  traj.burn2.continuity_comp.defect_states:vr                e   0.000000E+00    0.000000E+00    0.000000E+00               1.43334E+00
+        115  traj.burn2.continuity_comp.defect_states:vr                e   0.000000E+00    0.000000E+00    0.000000E+00               1.18894E+00
+        116  traj.burn2.continuity_comp.defect_states:vr                e   0.000000E+00    0.000000E+00    0.000000E+00               1.21500E+00
+        117  traj.burn2.continuity_comp.defect_states:vt                e   0.000000E+00    0.000000E+00    0.000000E+00               1.00218E+02
+        118  traj.burn2.continuity_comp.defect_states:vt                e   0.000000E+00    0.000000E+00    0.000000E+00               1.00229E+02
+        119  traj.burn2.continuity_comp.defect_states:vt                e   0.000000E+00    0.000000E+00    0.000000E+00               1.00194E+02
+        120  traj.burn2.continuity_comp.defect_states:vt                e   0.000000E+00    0.000000E+00    0.000000E+00               1.00114E+02
+        121  traj.burn2.continuity_comp.defect_states:accel             e   0.000000E+00    0.000000E+00    0.000000E+00               1.89136E-01
+        122  traj.burn2.continuity_comp.defect_states:accel             e   0.000000E+00    0.000000E+00    0.000000E+00               1.21151E-01
+        123  traj.burn2.continuity_comp.defect_states:accel             e   0.000000E+00    0.000000E+00    0.000000E+00               6.02455E-02
+        124  traj.burn2.continuity_comp.defect_states:accel             e   0.000000E+00    0.000000E+00    0.000000E+00               1.66198E-02
+        125  traj.burn2.continuity_comp.defect_states:deltav            e   0.000000E+00    0.000000E+00    0.000000E+00              -1.00000E+02
+        126  traj.burn2.continuity_comp.defect_states:deltav            e   0.000000E+00    0.000000E+00    0.000000E+00              -1.00000E+02
+        127  traj.burn2.continuity_comp.defect_states:deltav            e   0.000000E+00    0.000000E+00    0.000000E+00              -1.00000E+02
+        128  traj.burn2.continuity_comp.defect_states:deltav            e   0.000000E+00    0.000000E+00    0.000000E+00              -1.00000E+02
+        129  traj.burn2.continuity_comp.defect_control_rates:u1_rate    e   0.000000E+00    5.663291E-16    0.000000E+00               2.70338E-07
+        130  traj.burn2.continuity_comp.defect_control_rates:u1_rate    e   0.000000E+00    1.769779E-15    0.000000E+00               1.83827E-07
+        131  traj.burn2.continuity_comp.defect_control_rates:u1_rate    e   0.000000E+00    1.875965E-15    0.000000E+00               1.85294E-07
+        132  traj.burn2.continuity_comp.defect_control_rates:u1_rate    e   0.000000E+00   -5.309336E-16    0.000000E+00               3.08323E-07
+        133  traj.burn2.continuity_comp.defect_controls:u1              e   0.000000E+00    0.000000E+00    0.000000E+00               2.36681E-07
+        134  traj.burn2.continuity_comp.defect_controls:u1              e   0.000000E+00    0.000000E+00    0.000000E+00              -1.03649E-07
+        135  traj.burn2.continuity_comp.defect_controls:u1              e   0.000000E+00    0.000000E+00    0.000000E+00               1.54730E-07
+        136  traj.burn2.continuity_comp.defect_controls:u1              e   0.000000E+00    0.000000E+00    0.000000E+00              -2.35150E-07
+        137  traj.coast.collocation_constraint.defects:r                e   0.000000E+00    8.200598E-15    0.000000E+00               6.51946E-01
+        138  traj.coast.collocation_constraint.defects:r                e   0.000000E+00    8.200598E-15    0.000000E+00               4.09769E-01
+        139  traj.coast.collocation_constraint.defects:r                e   0.000000E+00   -1.845135E-14    0.000000E+00               3.09746E-01
+        140  traj.coast.collocation_constraint.defects:r                e   0.000000E+00    0.000000E+00    0.000000E+00               2.62939E-01
+        141  traj.coast.collocation_constraint.defects:r                e   0.000000E+00   -5.125374E-15    0.000000E+00               2.41149E-01
+        142  traj.coast.collocation_constraint.defects:theta            e   0.000000E+00   -8.200598E-15    0.000000E+00               1.79371E-11
+        143  traj.coast.collocation_constraint.defects:theta            e   0.000000E+00    2.870209E-14    0.000000E+00               1.62687E-11
+        144  traj.coast.collocation_constraint.defects:theta            e   0.000000E+00    2.460179E-14    0.000000E+00               1.46611E-11
+        145  traj.coast.collocation_constraint.defects:theta            e   0.000000E+00   -3.690269E-14    0.000000E+00               1.30546E-11
+        146  traj.coast.collocation_constraint.defects:theta            e   0.000000E+00    6.150449E-15    0.000000E+00               1.13273E-11
+        147  traj.coast.collocation_constraint.defects:vr               e   0.000000E+00   -1.691373E-14    0.000000E+00               3.33082E-01
+        148  traj.coast.collocation_constraint.defects:vr               e   0.000000E+00   -4.612836E-15    0.000000E+00               2.96282E-01
+        149  traj.coast.collocation_constraint.defects:vr               e   0.000000E+00   -3.075224E-15    0.000000E+00               2.19622E-01
+        150  traj.coast.collocation_constraint.defects:vr               e   0.000000E+00    1.025075E-15    0.000000E+00               1.43539E-01
+        151  traj.coast.collocation_constraint.defects:vr               e   0.000000E+00    4.100299E-15    0.000000E+00               7.13580E-02
+        152  traj.coast.collocation_constraint.defects:vt               e   0.000000E+00   -2.460179E-14    0.000000E+00               1.24448E+00
+        153  traj.coast.collocation_constraint.defects:vt               e   0.000000E+00    1.025075E-14    0.000000E+00               1.22184E+00
+        154  traj.coast.collocation_constraint.defects:vt               e   0.000000E+00    5.125374E-16    0.000000E+00               1.25922E+00
+        155  traj.coast.collocation_constraint.defects:vt               e   0.000000E+00   -2.818956E-15    0.000000E+00               1.30095E+00
+        156  traj.coast.collocation_constraint.defects:vt               e   0.000000E+00    7.816195E-15    0.000000E+00               1.32831E+00
+        157  traj.coast.collocation_constraint.defects:accel            e   0.000000E+00   -1.498014E-34    0.000000E+00              -1.86929E+01
+        158  traj.coast.collocation_constraint.defects:accel            e   0.000000E+00   -1.670090E-34    0.000000E+00              -2.69840E+00
+        159  traj.coast.collocation_constraint.defects:accel            e   0.000000E+00    4.377140E-35    0.000000E+00               1.12548E+01
+        160  traj.coast.collocation_constraint.defects:accel            e   0.000000E+00    1.773346E-34    0.000000E+00               1.90095E+01
+        161  traj.coast.collocation_constraint.defects:accel            e   0.000000E+00    2.227627E-34    0.000000E+00               2.15411E+01
+        162  traj.coast.collocation_constraint.defects:deltav           e   0.000000E+00   -2.775558E-17    0.000000E+00              -1.33333E+02
+        163  traj.coast.collocation_constraint.defects:deltav           e   0.000000E+00    3.754946E-34    0.000000E+00              -1.33333E+02
+        164  traj.coast.collocation_constraint.defects:deltav           e   0.000000E+00    4.304471E-34    0.000000E+00              -1.33333E+02
+        165  traj.coast.collocation_constraint.defects:deltav           e   0.000000E+00    2.775558E-17    0.000000E+00              -1.33333E+02
+        166  traj.coast.collocation_constraint.defects:deltav           e   0.000000E+00   -2.775558E-17    0.000000E+00              -1.33333E+02
+        167  traj.coast.continuity_comp.defect_states:r                 e   0.000000E+00    0.000000E+00    0.000000E+00               3.70881E+01
+        168  traj.coast.continuity_comp.defect_states:r                 e   0.000000E+00    0.000000E+00    0.000000E+00               2.60159E+01
+        169  traj.coast.continuity_comp.defect_states:r                 e   0.000000E+00    0.000000E+00    0.000000E+00               2.10638E+01
+        170  traj.coast.continuity_comp.defect_states:r                 e   0.000000E+00    0.000000E+00    0.000000E+00               1.86759E+01
+        171  traj.coast.continuity_comp.defect_states:theta             e   0.000000E+00    0.000000E+00    0.000000E+00               1.28272E-09
+        172  traj.coast.continuity_comp.defect_states:theta             e   0.000000E+00    0.000000E+00    0.000000E+00               1.15987E-09
+        173  traj.coast.continuity_comp.defect_states:theta             e   0.000000E+00    0.000000E+00    0.000000E+00               1.03934E-09
+        174  traj.coast.continuity_comp.defect_states:theta             e   0.000000E+00    0.000000E+00    0.000000E+00               9.14324E-10
+        175  traj.coast.continuity_comp.defect_states:vr                e   0.000000E+00    0.000000E+00    0.000000E+00               2.46701E+01
+        176  traj.coast.continuity_comp.defect_states:vr                e   0.000000E+00    0.000000E+00    0.000000E+00               1.93854E+01
+        177  traj.coast.continuity_comp.defect_states:vr                e   0.000000E+00    0.000000E+00    0.000000E+00               1.35586E+01
+        178  traj.coast.continuity_comp.defect_states:vr                e   0.000000E+00    0.000000E+00    0.000000E+00               8.01335E+00
+        179  traj.coast.continuity_comp.defect_states:vt                e   0.000000E+00    0.000000E+00    0.000000E+00               9.12968E+01
+        180  traj.coast.continuity_comp.defect_states:vt                e   0.000000E+00    0.000000E+00    0.000000E+00               9.28067E+01
+        181  traj.coast.continuity_comp.defect_states:vt                e   0.000000E+00    0.000000E+00    0.000000E+00               9.61260E+01
+        182  traj.coast.continuity_comp.defect_states:vt                e   0.000000E+00    0.000000E+00    0.000000E+00               9.88357E+01
+        183  traj.coast.continuity_comp.defect_states:accel             e   0.000000E+00   -2.782983E-35    0.000000E+00              -8.43707E+00
+        184  traj.coast.continuity_comp.defect_states:accel             e   0.000000E+00    3.256083E-35    0.000000E+00               3.91591E+00
+        185  traj.coast.continuity_comp.defect_states:accel             e   0.000000E+00   -2.556335E-34    0.000000E+00               1.21274E+01
+        186  traj.coast.continuity_comp.defect_states:accel             e   0.000000E+00    8.149142E-35    0.000000E+00               1.57149E+01
+        187  traj.coast.continuity_comp.defect_states:deltav            e   0.000000E+00    0.000000E+00    0.000000E+00              -1.00000E+02
+        188  traj.coast.continuity_comp.defect_states:deltav            e   0.000000E+00    0.000000E+00    0.000000E+00              -1.00000E+02
+        189  traj.coast.continuity_comp.defect_states:deltav            e   0.000000E+00    0.000000E+00    0.000000E+00              -1.00000E+02
+        190  traj.coast.continuity_comp.defect_states:deltav            e   0.000000E+00    0.000000E+00    0.000000E+00              -1.00000E+02
 
 
    Exit Status
@@ -1800,7 +1518,7 @@ Coloring created on: 2025-07-16 16:23:44
 --------------------------------------------------------------------------------
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/openmdao/visualization/opt_report/opt_report.py:611: UserWarning: Attempting to set identical low and high ylims makes transformation singular; automatically expanding.
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.13/site-packages/openmdao/visualization/opt_report/opt_report.py:611: UserWarning: Attempting to set identical low and high ylims makes transformation singular; automatically expanding.
   ax.set_ylim([ymin_plot, ymax_plot])
 </pre></div>
 </div>
@@ -1813,12 +1531,12 @@ Coloring created on: 2025-07-16 16:23:44
 <div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Problem: problem
 Driver:  pyOptSparseDriver
   success     : True
-  iterations  : 26
-  runtime     : 2.6384E+00 s
-  model_evals : 26
-  model_time  : 7.3370E-02 s
-  deriv_evals : 25
-  deriv_time  : 1.1340E+00 s
+  iterations  : 30
+  runtime     : 3.7700E+00 s
+  model_evals : 30
+  model_time  : 1.2103E-01 s
+  deriv_evals : 29
+  deriv_time  : 2.0588E+00 s
   exit_status : SUCCESS
 </pre></div>
 </div>
@@ -1826,13 +1544,13 @@ Driver:  pyOptSparseDriver
 </div>
 </section>
 <section id="plotting-the-results">
-<h2>Plotting the results<a class="headerlink" href="#plotting-the-results" title="Permalink to this heading">#</a></h2>
+<h2>Plotting the results<a class="headerlink" href="#plotting-the-results" title="Link to this heading">#</a></h2>
 <p>The following code cell reads the resulting state, time, and control histories from the solution and simulation record files and plots them. It is collapsed by default but can be viewed by expanding it with the button to the right.</p>
 <div class="cell tag_hide-input docutils container">
-<details class="hide above-input">
+<details class="admonition hide above-input">
 <summary aria-label="Toggle hidden content">
-<span class="collapsed">Show code cell source</span>
-<span class="expanded">Hide code cell source</span>
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sol</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">CaseReader</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">get_outputs_dir</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;dymos_solution.db&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get_case</span><span class="p">(</span><span class="s1">&#39;final&#39;</span><span class="p">)</span>
@@ -1907,13 +1625,20 @@ Driver:  pyOptSparseDriver
 </div>
 </details>
 <div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;&gt;:25: SyntaxWarning: invalid escape sequence &#39;\D&#39;
+&lt;&gt;:25: SyntaxWarning: invalid escape sequence &#39;\D&#39;
+/tmp/ipykernel_3829/2573435747.py:25: SyntaxWarning: invalid escape sequence &#39;\D&#39;
+  ax_deltav.set_ylabel(&#39;${\Delta}v$ ($DU/TU$)&#39;)
+</pre></div>
+</div>
 <img alt="../../_images/2e06b1769abf2680236415011f6077510e3d5ddad3c83b77cca69398a3650d29.png" src="../../_images/2e06b1769abf2680236415011f6077510e3d5ddad3c83b77cca69398a3650d29.png" />
 </div>
 </div>
 </section>
 <section id="references">
-<h2>References<a class="headerlink" href="#references" title="Permalink to this heading">#</a></h2>
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
 <div class="docutils container" id="id2">
+<div role="list" class="citation-list">
 <div class="citation" id="id24" role="doc-biblioentry">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">EC91</a><span class="fn-bracket">]</span></span>
 <p>Paul J Enright and Brace A Conway. Optimal finite-thrust spacecraft trajectories using collocation and nonlinear programming. <em>Journal of Guidance, Control, and Dynamics</em>, 14(5):981–985, 1991.</p>
@@ -1943,70 +1668,61 @@ Driver:  pyOptSparseDriver
     </script>
     <script>kernelName = 'python3'</script>
 
-            </article>
-            
+                </article>
+              
 
-            
-            
-            <footer class="bd-footer-article">
-                <!-- Previous / next buttons -->
-<div class='prev-next-area'>
-  <a class='left-prev' id="prev-link" href="../hypersensitive/hypersensitive.html" title="previous page">
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../hypersensitive/hypersensitive.html"
+       title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
-          <p class="prev-next-subtitle">previous</p>
-          <p class="prev-next-title">Hyper-Sensitive Problem</p>
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Hyper-Sensitive Problem</p>
       </div>
-  </a>
-  <a class='right-next' id="next-link" href="../length_constrained_brachistochrone/length_constrained_brachistochrone.html" title="next page">
-  <div class="prev-next-info">
-      <p class="prev-next-subtitle">next</p>
-      <p class="prev-next-title">The Length-Constrained Brachistochrone</p>
-  </div>
-  <i class="fa-solid fa-angle-right"></i>
-  </a>
+    </a>
+    <a class="right-next"
+       href="../length_constrained_brachistochrone/length_constrained_brachistochrone.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">The Length-Constrained Brachistochrone</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
 </div>
-            </footer>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#building-and-running-the-problem">Building and running the problem</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#plotting-the-results">Plotting the results</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
             
           </div>
-          
-          
-          
-            <div class="bd-sidebar-secondary bd-toc">
-              
-<div class="toc-item">
-  
-<div class="tocsection onthispage">
-    <i class="fa-solid fa-list"></i> On this page
-</div>
-<nav id="bd-toc-nav" class="page-toc">
-    <ul class="visible nav section-nav flex-column">
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#building-and-running-the-problem">
-   Building and running the problem
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#plotting-the-results">
-   Plotting the results
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#references">
-   References
-  </a>
- </li>
-</ul>
-
-</nav>
-</div>
-
-            </div>
-          
-          
-        </div>
-        <footer class="bd-footer-content">
-          <div class="bd-footer-content__inner">
+          <footer class="bd-footer-content">
             
 <div class="bd-footer-content__inner container">
   
@@ -2020,18 +1736,18 @@ By The Dymos Development Team
   
   <div class="footer-item">
     
-<p class="copyright">
 
-    &copy; Copyright 2022.<br>
-
-</p>
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
 
   </div>
   
   <div class="footer-item">
-    <p class="last-updated">
-Last updated on None.<br>
-</p>
+    
   </div>
   
   <div class="footer-item">
@@ -2039,19 +1755,18 @@ Last updated on None.<br>
   </div>
   
 </div>
-          </div>
-        </footer>
+          </footer>
         
 
       </main>
     </div>
   </div>
-
   
-    
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../../_static/scripts/bootstrap.js?digest=796348d33e8b1d947c94"></script>
-<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=796348d33e8b1d947c94"></script>
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
 
+  <footer class="bd-footer">
+  </footer>
   </body>
 </html>

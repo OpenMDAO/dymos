@@ -8,32 +8,53 @@ msgstr ""
 "Language: et\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+msgid "By the"
+msgstr "Autor"
+
+msgid "By"
+msgstr "Kõrval"
+
+msgid "Contents"
+msgstr "Sisu"
+
 msgid "Copyright"
 msgstr "Autoriõigus"
 
-msgid "Print to PDF"
-msgstr "Prindi PDF-i"
+msgid "Download notebook file"
+msgstr "Laadige sülearvuti fail alla"
+
+msgid "Download source file"
+msgstr "Laadige alla lähtefail"
+
+msgid "Download this page"
+msgstr "Laadige see leht alla"
 
 msgid "Edit this page"
 msgstr "Muutke seda lehte"
 
-msgid "suggest edit"
-msgstr "soovita muuta"
+msgid "Fullscreen mode"
+msgstr "Täisekraanirežiim"
+
+msgid "Last updated on"
+msgstr "Viimati uuendatud"
+
+msgid "Launch"
+msgstr "Käivitage"
+
+msgid "Open an issue"
+msgstr "Avage probleem"
+
+msgid "Print to PDF"
+msgstr "Prindi PDF-i"
+
+msgid "Source repository"
+msgstr "Allikahoidla"
 
 msgid "Sphinx Book Theme"
 msgstr "Sfinksiraamatu teema"
 
-msgid "open issue"
-msgstr "avatud küsimus"
-
-msgid "By the"
-msgstr "Autor"
-
 msgid "Theme by the"
 msgstr "Teema"
-
-msgid "Download notebook file"
-msgstr "Laadige sülearvuti fail alla"
 
 msgid "Toggle navigation"
 msgstr "Lülita navigeerimine sisse"
@@ -41,41 +62,14 @@ msgstr "Lülita navigeerimine sisse"
 msgid "next page"
 msgstr "järgmine leht"
 
-msgid "Contents"
-msgstr "Sisu"
-
-msgid "Source repository"
-msgstr "Allikahoidla"
-
-msgid "Search the docs ..."
-msgstr "Dokumentidest otsimine ..."
-
-msgid "Last updated on"
-msgstr "Viimati uuendatud"
-
-msgid "Search this book..."
-msgstr "Otsige sellest raamatust ..."
-
-msgid "Download this page"
-msgstr "Laadige see leht alla"
-
-msgid "Launch"
-msgstr "Käivitage"
-
-msgid "Download source file"
-msgstr "Laadige alla lähtefail"
+msgid "open issue"
+msgstr "avatud küsimus"
 
 msgid "previous page"
 msgstr "eelmine leht"
 
-msgid "By"
-msgstr "Kõrval"
-
-msgid "Open an issue"
-msgstr "Avage probleem"
-
-msgid "Fullscreen mode"
-msgstr "Täisekraanirežiim"
-
 msgid "repository"
 msgstr "hoidla"
+
+msgid "suggest edit"
+msgstr "soovita muuta"

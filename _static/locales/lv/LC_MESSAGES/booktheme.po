@@ -8,32 +8,53 @@ msgstr ""
 "Language: lv\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+msgid "By the"
+msgstr "Ar"
+
+msgid "By"
+msgstr "Autors"
+
+msgid "Contents"
+msgstr "Saturs"
+
 msgid "Copyright"
 msgstr "Autortiesības"
 
-msgid "Print to PDF"
-msgstr "Drukāt PDF formātā"
+msgid "Download notebook file"
+msgstr "Lejupielādēt piezīmju grāmatiņu"
+
+msgid "Download source file"
+msgstr "Lejupielādēt avota failu"
+
+msgid "Download this page"
+msgstr "Lejupielādējiet šo lapu"
 
 msgid "Edit this page"
 msgstr "Rediģēt šo lapu"
 
-msgid "suggest edit"
-msgstr "ieteikt rediģēt"
+msgid "Fullscreen mode"
+msgstr "Pilnekrāna režīms"
+
+msgid "Last updated on"
+msgstr "Pēdējoreiz atjaunināts"
+
+msgid "Launch"
+msgstr "Uzsākt"
+
+msgid "Open an issue"
+msgstr "Atveriet problēmu"
+
+msgid "Print to PDF"
+msgstr "Drukāt PDF formātā"
+
+msgid "Source repository"
+msgstr "Avota krātuve"
 
 msgid "Sphinx Book Theme"
 msgstr "Sfinksa grāmatas tēma"
 
-msgid "open issue"
-msgstr "atklāts jautājums"
-
-msgid "By the"
-msgstr "Ar"
-
 msgid "Theme by the"
 msgstr "Autora tēma"
-
-msgid "Download notebook file"
-msgstr "Lejupielādēt piezīmju grāmatiņu"
 
 msgid "Toggle navigation"
 msgstr "Pārslēgt navigāciju"
@@ -41,41 +62,14 @@ msgstr "Pārslēgt navigāciju"
 msgid "next page"
 msgstr "nākamā lapaspuse"
 
-msgid "Contents"
-msgstr "Saturs"
-
-msgid "Source repository"
-msgstr "Avota krātuve"
-
-msgid "Search the docs ..."
-msgstr "Meklēt dokumentos ..."
-
-msgid "Last updated on"
-msgstr "Pēdējoreiz atjaunināts"
-
-msgid "Search this book..."
-msgstr "Meklēt šajā grāmatā ..."
-
-msgid "Download this page"
-msgstr "Lejupielādējiet šo lapu"
-
-msgid "Launch"
-msgstr "Uzsākt"
-
-msgid "Download source file"
-msgstr "Lejupielādēt avota failu"
+msgid "open issue"
+msgstr "atklāts jautājums"
 
 msgid "previous page"
 msgstr "iepriekšējā lapa"
 
-msgid "By"
-msgstr "Autors"
-
-msgid "Open an issue"
-msgstr "Atveriet problēmu"
-
-msgid "Fullscreen mode"
-msgstr "Pilnekrāna režīms"
-
 msgid "repository"
 msgstr "krātuve"
+
+msgid "suggest edit"
+msgstr "ieteikt rediģēt"
