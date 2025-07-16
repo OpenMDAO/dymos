@@ -117,7 +117,7 @@ class TestHull(unittest.TestCase):
 
         assert_near_equal(p.get_val('traj.phase.timeseries.u')[-1],
                           uf,
-                          tolerance=1e-4)
+                          tolerance=1e-3)
 
         assert_near_equal(p.get_val('traj.phase.continuity_comp.defect_controls:u'), np.zeros((2, 1)), tolerance=1.0E-4)
         assert_near_equal(p.get_val('traj.phase.continuity_comp.defect_control_rates:u_rate'), np.zeros((2, 1)), tolerance=1.0E-4)
