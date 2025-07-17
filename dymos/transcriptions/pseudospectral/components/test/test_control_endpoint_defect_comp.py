@@ -15,8 +15,8 @@ class TestControlEndpointDefectComp(unittest.TestCase):
 
     def setUp(self):
         dm.options['include_check_partials'] = True
-        gd = GridData(num_segments=2, segment_ends=np.array([0., 2., 4.]),
-                      transcription='radau-ps', transcription_order=3)
+
+        gd = dm.RadauGrid(num_segments=2, segment_ends=np.array([0., 2., 4.,]), nodes_per_seg=4)
 
         self.gd = gd
 

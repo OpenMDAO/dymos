@@ -50,10 +50,7 @@ class TestStateInterpComp(unittest.TestCase):
 
         segends = np.array([0.0, 3.0, 10.0])
 
-        gd = GridData(num_segments=2,
-                      transcription_order=3,
-                      segment_ends=segends,
-                      transcription='gauss-lobatto')
+        gd = dm.GaussLobattoGrid(num_segments=2, nodes_per_seg=3, segment_ends=segends)
 
         p = om.Problem(model=om.Group())
 
@@ -155,17 +152,14 @@ class TestStateInterpComp(unittest.TestCase):
         assert_almost_equal(
             p['state_interp_comp.staterate_col:v'][:, 0], f_v(t_col))
 
-        cpd = p.check_partials(compact_print=True, method='cs')
+        cpd = p.check_partials(compact_print=True, method='cs', out_stream=None)
         assert_check_partials(cpd, atol=5.0E-5)
 
     def test_state_interp_comp_lobatto_vectorized(self):
 
         segends = np.array([0.0, 3.0, 10.0])
 
-        gd = GridData(num_segments=2,
-                      transcription_order=3,
-                      segment_ends=segends,
-                      transcription='gauss-lobatto')
+        gd = dm.GaussLobattoGrid(num_segments=2, nodes_per_seg=3, segment_ends=segends)
 
         p = om.Problem(model=om.Group())
 
@@ -265,7 +259,7 @@ class TestStateInterpComp(unittest.TestCase):
         assert_almost_equal(
             p['state_interp_comp.staterate_col:pos'][:, 1], f_v(t_col))
 
-        cpd = p.check_partials(compact_print=True, method='cs')
+        cpd = p.check_partials(compact_print=True, method='cs', out_stream=None)
         assert_check_partials(cpd, atol=5.0E-5)
 
     def test_state_interp_comp_lobatto_vectorized_different_orders(self):
@@ -323,7 +317,7 @@ class TestStateInterpComp(unittest.TestCase):
 
         p.run_model()
 
-        cpd = p.check_partials(compact_print=True, method='cs')
+        cpd = p.check_partials(compact_print=True, method='cs', out_stream=None)
         assert_check_partials(cpd, atol=5.0E-5)
 
     def test_state_interp_comp_radau(self):
@@ -418,7 +412,7 @@ class TestStateInterpComp(unittest.TestCase):
         assert_almost_equal(
             p['state_interp_comp.staterate_col:v'][:, 0], 3*t_col**2 - 20*t_col)
 
-        cpd = p.check_partials(compact_print=True, method='cs')
+        cpd = p.check_partials(compact_print=True, method='cs', out_stream=None)
         assert_check_partials(cpd, atol=1.0E-5)
 
 
