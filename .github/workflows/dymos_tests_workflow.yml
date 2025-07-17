@@ -152,7 +152,7 @@ jobs:
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
 
           # latest versions dymos 2 testing
-          - NAME: latest
+          - NAME: latest_dymos_2
             PY: '3'
             NUMPY: '2'
             SCIPY: '1'
