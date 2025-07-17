@@ -151,6 +151,20 @@ jobs:
             JAX: true
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
 
+          # latest versions dymos 2 testing
+          - NAME: latest
+            PY: '3'
+            NUMPY: '2'
+            SCIPY: '1'
+            PETSc: '3'
+            PYOPTSPARSE: 'latest'
+            SNOPT: '7.7'
+            OPENMDAO: 'dev'
+            OPTIONAL: '[all]'
+            JAX: true
+            DYMOS_2 : True
+            EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
+
           # oldest supported versions
           - NAME: oldest
             PY: '3.9'
