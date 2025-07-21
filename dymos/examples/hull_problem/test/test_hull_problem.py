@@ -46,7 +46,7 @@ class TestHull(unittest.TestCase):
         phase0.set_state_val('x', [1.5, 1])
         phase0.set_state_val('xL', [0, 1])
         phase0.set_time_val(initial=0.0, duration=1.0)
-        phase0.set_control_val('u', [-7, -0.14])
+        phase0.set_control_val('u', [-0.8, -0.8])
         return p
 
     @staticmethod
