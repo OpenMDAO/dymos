@@ -4,22 +4,20 @@ import pathlib
 import unittest
 from numpy.testing import assert_almost_equal
 
-import sys
 
 from openmdao.utils.general_utils import set_pyoptsparse_opt, printoptions
-from openmdao.utils.testing_utils import use_tempdirs, set_env_vars_context
+from openmdao.utils.testing_utils import use_tempdirs
 from openmdao.utils.tests.test_hooks import hooks_active
 
-import dymos as dm
 import dymos.examples.brachistochrone.test.ex_brachistochrone_vector_states as ex_brachistochrone_vs
-from dymos.utils.testing_utils import assert_check_partials, _get_reports_dir
+from dymos.utils.testing_utils import assert_check_partials
 
 bokeh_available = importlib.util.find_spec('bokeh') is not None
 
 OPT, OPTIMIZER = set_pyoptsparse_opt('SNOPT')
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestBrachistochroneVectorStatesExample(unittest.TestCase):
 
     def setUp(self):

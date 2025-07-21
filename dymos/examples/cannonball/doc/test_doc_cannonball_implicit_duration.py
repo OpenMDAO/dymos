@@ -140,7 +140,6 @@ class TestCannonballImplicitDuration(unittest.TestCase):
 
         traj = p.model.add_subsystem('traj', dm.Trajectory())
 
-        # transcription = dm.Radau(num_segments=20, order=3, compressed=False)
         transcription = dm.PicardShooting(num_segments=5, order=3, compressed=False)
         phase = dm.Phase(ode_class=CannonballODE, transcription=transcription)
 
