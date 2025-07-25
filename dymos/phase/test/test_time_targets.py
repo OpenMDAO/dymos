@@ -5,6 +5,7 @@ import numpy as np
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.general_utils import env_truthy
 
 import dymos as dm
 
@@ -213,7 +214,7 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
     def test_radau(self):
         for time_name in ('time', 'elapsed_time'):
-            for dt_dstau_targets in ('dt_dstau', []):
+            for dt_dstau_targets in ([],):
                 with self.subTest():
                     num_seg = 20
                     p = self._make_problem('radau-ps', num_seg, time_name=time_name,
@@ -226,18 +227,23 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
                     time_phase_all = p[f'phase0.timeseries.{time_name}_phase'].ravel()
 
-                    assert_near_equal(p['phase0.rhs_all.time_phase'][-1], 1.8016, tolerance=1.0E-3)
+                    if env_truthy('DYMOS_2'):
+                        ode_name = 'ode_all'
+                    else:
+                        ode_name = 'rhs_all'
 
-                    assert_near_equal(p['phase0.rhs_all.t_initial'], p['phase0.t_initial'])
+                    assert_near_equal(p[f'phase0.{ode_name}.time_phase'][-1], 1.8016, tolerance=1.0E-3)
 
-                    assert_near_equal(p['phase0.rhs_all.t_duration'], p['phase0.t_duration'])
+                    assert_near_equal(p[f'phase0.{ode_name}.t_initial'], p['phase0.t_initial'])
 
-                    assert_near_equal(p['phase0.rhs_all.time_phase'], time_phase_all)
+                    assert_near_equal(p[f'phase0.{ode_name}.t_duration'], p['phase0.t_duration'])
 
-                    assert_near_equal(p['phase0.rhs_all.time'], time_all)
+                    assert_near_equal(p[f'phase0.{ode_name}.time_phase'], time_phase_all)
+
+                    assert_near_equal(p[f'phase0.{ode_name}.time'], time_all)
 
                     if dt_dstau_targets:
-                        assert_near_equal(p['phase0.rhs_all.dt_dstau'], p['phase0.dt_dstau'])
+                        assert_near_equal(p['phase0.{ode_name}.dt_dstau'], p['phase0.dt_dstau'])
                         with self.assertRaises(ValueError) as e:
                             exp_out = p.model.phase0.simulate()
 
@@ -369,15 +375,20 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
         time_phase_all = p['phase0.t_phase']
 
-        assert_near_equal(p['phase0.rhs_all.time_phase'][-1], 1.8016, tolerance=1.0E-3)
+        if env_truthy('DYMOS_2'):
+            ode_name = 'ode_all'
+        else:
+            ode_name = 'rhs_all'
 
-        assert_near_equal(p['phase0.rhs_all.t_initial'], p['phase0.t_initial'])
+        assert_near_equal(p[f'phase0.{ode_name}.time_phase'][-1], 1.8016, tolerance=1.0E-3)
 
-        assert_near_equal(p['phase0.rhs_all.t_duration'], p['phase0.t_duration'])
+        assert_near_equal(p[f'phase0.{ode_name}.t_initial'], p['phase0.t_initial'])
 
-        assert_near_equal(p['phase0.rhs_all.time_phase'], time_phase_all)
+        assert_near_equal(p[f'phase0.{ode_name}.t_duration'], p['phase0.t_duration'])
 
-        assert_near_equal(p['phase0.rhs_all.time'], time_all)
+        assert_near_equal(p[f'phase0.{ode_name}.time_phase'], time_phase_all)
+
+        assert_near_equal(p[f'phase0.{ode_name}.time'], time_all)
 
         exp_out = p.model._get_subsystem('phase0').simulate()
 

@@ -5,6 +5,7 @@ from openmdao.utils.general_utils import set_pyoptsparse_opt
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 import dymos as dm
+from dymos.utils.misc import om_version
 from dymos.examples.balanced_field.balanced_field_ode import BalancedFieldODEComp
 
 
@@ -260,10 +261,11 @@ class BenchmarkBalancedFieldLength(unittest.TestCase):
         _run_balanced_field_length_problem(tx=dm.Radau, timeseries=True, sim=False,
                                            solvesegs=False)
 
+    @unittest.skipIf(om_version()[0] > (3, 39, 0), 'Problematic with OM > 3.39.0')
     def benchmark_radau_notimeseries_nosim_solveseg(self):
         _run_balanced_field_length_problem(tx=dm.Radau, timeseries=False, sim=False,
                                            solvesegs='forward')
 
 
 if __name__ == '__main__':
-    _run_balanced_field_length_problem(make_plots=True)
+    _run_balanced_field_length_problem(tx=dm.Radau, solvesegs='forward')

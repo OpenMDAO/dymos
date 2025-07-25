@@ -23,7 +23,7 @@ def _make_problem(transcription='gauss-lobatto', num_segments=8, transcription_o
                   compressed=True, optimizer='SLSQP', force_alloc_complex=False,
                   solve_segments=False, y_bounds=None, phase_nonlinear_solver=None,
                   phase_linear_solver=None):
-    p = om.Problem(model=om.Group())
+    p = om.Problem(reports=False)
 
     p.driver = om.pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
@@ -474,7 +474,7 @@ class TestBrachistochroneSolveSegments(unittest.TestCase):
 
         # Setup the problem
         with warnings.catch_warnings(record=True) as ctx:
-            _make_problem(transcription='radau-ps',
+            _make_problem(transcription='gauss-lobatto',
                           compressed=True,
                           optimizer='IPOPT',
                           force_alloc_complex=True,

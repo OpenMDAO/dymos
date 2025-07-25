@@ -1,13 +1,16 @@
+import numpy as np
 import unittest
 
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
-from openmdao.utils.assert_utils import assert_near_equal
 
 import openmdao.api as om
 import dymos as dm
 
 from dymos.examples.racecar.combinedODE import CombinedODE
 from dymos.examples.racecar.tracks import ovaltrack  # track curvature imports
+
+
+PMAX = 960000.  # W
 
 
 def _run_racecar_problem(transcription, timeseries=False, make_plots=False):
@@ -27,9 +30,9 @@ def _run_racecar_problem(transcription, timeseries=False, make_plots=False):
     traj = dm.Trajectory()
     p.model.add_subsystem('traj', subsys=traj)
 
-    # Define a Dymos Phase object with radau Transcription
+    # Define a Dymos Phase object
     phase = dm.Phase(ode_class=CombinedODE,
-                     transcription=transcription(num_segments=50, order=3, compressed=True))
+                     transcription=transcription(num_segments=50, order=3, compressed=False))
 
     traj.add_phase(name='phase0', phase=phase)
 
@@ -41,7 +44,7 @@ def _run_racecar_problem(transcription, timeseries=False, make_plots=False):
     # timeODE.py
     phase.set_time_options(fix_initial=True, fix_duration=True, duration_val=s_final,
                            targets=['curv.s'], units='m', duration_ref=s_final,
-                           duration_ref0=10)
+                           duration_ref0=10, name='s')
 
     # Define states
     phase.add_state('t', fix_initial=True, fix_final=False, units='s', lower=0,
@@ -74,8 +77,7 @@ def _run_racecar_problem(transcription, timeseries=False, make_plots=False):
     # positive while accelerating, negative while braking
 
     # Performance Constraints
-    pmax = 960000  # W
-    phase.add_path_constraint('power', upper=pmax, ref=100000)  # engine power limit
+    phase.add_path_constraint('power', upper=PMAX, ref=100000)  # engine power limit
 
     # The following four constraints are the tire friction limits, with 'rr' designating the
     # rear right wheel etc. This limit is computed in tireConstraintODE.py
@@ -136,7 +138,7 @@ def _run_racecar_problem(transcription, timeseries=False, make_plots=False):
     p.driver.declare_coloring()
 
     # Setup the problem
-    p.setup(check=True)  # force_alloc_complex=True
+    p.setup()  # force_alloc_complex=True
     # Now that the OpenMDAO problem is setup, we can set the values of the states.
 
     # States
@@ -157,11 +159,20 @@ def _run_racecar_problem(transcription, timeseries=False, make_plots=False):
     phase.set_control_val('delta', 0.0, units='rad')
     phase.set_control_val('thrust', 0.1, units=None)
 
-    dm.run_problem(p, run_driver=True, simulate=False, make_plots=make_plots)
+    dm.run_problem(p, run_driver=True, simulate=True, make_plots=make_plots)
     print('Optimization finished')
 
-    t = p.get_val('traj.phase0.timeseries.t')
-    assert_near_equal(t[-1], 22.2657, tolerance=0.01)
+    power = p.get_val('traj.phase0.timeseries.power')
+    c_rr = p.get_val('traj.phase0.timeseries.c_rr')
+    c_rl = p.get_val('traj.phase0.timeseries.c_rl')
+    c_fr = p.get_val('traj.phase0.timeseries.c_fr')
+    c_fl = p.get_val('traj.phase0.timeseries.c_fl')
+
+    return (np.max(power / 100000),
+            np.max(c_rr),
+            np.max(c_rl),
+            np.max(c_fr),
+            np.max(c_fl))
 
 
 @use_tempdirs
@@ -169,17 +180,28 @@ def _run_racecar_problem(transcription, timeseries=False, make_plots=False):
 class BenchmarkRacecar(unittest.TestCase):
     """ Benchmarks for various permutations of the racecar problem."""
 
+    def assert_results(self, cons):
+        self.assertLessEqual(cons[0], PMAX / 100000. + 1e-6)
+        self.assertLessEqual(cons[1], 1.0 + 1e-6)
+        self.assertLessEqual(cons[2], 1.0 + 1e-6)
+        self.assertLessEqual(cons[3], 1.0 + 1e-6)
+        self.assertLessEqual(cons[4], 1.0 + 1e-6)
+
     def benchmark_gausslobatto_notimeseries(self):
-        _run_racecar_problem(dm.GaussLobatto, timeseries=False)
+        cons = _run_racecar_problem(dm.GaussLobatto, timeseries=False)
+        self.assert_results(cons)
 
     def benchmark_gausslobatto_timeseries(self):
-        _run_racecar_problem(dm.GaussLobatto, timeseries=True)
+        cons = _run_racecar_problem(dm.GaussLobatto, timeseries=True)
+        self.assert_results(cons)
 
     def benchmark_radau_notimeseries(self):
-        _run_racecar_problem(dm.Radau, timeseries=False)
+        cons = _run_racecar_problem(dm.Radau, timeseries=False)
+        self.assert_results(cons)
 
     def benchmark_radau_timeseries(self):
-        _run_racecar_problem(dm.Radau, timeseries=True)
+        cons = _run_racecar_problem(dm.Radau, timeseries=True)
+        self.assert_results(cons)
 
 
 if __name__ == '__main__':

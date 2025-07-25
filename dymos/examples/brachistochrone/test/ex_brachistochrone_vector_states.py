@@ -9,7 +9,7 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
                              dynamic_simul_derivs=True, force_alloc_complex=False,
                              solve_segments=False, run_driver=True, simulate=False,
                              make_plots=False):
-    p = om.Problem(model=om.Group())
+    p = om.Problem(reports=True)
 
     if optimizer == 'SNOPT':
         p.driver = om.pyOptSparseDriver()
