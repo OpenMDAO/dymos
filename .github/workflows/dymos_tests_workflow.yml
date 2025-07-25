@@ -100,7 +100,7 @@ jobs:
             PETSc: '3.23'
             PYOPTSPARSE: 'v2.13.1'
             SNOPT: '7.7'
-            OPENMDAO: 'latest'
+            OPENMDAO: 'dev'
             PEP517: true
             OPTIONAL: '[all]'
             JAX: true
@@ -146,7 +146,7 @@ jobs:
             PETSc: '3'
             PYOPTSPARSE: 'latest'
             SNOPT: '7.7'
-            OPENMDAO: '@21630aeed90a07c10e593a374c91ec01b4fbeba8'
+            OPENMDAO: '@9a7791a366eb9a76303cf3a0d82614d23740f358'
             OPTIONAL: '[all]'
             JAX: true
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
