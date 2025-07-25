@@ -146,7 +146,7 @@ jobs:
             PETSc: '3'
             PYOPTSPARSE: 'latest'
             SNOPT: '7.7'
-            OPENMDAO: 'latest'
+            OPENMDAO: 'dev'
             OPTIONAL: '[all]'
             JAX: true
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
@@ -159,7 +159,7 @@ jobs:
             PETSc: '3'
             PYOPTSPARSE: 'latest'
             SNOPT: '7.7'
-            OPENMDAO: 'latest'
+            OPENMDAO: 'dev'
             OPTIONAL: '[all]'
             JAX: true
             DYMOS_2 : True
@@ -315,7 +315,7 @@ jobs:
           echo "Install OpenMDAO"
           echo "============================================================="
           if [[ "${{ matrix.OPENMDAO }}" == "dev" ]]; then
-            pip install git+https://github.com/OpenMDAO/OpenMDAO
+            pip install git+https://github.com/OpenMDAO/OpenMDAO@563ab322ddd76993d64cc67155493b80dd821603
           elif [[ "${{ matrix.OPENMDAO }}" == "latest" ]]; then
             echo "The latest version OpenMDAO will be installed from pypi per the Dymos dependency"
           else
