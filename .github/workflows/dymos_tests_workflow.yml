@@ -315,7 +315,7 @@ jobs:
           echo "Install OpenMDAO"
           echo "============================================================="
           if [[ "${{ matrix.OPENMDAO }}" == "dev" ]]; then
-            pip install git+https://github.com/OpenMDAO/OpenMDAO@563ab322ddd76993d64cc67155493b80dd821603
+            pip install git+https://github.com/OpenMDAO/OpenMDAO@4f176fb0d3c466d6075abc7d338b60f338775a0e
           elif [[ "${{ matrix.OPENMDAO }}" == "latest" ]]; then
             echo "The latest version OpenMDAO will be installed from pypi per the Dymos dependency"
           else
