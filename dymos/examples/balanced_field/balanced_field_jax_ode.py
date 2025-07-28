@@ -1,8 +1,8 @@
-import numpy as np
+import jax.numpy as jnp
 import openmdao.api as om
 
 
-class BalancedFieldODEComp(om.ExplicitComponent):
+class BalancedFieldJaxODEComp(om.JaxExplicitComponent):
     """
     The ODE System for an aircraft takeoff climb.
 
@@ -21,18 +21,12 @@ class BalancedFieldODEComp(om.ExplicitComponent):
         self.options.declare('control', values=('attitude', 'gam_rate'), default='gam_rate',
                              desc='Whether pitch or alpha serves as control when climbing.')
 
+    def get_self_statics(self):
+        return (self.options['num_nodes'], self.options['g'], self.options['mode'],
+                self.options['attitude_input'], self.options['control'])
+
     def setup(self):
         nn = self.options['num_nodes']
-
-        if self.options['attitude_input'] == 'alpha':
-            self.add_input('alpha', shape=(nn,), desc='angle of attack', units='rad')
-            self.add_output('pitch', shape=(nn,), desc='vehicle +x angle above horizon', units='rad')
-        else:
-            self.add_input('pitch', shape=(nn,), desc='vehicle +x angle above horizon', units='rad')
-            self.add_output('alpha', shape=(nn,), desc='angle of attack', units='rad')
-
-        if self.options['control'] == 'gam_rate':
-            self.add_input('gam_rate', shape=(nn,), val=0.0, desc='controlled rate of change of flight path angle', units='rad/s')
 
         # Scalar (constant) inputs
         self.add_input('rho', val=1.225, desc='atmospheric density at runway', units='kg/m**3')
@@ -40,7 +34,7 @@ class BalancedFieldODEComp(om.ExplicitComponent):
         self.add_input('CD0', val=0.03, desc='zero-lift drag coefficient', units=None)
         self.add_input('CL0', val=0.5, desc='zero-alpha lift coefficient', units=None)
         self.add_input('CL_max', val=2.0, desc='maximum lift coefficient for linear fit', units=None)
-        self.add_input('alpha_max', val=np.radians(10), desc='angle of attack at CL_max', units='rad')
+        self.add_input('alpha_max', val=jnp.radians(10), desc='angle of attack at CL_max', units='rad')
         self.add_input('h_w', val=1.0, desc='height of the wing above the CG', units='m')
         self.add_input('AR', val=9.45, desc='wing aspect ratio', units=None)
         self.add_input('e', val=0.801, desc='Oswald span efficiency factor', units=None)
@@ -53,13 +47,17 @@ class BalancedFieldODEComp(om.ExplicitComponent):
         self.add_input('v', shape=(nn,), desc='aircraft true airspeed', units='m/s')
         self.add_input('h', shape=(nn,), desc='altitude', units='m')
         self.add_input('gam', shape=(nn,), val=0.0, desc='flight path angle', units='rad')
+        self.add_input('pitch', shape=(nn,), desc='vehicle +x angle above horizon', units='rad')
+
+        self.add_input('gam_rate', shape=(nn,), val=0.0, desc='controlled rate of change of flight path angle', units='rad/s')
 
         # Outputs
+        self.add_output('alpha', shape=(nn,), desc='angle of attack', units='rad')
         self.add_output('CL', shape=(nn,), desc='lift coefficient', units=None)
         self.add_output('q', shape=(nn,), desc='dynamic pressure', units='Pa')
         self.add_output('L', shape=(nn,), desc='lift force', units='N')
         self.add_output('D', shape=(nn,), desc='drag force', units='N')
-        self.add_output('K', val=np.ones(nn), desc='drag-due-to-lift factor', units=None)
+        self.add_output('K', val=jnp.ones(nn), desc='drag-due-to-lift factor', units=None)
         self.add_output('F_r', shape=(nn,), desc='runway normal force', units='N')
         self.add_output('v_dot', shape=(nn,), desc='rate of change of speed', units='m/s**2',
                         tags=['dymos.state_rate_source:v'])
@@ -73,82 +71,55 @@ class BalancedFieldODEComp(om.ExplicitComponent):
                         units='unitless')
         self.add_output('gam_dot', shape=(nn,), desc='rate of change of flight path angle', units='rad/s')
         self.add_output('h_dot', shape=(nn,), desc='rate of change of altitude', units='m/s')
-        self.add_output('thrust', shape=(nn,), units='N')
 
-        # self.declare_coloring(wrt='*', method='cs')
-        self.declare_partials(of='*', wrt='*', method='cs')
+        self.declare_coloring(wrt='*', method='jax', show_summary=False)
 
-    def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
+    def compute_primal(self, rho, S, CD0, CL0, CL_max, alpha_max, h_w, AR, e, span, T, mu_r, m, v, h, gam, pitch, gam_rate):
         g = self.options['g']
 
-        # Compute factor k to include ground effect on lift
-        rho = inputs['rho']
-        gam = inputs['gam']
-        v = inputs['v']
-        S = inputs['S']
-        CD0 = inputs['CD0']
-        m = inputs['m']
-        T = inputs['T']
-        h = inputs['h']
-        h_w = inputs['h_w']
-        span = inputs['span']
-        AR = inputs['AR']
-        CL0 = inputs['CL0']
-        alpha_max = inputs['alpha_max']
-        CL_max = inputs['CL_max']
-        e = inputs['e']
-        mu_r = inputs['mu_r']
+        alpha = alpha = pitch - gam
 
-        # Cross-compute alpha and pitch depeding on which one is input.
-        if self.options['attitude_input'] == 'alpha':
-            alpha = inputs['alpha']
-            outputs['pitch'] = pitch = gam + alpha
-        elif self.options['attitude_input'] == 'pitch':
-            pitch = inputs['pitch']
-            outputs['alpha'] = alpha = pitch - gam
+        W = m * g
+        v_stall = jnp.sqrt(2 * W / rho / S / CL_max)
+        v_over_v_stall = v / v_stall
 
-        if self.options['control'] == 'gam_rate':
-            gam_rate = inputs['gam_rate']
-
-        outputs['W'] = W = m * g
-        outputs['v_stall'] = v_stall = np.sqrt(2 * W / rho / S / CL_max)
-        outputs['v_over_v_stall'] = v / v_stall
-
-        outputs['CL'] = CL = CL0 + (alpha / alpha_max) * (CL_max - CL0)
-        K_nom = 1.0 / (np.pi * AR * e)
+        CL = CL0 + (alpha / alpha_max) * (CL_max - CL0)
+        K_nom = 1.0 / (jnp.pi * AR * e)
         b = span / 2.0
 
         # Note the use of clip here.  If altitude drops below zero while the solver is iterating,
         # the non-clipped equation will result in NaN and ruin the analysis.
         # Since we're using a gradient-free nonlinear block GS to converge thedo we n
-        fact = (np.clip(h + h_w, 0.0, 1000.0) / b) ** 1.5
-        outputs['K'] = K = K_nom * 33 * fact / (1.0 + 33 * fact)
+        fact = (jnp.clip(jnp.real(h + h_w), 0.0, 1000.0) / b) ** 1.5
+        K = K_nom * 33 * fact / (1.0 + 33 * fact)
 
-        outputs['q'] = q = 0.5 * rho * v ** 2
-        outputs['L'] = L = q * S * CL
-        outputs['D'] = D = q * S * (CD0 + K * CL ** 2)
+        CD = (CD0 + K * CL ** 2)
+
+        q = 0.5 * rho * v ** 2
+        L = q * S * CL
+        D = q * S * CD
 
         # Compute the downward force on the landing gear
-        calpha = np.cos(alpha)
-        salpha = np.sin(alpha)
+        calpha = jnp.cos(alpha)
+        salpha = jnp.sin(alpha)
 
         # Runway normal force
         if self.options['mode'] == 'runway':
-            outputs['F_r'] = F_r = m * g - L * calpha - T * salpha
+            F_r = m * g - L * calpha - T * salpha
         else:
-            outputs['F_r'] = F_r = 0.0
+            F_r = 0.0
 
-        # # Compute the dynamics
-        # if self.options['mode'] == 'climb':
-        cgam = np.cos(gam)
-        sgam = np.sin(gam)
-        outputs['v_dot'] = (T * calpha - D - F_r * mu_r) / m - g * sgam
-        outputs['h_dot'] = v * sgam
-        outputs['r_dot'] = v * cgam
-        outputs['climb_gradient'] = sgam
-        outputs['thrust'][...] = T
+        #  Compute the dynamics
+        cgam = jnp.cos(gam)
+        sgam = jnp.sin(gam)
+        v_dot = (T * calpha - D - F_r * mu_r) / m - g * sgam
+        h_dot = v * sgam
+        r_dot = v * cgam
+        climb_gradient = sgam
 
         if self.options['control'] == 'gam_rate':
-            outputs['gam_dot'] = gam_rate
+            gam_dot = gam_rate
         else:
-            outputs['gam_dot'] = (T * salpha + L) / (m * v) - (g / v) * cgam
+            gam_dot = (T * salpha + L) / (m * v) - (g / v) * cgam
+
+        return alpha, CL, q, L, D, K, F_r, v_dot, r_dot, W, v_stall, v_over_v_stall, climb_gradient, gam_dot, h_dot

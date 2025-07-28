@@ -11,7 +11,7 @@ except ImportError:
     jax = None
 
 if jax is not None:
-    from dymos.examples.balanced_field.balanced_field_ode import BalancedFieldJaxODEComp
+    from dymos.examples.balanced_field.balanced_field_jax_ode import BalancedFieldJaxODEComp
 else:
     BalancedFieldJaxODEComp is None
 
