@@ -144,7 +144,7 @@ jobs:
             NUMPY: '2.2'
             SCIPY: '1.15'
             PETSc: '3'
-            PYOPTSPARSE: 'latest'
+            PYOPTSPARSE: 'v2.13.1'
             SNOPT: '7.7'
             OPENMDAO: 'dev'
             OPTIONAL: '[all]'
