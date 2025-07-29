@@ -222,7 +222,9 @@ class ODEGroup(om.Group):
                 if exec_var_name not in seen_kwargs:
                     # Use deepcopy so we don't accidentally permanently set the shape here when we assign it.
                     _expr_kwargs[exec_var_name] = deepcopy(expr_kwargs.get(rel_path, {}))
-                    if 'tags' in expr_kwargs[exec_var_name] and 'dymos.static_target' in expr_kwargs[exec_var_name]['tags']:
+                    if (exec_var_name in _expr_kwargs and
+                        'tags' in _expr_kwargs[exec_var_name] and
+                        'dymos.static_target' in _expr_kwargs[exec_var_name]['tags']):
                         if 'shape' not in _expr_kwargs[exec_var_name]:
                             if common_shape is not _unspecified:
                                 _expr_kwargs[exec_var_name]['shape'] = (1,) + common_shape
