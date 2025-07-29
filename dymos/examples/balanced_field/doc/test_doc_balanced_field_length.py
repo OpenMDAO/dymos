@@ -4,9 +4,6 @@ from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 from openmdao.utils.assert_utils import assert_near_equal
 
 
-SHOW_PLOTS = True
-
-
 @use_tempdirs
 class TestBalancedFieldLengthForDocs(unittest.TestCase):
 
@@ -74,9 +71,9 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
                          ode_init_kwargs={'mode': 'climb'})
         climb.set_time_options(fix_initial=False, duration_bounds=(1, 100), duration_ref=1.0)
         climb.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0)
-        climb.add_state('h', fix_initial=True, lower=0, ref=1.0, defect_ref=1.0)
+        climb.add_state('h', rate_source='h_dot', fix_initial=True, lower=0, ref=1.0, defect_ref=1.0)
         climb.add_state('v', fix_initial=False, lower=0, ref=100.0, defect_ref=100.0)
-        climb.add_state('gam', fix_initial=True, lower=0, ref=0.05, defect_ref=0.05)
+        climb.add_state('gam', rate_source='gam_dot', fix_initial=True, lower=0, ref=0.05, defect_ref=0.05)
         climb.add_control('alpha', opt=True, units='deg', lower=-10, upper=15, ref=10)
         climb.add_timeseries_output('*')
 

@@ -201,7 +201,7 @@ class ODEGroup(om.Group):
                 else:
                     _expr_kwargs[output_var]['shape'] = (num_nodes,)
             else:
-                # Assume given shape is at a per-node basis
+                # Assume given shape is at a per-node basis unless tagged with dymos.static_target
                 _expr_kwargs[output_var]['shape'] = (num_nodes,) + _expr_kwargs[output_var]['shape']
 
             if 'units' not in _expr_kwargs[output_var]:
@@ -222,13 +222,22 @@ class ODEGroup(om.Group):
                 if exec_var_name not in seen_kwargs:
                     # Use deepcopy so we don't accidentally permanently set the shape here when we assign it.
                     _expr_kwargs[exec_var_name] = deepcopy(expr_kwargs.get(rel_path, {}))
-                    if 'shape' not in _expr_kwargs[exec_var_name]:
-                        if common_shape is not _unspecified:
-                            _expr_kwargs[exec_var_name]['shape'] = (num_nodes,) + common_shape
+                    if 'tags' in expr_kwargs[exec_var_name] and 'dymos.static_target' in expr_kwargs[exec_var_name]['tags']:
+                        if 'shape' not in _expr_kwargs[exec_var_name]:
+                            if common_shape is not _unspecified:
+                                _expr_kwargs[exec_var_name]['shape'] = (1,) + common_shape
+                            else:
+                                _expr_kwargs[exec_var_name]['shape'] = (1,)
                         else:
-                            _expr_kwargs[exec_var_name]['shape'] = (num_nodes,)
+                            _expr_kwargs[exec_var_name]['shape'] = (1,) + _expr_kwargs[exec_var_name]['shape']
                     else:
-                        _expr_kwargs[exec_var_name]['shape'] = (num_nodes,) + _expr_kwargs[exec_var_name]['shape']
+                        if 'shape' not in _expr_kwargs[exec_var_name]:
+                            if common_shape is not _unspecified:
+                                _expr_kwargs[exec_var_name]['shape'] = (num_nodes,) + common_shape
+                            else:
+                                _expr_kwargs[exec_var_name]['shape'] = (num_nodes,)
+                        else:
+                            _expr_kwargs[exec_var_name]['shape'] = (num_nodes,) + _expr_kwargs[exec_var_name]['shape']
 
                     if exec_var_name in scalar_sources:
                         scalar_src_idxs.append(exec_var_name)
