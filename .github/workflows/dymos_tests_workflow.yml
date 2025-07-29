@@ -141,7 +141,7 @@ jobs:
           # latest versions
           - NAME: latest
             PY: '3'
-            NUMPY: '2'
+            NUMPY: '2.2'
             SCIPY: '1'
             PETSc: '3'
             PYOPTSPARSE: 'latest'
