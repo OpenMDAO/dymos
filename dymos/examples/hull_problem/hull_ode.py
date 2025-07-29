@@ -9,7 +9,7 @@ class HullProblemODE(om.ExplicitComponent):
     def setup(self):
         nn = self.options['num_nodes']
 
-        self.add_input('u', val=np.zeros(nn), desc='control')
+        self.add_input('u', val=np.zeros(nn), desc='control', units='1/s')
 
         self.add_output('L', val=np.zeros(nn), desc='Lagrangian', units='1/s')
 
