@@ -142,7 +142,7 @@ jobs:
           - NAME: latest
             PY: '3'
             NUMPY: '2.2'
-            SCIPY: '1'
+            SCIPY: '1.15'
             PETSc: '3'
             PYOPTSPARSE: 'latest'
             SNOPT: '7.7'
