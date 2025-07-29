@@ -31,9 +31,9 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         # Brake release to v_ef - both engines operable
         tx = dm.PicardShooting(num_segments=1, nodes_per_seg=NODES_PER_SEG)
         br_to_vef = dm.Phase(ode_class=BalancedFieldJaxODEComp, transcription=tx,
-                                ode_init_kwargs={'mode': 'runway',
-                                                'attitude_input': 'pitch',
-                                                'control': 'gam_rate'})
+                             ode_init_kwargs={'mode': 'runway',
+                                              'attitude_input': 'pitch',
+                                              'control': 'gam_rate'})
         br_to_vef.set_time_options(fix_initial=True, fix_duration=True,)
         br_to_vef.add_state('r', fix_initial=True, lower=0)
         br_to_vef.add_state('v', fix_initial=True, lower=0)
@@ -49,9 +49,9 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         # Engine failure to v1 - decision reaction time
         tx = dm.PicardShooting(num_segments=1, nodes_per_seg=NODES_PER_SEG)
         vef_to_v1 = dm.Phase(ode_class=BalancedFieldJaxODEComp, transcription=tx,
-                                ode_init_kwargs={'mode': 'runway',
-                                                'attitude_input': 'pitch',
-                                                'control': 'gam_rate'})
+                             ode_init_kwargs={'mode': 'runway',
+                                              'attitude_input': 'pitch',
+                                              'control': 'gam_rate'})
         vef_to_v1.set_time_options(fix_initial=True, fix_duration=True, )
         vef_to_v1.add_state('r', fix_initial=True, lower=0)
         vef_to_v1.add_state('v', fix_initial=True, lower=0)
@@ -67,7 +67,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         # Rejected takeoff at V1 - no engines operable - decelerate to stop
         tx = dm.PicardShooting(num_segments=1, nodes_per_seg=NODES_PER_SEG)
         rto = dm.Phase(ode_class=BalancedFieldJaxODEComp, transcription=tx,
-                        ode_init_kwargs={'mode': 'runway',
+                       ode_init_kwargs={'mode': 'runway',
                                         'attitude_input': 'pitch',
                                         'control': 'gam_rate'})
         rto.set_time_options(fix_initial=True, fix_duration=True)
@@ -81,8 +81,8 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         tx = dm.PicardShooting(num_segments=1, nodes_per_seg=NODES_PER_SEG)
         v1_to_vr = dm.Phase(ode_class=BalancedFieldJaxODEComp, transcription=tx,
                             ode_init_kwargs={'mode': 'runway',
-                                                'attitude_input': 'pitch',
-                                                'control': 'gam_rate'})
+                                             'attitude_input': 'pitch',
+                                             'control': 'gam_rate'})
         v1_to_vr.set_time_options(fix_initial=True, fix_duration=True)
         v1_to_vr.add_state('r', fix_initial=False, lower=0)
         v1_to_vr.add_state('v', fix_initial=False, lower=0)
@@ -93,9 +93,9 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         # Rotation to liftoff - single engine operable
         tx = dm.PicardShooting(num_segments=1, nodes_per_seg=NODES_PER_SEG)
         rotate = dm.Phase(ode_class=BalancedFieldJaxODEComp, transcription=tx,
-                            ode_init_kwargs={'mode': 'runway',
-                                            'attitude_input': 'pitch',
-                                            'control': 'gam_rate'})
+                          ode_init_kwargs={'mode': 'runway',
+                                           'attitude_input': 'pitch',
+                                           'control': 'gam_rate'})
         rotate.set_time_options(fix_initial=True, fix_duration=True)
         rotate.add_state('r', fix_initial=False, lower=0)
         rotate.add_state('v', fix_initial=False, lower=0)
@@ -108,9 +108,9 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         # Liftoff and rotate until climb gradient is achieved
         tx = dm.PicardShooting(num_segments=1, nodes_per_seg=NODES_PER_SEG)
         liftoff_to_climb_gradient = dm.Phase(ode_class=BalancedFieldJaxODEComp, transcription=tx,
-                                                ode_init_kwargs={'mode': 'runway',
-                                                                'attitude_input': 'pitch',
-                                                                'control': 'attitude'})
+                                             ode_init_kwargs={'mode': 'runway',
+                                                              'attitude_input': 'pitch',
+                                                              'control': 'attitude'})
         liftoff_to_climb_gradient.set_time_options(fix_initial=True, fix_duration=True)
         liftoff_to_climb_gradient.set_state_options('r', fix_initial=True, lower=0)
         liftoff_to_climb_gradient.set_state_options('h', fix_initial=True, rate_source='h_dot', lower=0)
@@ -121,7 +121,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         liftoff_to_climb_gradient.add_parameter('pitch_rate', opt=False, units='deg/s')
         liftoff_to_climb_gradient.add_parameter('mu_r', opt=False, val=0.0, units=None)
         liftoff_to_climb_gradient.add_boundary_balance(param='t_duration', name='climb_gradient',
-                                                        tgt_val=0.05, loc='final', lower=0, upper=10)
+                                                       tgt_val=0.05, loc='final', lower=0, upper=10)
         liftoff_to_climb_gradient.add_timeseries_output('alpha', units='deg')
         liftoff_to_climb_gradient.add_timeseries_output('h', units='ft')
         liftoff_to_climb_gradient.add_timeseries_output('*')
@@ -129,7 +129,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         # Sixth Phase: Assume constant flight path angle until 35ft altitude is reached.
         tx = dm.PicardShooting(num_segments=1, nodes_per_seg=NODES_PER_SEG)
         climb_to_obstacle_clearance = dm.Phase(ode_class=BalancedFieldJaxODEComp, transcription=tx,
-                                                ode_init_kwargs={'mode': 'runway',
+                                               ode_init_kwargs={'mode': 'runway',
                                                                 'attitude_input': 'pitch',
                                                                 'control': 'gam_rate'})
         climb_to_obstacle_clearance.set_time_options(fix_initial=True, fix_duration=True)
@@ -138,12 +138,12 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         climb_to_obstacle_clearance.set_state_options('v', fix_initial=True, lower=0)
         climb_to_obstacle_clearance.set_state_options('gam', fix_initial=True, rate_source='gam_dot', lower=0)
         climb_to_obstacle_clearance.set_state_options('pitch', fix_initial=True,
-                                                        rate_source='pitch_rate', opt=False, units='deg')
+                                                      rate_source='pitch_rate', opt=False, units='deg')
         climb_to_obstacle_clearance.add_parameter('pitch_rate', opt=False, units='deg/s')
         climb_to_obstacle_clearance.add_parameter('gam_rate', opt=False, units='deg/s')
         climb_to_obstacle_clearance.add_parameter('mu_r', opt=False, val=0.0, units=None)
         climb_to_obstacle_clearance.add_boundary_balance(param='t_duration', name='h',
-                                                            tgt_val=35, eq_units='ft', loc='final', lower=0.01, upper=100)
+                                                         tgt_val=35, eq_units='ft', loc='final', lower=0.01, upper=100)
         climb_to_obstacle_clearance.add_timeseries_output('alpha', units='deg')
         climb_to_obstacle_clearance.add_timeseries_output('h', units='ft')
         climb_to_obstacle_clearance.add_timeseries_output('*')
@@ -161,94 +161,94 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
 
         # Add parameters common to multiple phases to the trajectory
         traj.add_parameter('m', val=174200., opt=False, units='lbm',
-                            desc='aircraft mass',
-                            targets={phase: ['m'] for phase in
+                           desc='aircraft mass',
+                           targets={phase: ['m'] for phase in
                                     ['br_to_vef', 'vef_to_v1', 'rto', 'v1_to_vr', 'rotate',
-                                    'liftoff_to_climb_gradient', 'climb_to_obstacle_clearance']})
+                                     'liftoff_to_climb_gradient', 'climb_to_obstacle_clearance']})
 
         traj.add_parameter('T_nominal', val=27000 * 2, opt=False, units='lbf', static_target=True,
-                            desc='nominal aircraft thrust',
-                            targets={'br_to_vef': ['T']})
+                           desc='nominal aircraft thrust',
+                           targets={'br_to_vef': ['T']})
 
         traj.add_parameter('T_engine_out', val=27000, opt=False, units='lbf', static_target=True,
-                            desc='thrust under a single engine',
-                            targets={phase: ['T'] for phase in ['vef_to_v1', 'v1_to_vr', 'rotate',
-                                                                'liftoff_to_climb_gradient',
-                                                                'climb_to_obstacle_clearance']})
+                           desc='thrust under a single engine',
+                           targets={phase: ['T'] for phase in ['vef_to_v1', 'v1_to_vr', 'rotate',
+                                                               'liftoff_to_climb_gradient',
+                                                               'climb_to_obstacle_clearance']})
 
         traj.add_parameter('T_shutdown', val=0.0, opt=False, units='lbf', static_target=True,
-                            desc='thrust when engines are shut down for rejected takeoff',
-                            targets={'rto': ['T']})
+                           desc='thrust when engines are shut down for rejected takeoff',
+                           targets={'rto': ['T']})
 
         traj.add_parameter('mu_r_nominal', val=0.03, opt=False, units=None, static_target=True,
-                            desc='nominal runway friction coefficient',
-                            targets={phase: ['mu_r'] for phase in ['br_to_vef', 'vef_to_v1', 'v1_to_vr', 'rotate']})
+                           desc='nominal runway friction coefficient',
+                           targets={phase: ['mu_r'] for phase in ['br_to_vef', 'vef_to_v1', 'v1_to_vr', 'rotate']})
 
         traj.add_parameter('mu_r_braking', val=0.3, opt=False, units=None, static_target=True,
-                            desc='runway friction coefficient under braking',
-                            targets={'rto': ['mu_r']})
+                           desc='runway friction coefficient under braking',
+                           targets={'rto': ['mu_r']})
 
         traj.add_parameter('h_runway', val=0., opt=False, units='ft',
-                            desc='runway altitude',
-                            targets={phase: ['h'] for phase in ['br_to_vef', 'vef_to_v1', 'rto', 'v1_to_vr', 'rotate']})
+                           desc='runway altitude',
+                           targets={phase: ['h'] for phase in ['br_to_vef', 'vef_to_v1', 'rto', 'v1_to_vr', 'rotate']})
 
         traj.add_parameter('rho', val=1.225, opt=False, units='kg/m**3', static_target=True,
-                            desc='atmospheric density',
-                            targets={phase: ['rho'] for phase in ['br_to_vef', 'vef_to_v1', 'rto', 'v1_to_vr',
-                                                                    'rotate', 'liftoff_to_climb_gradient',
-                                                                    'climb_to_obstacle_clearance']})
+                           desc='atmospheric density',
+                           targets={phase: ['rho'] for phase in ['br_to_vef', 'vef_to_v1', 'rto', 'v1_to_vr',
+                                                                 'rotate', 'liftoff_to_climb_gradient',
+                                                                 'climb_to_obstacle_clearance']})
 
         traj.add_parameter('S', val=124.7, opt=False, units='m**2', static_target=True,
-                            desc='aerodynamic reference area',
-                            targets={f'{phase}': ['S'] for phase in ['br_to_vef', 'vef_to_v1', 'rto', 'v1_to_vr',
+                           desc='aerodynamic reference area',
+                           targets={f'{phase}': ['S'] for phase in ['br_to_vef', 'vef_to_v1', 'rto', 'v1_to_vr',
                                                                     'rotate', 'liftoff_to_climb_gradient',
                                                                     'climb_to_obstacle_clearance']})
 
         traj.add_parameter('CD0', val=0.03, opt=False, units=None, static_target=True,
-                            desc='zero-lift drag coefficient',
-                            targets={f'{phase}': ['CD0'] for phase in ['br_to_vef', 'vef_to_v1', 'rto', 'v1_to_vr',
-                                                                        'rotate', 'liftoff_to_climb_gradient',
-                                                                        'climb_to_obstacle_clearance']})
+                           desc='zero-lift drag coefficient',
+                           targets={f'{phase}': ['CD0'] for phase in ['br_to_vef', 'vef_to_v1', 'rto', 'v1_to_vr',
+                                                                      'rotate', 'liftoff_to_climb_gradient',
+                                                                      'climb_to_obstacle_clearance']})
 
         traj.add_parameter('AR', val=9.45, opt=False, units=None, static_target=True,
-                            desc='wing aspect ratio',
-                            targets={f'{phase}': ['AR'] for phase in ['br_to_vef', 'vef_to_v1', 'rto', 'v1_to_vr',
-                                                                        'rotate', 'liftoff_to_climb_gradient',
-                                                                        'climb_to_obstacle_clearance']})
+                           desc='wing aspect ratio',
+                           targets={f'{phase}': ['AR'] for phase in ['br_to_vef', 'vef_to_v1', 'rto', 'v1_to_vr',
+                                                                     'rotate', 'liftoff_to_climb_gradient',
+                                                                     'climb_to_obstacle_clearance']})
 
         traj.add_parameter('e', val=801, opt=False, units=None, static_target=True,
-                            desc='Oswald span efficiency factor',
-                            targets={f'{phase}': ['e'] for phase in ['br_to_vef', 'vef_to_v1', 'rto', 'v1_to_vr',
+                           desc='Oswald span efficiency factor',
+                           targets={f'{phase}': ['e'] for phase in ['br_to_vef', 'vef_to_v1', 'rto', 'v1_to_vr',
                                                                     'rotate', 'liftoff_to_climb_gradient',
                                                                     'climb_to_obstacle_clearance']})
 
         traj.add_parameter('span', val=35.7, opt=False, units='m', static_target=True,
-                            desc='wingspan',
-                            targets={f'{phase}': ['span'] for phase in ['br_to_vef', 'vef_to_v1', 'rto', 'v1_to_vr',
-                                                                        'rotate', 'liftoff_to_climb_gradient',
-                                                                        'climb_to_obstacle_clearance']})
+                           desc='wingspan',
+                           targets={f'{phase}': ['span'] for phase in ['br_to_vef', 'vef_to_v1', 'rto', 'v1_to_vr',
+                                                                       'rotate', 'liftoff_to_climb_gradient',
+                                                                       'climb_to_obstacle_clearance']})
 
         traj.add_parameter('h_w', val=1.0, opt=False, units='m', static_target=True,
-                            desc='height of wing above CG',
-                            targets={f'{phase}': ['h_w'] for phase in ['br_to_vef', 'vef_to_v1', 'rto', 'v1_to_vr',
-                                                                        'rotate', 'liftoff_to_climb_gradient',
-                                                                        'climb_to_obstacle_clearance']})
+                           desc='height of wing above CG',
+                           targets={f'{phase}': ['h_w'] for phase in ['br_to_vef', 'vef_to_v1', 'rto', 'v1_to_vr',
+                                                                      'rotate', 'liftoff_to_climb_gradient',
+                                                                      'climb_to_obstacle_clearance']})
 
         traj.add_parameter('CL0', val=0.5, opt=False, units=None, static_target=True,
-                            desc='zero-alpha lift coefficient',
-                            targets={f'{phase}': ['CL0'] for phase in ['br_to_vef', 'vef_to_v1', 'rto', 'v1_to_vr',
-                                                                        'rotate', 'liftoff_to_climb_gradient',
-                                                                        'climb_to_obstacle_clearance']})
+                           desc='zero-alpha lift coefficient',
+                           targets={f'{phase}': ['CL0'] for phase in ['br_to_vef', 'vef_to_v1', 'rto', 'v1_to_vr',
+                                                                      'rotate', 'liftoff_to_climb_gradient',
+                                                                      'climb_to_obstacle_clearance']})
 
         traj.add_parameter('CL_max', val=2.0, opt=False, units=None, static_target=True,
-                            desc='maximum lift coefficient for linear fit',
-                            targets={f'{phase}': ['CL_max'] for phase in ['br_to_vef', 'vef_to_v1', 'rto', 'v1_to_vr',
-                                                                            'rotate', 'liftoff_to_climb_gradient',
-                                                                            'climb_to_obstacle_clearance']})
+                           desc='maximum lift coefficient for linear fit',
+                           targets={f'{phase}': ['CL_max'] for phase in ['br_to_vef', 'vef_to_v1', 'rto', 'v1_to_vr',
+                                                                         'rotate', 'liftoff_to_climb_gradient',
+                                                                         'climb_to_obstacle_clearance']})
 
         traj.add_parameter('alpha_max', val=10.0, opt=False, units='deg', static_target=True,
-                            desc='angle of attack at maximum lift',
-                            targets={f'{phase}': ['alpha_max'] for phase in ['br_to_vef', 'vef_to_v1', 'rto', 'v1_to_vr',
+                           desc='angle of attack at maximum lift',
+                           targets={f'{phase}': ['alpha_max'] for phase in ['br_to_vef', 'vef_to_v1', 'rto', 'v1_to_vr',
                                                                             'rotate', 'liftoff_to_climb_gradient',
                                                                             'climb_to_obstacle_clearance']})
 
@@ -258,10 +258,10 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         traj.link_phases(['vef_to_v1', 'v1_to_vr'], vars=['time', 'r', 'v'], connected=True)
         traj.link_phases(['v1_to_vr', 'rotate'], vars=['time', 'r', 'v'], connected=True)
         traj.link_phases(['rotate', 'liftoff_to_climb_gradient'], vars=['time', 'r', 'v', 'pitch'],
-                            connected=True)
+                         connected=True)
         traj.link_phases(['liftoff_to_climb_gradient', 'climb_to_obstacle_clearance'],
-                            vars=['time', 'h', 'gam', 'r', 'v', 'pitch'],
-                            connected=True)
+                         vars=['time', 'h', 'gam', 'r', 'v', 'pitch'],
+                         connected=True)
 
         # We need a balance comp to satisfy residuals that cannot be satisfied by connection.
         # - the final range of `rto` and `climb_to_obstacle_clearance` match
@@ -275,8 +275,8 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
 
         # Vary v1 such that the final range after RTO is the same as the final range after achieving 35ft altitude.
         traj_balance_comp.add_balance('v1', units='kn', eq_units='ft', val=130,
-                                        lower=50, upper=180,
-                                        lhs_name='r_obstacle', rhs_name='r_rto')
+                                      lower=50, upper=180,
+                                      lhs_name='r_obstacle', rhs_name='r_rto')
         traj.connect('rto.final_states:r', 'traj_balance_comp.r_rto')
         traj.connect('climb_to_obstacle_clearance.final_states:r', 'traj_balance_comp.r_obstacle')
         traj.connect('v1', 'vef_to_v1.parameters:v1')
@@ -284,8 +284,8 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
 
         # Vary v_ef such that the time from engine failure to v1 is the reaction time.
         traj_balance_comp.add_balance('v_ef', units='kn', eq_units='s', val=80,
-                                        lower=20, upper=180,
-                                        lhs_name='ef_to_v1_duration', rhs_name='t_react')
+                                      lower=20, upper=180,
+                                      lhs_name='ef_to_v1_duration', rhs_name='t_react')
         traj.connect('vef_to_v1.t_duration_val', 'traj_balance_comp.ef_to_v1_duration')
         traj.connect('v_ef', 'br_to_vef.parameters:v_ef')
         traj.promotes('traj_balance_comp', inputs=['t_react'], outputs=['v_ef'])
