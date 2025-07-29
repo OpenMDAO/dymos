@@ -36,8 +36,8 @@ class TestHull(unittest.TestCase):
         phase0.set_time_options(fix_initial=True, fix_duration=True)
         phase0.add_state('x', fix_initial=True, fix_final=False, rate_source='u')
         phase0.add_state('xL', fix_initial=True, fix_final=False, rate_source='L')
-        phase0.add_control('u', opt=True, targets=['u'], units='1/s',
-                           continuity=True, rate_continuity=True, rate2_continuity=False)
+        phase0.add_parameter('u', opt=True, targets=['u'], units='1/s')
+        phase0.add_timeseries_output('u')
 
         phase0.add_objective(f'J = {c}*x**2/2 + xL')
 
@@ -45,8 +45,8 @@ class TestHull(unittest.TestCase):
 
         phase0.set_state_val('x', [1.5, 1])
         phase0.set_state_val('xL', [0, 1])
-        phase0.set_time_val(initial=0.0, duration=1.0)
-        phase0.set_control_val('u', [-0.8, -0.8])
+        phase0.set_time_val(initial=0.0, duration=5.0)
+        phase0.set_parameter_val('u', 0.8)
         return p
 
     @staticmethod
@@ -61,7 +61,7 @@ class TestHull(unittest.TestCase):
         p = self.make_problem(transcription=GaussLobatto(num_segments=30, order=3))
         dm.run_problem(p, simulate=True)
 
-        xf, uf = self.solution(1.5, 1)
+        xf, uf = self.solution(1.5, 5)
 
         assert_near_equal(p.get_val('traj.phase.timeseries.x')[-1],
                           xf,
@@ -75,7 +75,7 @@ class TestHull(unittest.TestCase):
         p = self.make_problem(transcription=Radau(num_segments=30, order=3))
         dm.run_problem(p, simulate=True)
 
-        xf, uf = self.solution(1.5, 1)
+        xf, uf = self.solution(1.5, 5)
 
         assert_near_equal(p.get_val('traj.phase.timeseries.x')[-1],
                           xf,
@@ -89,7 +89,7 @@ class TestHull(unittest.TestCase):
         p = self.make_problem(transcription=ExplicitShooting(num_segments=30, order=3))
         dm.run_problem(p, simulate=True)
 
-        xf, uf = self.solution(1.5, 1)
+        xf, uf = self.solution(1.5, 5)
 
         assert_near_equal(p.get_val('traj.phase.timeseries.x')[-1],
                           xf,
@@ -103,7 +103,7 @@ class TestHull(unittest.TestCase):
         p = self.make_problem(transcription=PicardShooting(num_segments=3, nodes_per_seg=11))
         dm.run_problem(p, run_driver=True, simulate=True)
 
-        xf, uf = self.solution(1.5, 1)
+        xf, uf = self.solution(1.5, 5)
 
         assert_near_equal(p.get_val('traj.phase.timeseries.x')[-1],
                           xf,
@@ -112,9 +112,6 @@ class TestHull(unittest.TestCase):
         assert_near_equal(p.get_val('traj.phase.timeseries.u')[-1],
                           uf,
                           tolerance=1e-4)
-
-        assert_near_equal(p.get_val('traj.phase.continuity_comp.defect_controls:u'), np.zeros((2, 1)), tolerance=1.0E-4)
-        assert_near_equal(p.get_val('traj.phase.continuity_comp.defect_control_rates:u_rate'), np.zeros((2, 1)), tolerance=1.0E-4)
 
 
 if __name__ == '__main__':
