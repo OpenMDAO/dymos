@@ -17,22 +17,9 @@ class BalancedFieldODEComp(om.ExplicitComponent):
         self.options.declare('num_nodes', types=int)
         self.options.declare('g', types=(float, int), default=9.80665, desc='gravitational acceleration (m/s**2)')
         self.options.declare('mode', values=('runway', 'climb'), desc='mode of operation (ground roll or flight)')
-        self.options.declare('attitude_input', values=('pitch', 'alpha'), default='alpha', desc='attitude input type')
-        self.options.declare('control', values=('attitude', 'gam_rate'), default='gam_rate',
-                             desc='Whether pitch or alpha serves as control when climbing.')
 
     def setup(self):
         nn = self.options['num_nodes']
-
-        if self.options['attitude_input'] == 'alpha':
-            self.add_input('alpha', shape=(nn,), desc='angle of attack', units='rad')
-            self.add_output('pitch', shape=(nn,), desc='vehicle +x angle above horizon', units='rad')
-        else:
-            self.add_input('pitch', shape=(nn,), desc='vehicle +x angle above horizon', units='rad')
-            self.add_output('alpha', shape=(nn,), desc='angle of attack', units='rad')
-
-        if self.options['control'] == 'gam_rate':
-            self.add_input('gam_rate', shape=(nn,), val=0.0, desc='controlled rate of change of flight path angle', units='rad/s')
 
         # Scalar (constant) inputs
         self.add_input('rho', val=1.225, desc='atmospheric density at runway', units='kg/m**3')
@@ -46,13 +33,12 @@ class BalancedFieldODEComp(om.ExplicitComponent):
         self.add_input('e', val=0.801, desc='Oswald span efficiency factor', units=None)
         self.add_input('span', val=35.7, desc='Wingspan', units='m')
         self.add_input('T', val=1.0, desc='thrust', units='N')
-        self.add_input('mu_r', val=0.05, desc='runway friction coefficient', units=None)
 
         # Dynamic inputs (can assume a different value at every node)
         self.add_input('m', shape=(nn,), desc='aircraft mass', units='kg')
         self.add_input('v', shape=(nn,), desc='aircraft true airspeed', units='m/s')
         self.add_input('h', shape=(nn,), desc='altitude', units='m')
-        self.add_input('gam', shape=(nn,), val=0.0, desc='flight path angle', units='rad')
+        self.add_input('alpha', shape=(nn,), desc='angle of attack', units='rad')
 
         # Outputs
         self.add_output('CL', shape=(nn,), desc='lift coefficient', units=None)
@@ -68,22 +54,24 @@ class BalancedFieldODEComp(om.ExplicitComponent):
         self.add_output('W', shape=(nn,), desc='aircraft weight', units='N')
         self.add_output('v_stall', shape=(nn,), desc='stall speed', units='m/s')
         self.add_output('v_over_v_stall', shape=(nn,), desc='stall speed ratio', units=None)
-        self.add_output('climb_gradient', shape=(nn,),
-                        desc='altitude rate divided by range rate',
-                        units='unitless')
-        self.add_output('gam_dot', shape=(nn,), desc='rate of change of flight path angle', units='rad/s')
-        self.add_output('h_dot', shape=(nn,), desc='rate of change of altitude', units='m/s')
-        self.add_output('thrust', shape=(nn,), units='N')
 
-        # self.declare_coloring(wrt='*', method='cs')
-        self.declare_partials(of='*', wrt='*', method='cs')
+        # Mode-dependent IO
+        if self.options['mode'] == 'runway':
+            self.add_input('mu_r', val=0.05, desc='runway friction coefficient', units=None)
+        else:
+            self.add_input('gam', shape=(nn,), desc='flight path angle', units='rad')
+            self.add_output('gam_dot', shape=(nn,), desc='rate of change of flight path angle',
+                            units='rad/s', tags=['dymos.state_rate_source:gam'])
+            self.add_output('h_dot', shape=(nn,), desc='rate of change of altitude', units='m/s',
+                            tags=['dymos.state_rate_source:h'])
+
+        self.declare_coloring(wrt='*', method='cs')
 
     def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
         g = self.options['g']
 
         # Compute factor k to include ground effect on lift
         rho = inputs['rho']
-        gam = inputs['gam']
         v = inputs['v']
         S = inputs['S']
         CD0 = inputs['CD0']
@@ -94,21 +82,10 @@ class BalancedFieldODEComp(om.ExplicitComponent):
         span = inputs['span']
         AR = inputs['AR']
         CL0 = inputs['CL0']
+        alpha = inputs['alpha']
         alpha_max = inputs['alpha_max']
         CL_max = inputs['CL_max']
         e = inputs['e']
-        mu_r = inputs['mu_r']
-
-        # Cross-compute alpha and pitch depeding on which one is input.
-        if self.options['attitude_input'] == 'alpha':
-            alpha = inputs['alpha']
-            outputs['pitch'] = pitch = gam + alpha
-        elif self.options['attitude_input'] == 'pitch':
-            pitch = inputs['pitch']
-            outputs['alpha'] = alpha = pitch - gam
-
-        if self.options['control'] == 'gam_rate':
-            gam_rate = inputs['gam_rate']
 
         outputs['W'] = W = m * g
         outputs['v_stall'] = v_stall = np.sqrt(2 * W / rho / S / CL_max)
@@ -117,11 +94,7 @@ class BalancedFieldODEComp(om.ExplicitComponent):
         outputs['CL'] = CL = CL0 + (alpha / alpha_max) * (CL_max - CL0)
         K_nom = 1.0 / (np.pi * AR * e)
         b = span / 2.0
-
-        # Note the use of clip here.  If altitude drops below zero while the solver is iterating,
-        # the non-clipped equation will result in NaN and ruin the analysis.
-        # Since we're using a gradient-free nonlinear block GS to converge thedo we n
-        fact = (np.clip(h + h_w, 0.0, 1000.0) / b) ** 1.5
+        fact = ((h + h_w) / b) ** 1.5
         outputs['K'] = K = K_nom * 33 * fact / (1.0 + 33 * fact)
 
         outputs['q'] = q = 0.5 * rho * v ** 2
@@ -133,22 +106,17 @@ class BalancedFieldODEComp(om.ExplicitComponent):
         salpha = np.sin(alpha)
 
         # Runway normal force
-        if self.options['mode'] == 'runway':
-            outputs['F_r'] = F_r = m * g - L * calpha - T * salpha
-        else:
-            outputs['F_r'] = F_r = 0.0
+        outputs['F_r'] = F_r = m * g - L * calpha - T * salpha
 
-        # # Compute the dynamics
-        # if self.options['mode'] == 'climb':
-        cgam = np.cos(gam)
-        sgam = np.sin(gam)
-        outputs['v_dot'] = (T * calpha - D - F_r * mu_r) / m - g * sgam
-        outputs['h_dot'] = v * sgam
-        outputs['r_dot'] = v * cgam
-        outputs['climb_gradient'] = sgam
-        outputs['thrust'][...] = T
-
-        if self.options['control'] == 'gam_rate':
-            outputs['gam_dot'] = gam_rate
-        else:
+        # Compute the dynamics
+        if self.options['mode'] == 'climb':
+            gam = inputs['gam']
+            cgam = np.cos(gam)
+            sgam = np.sin(gam)
+            outputs['v_dot'] = (T * calpha - D) / m - g * sgam
             outputs['gam_dot'] = (T * salpha + L) / (m * v) - (g / v) * cgam
+            outputs['h_dot'] = v * sgam
+            outputs['r_dot'] = v * cgam
+        else:
+            outputs['v_dot'] = (T * calpha - D - F_r * inputs['mu_r']) / m
+            outputs['r_dot'] = v
