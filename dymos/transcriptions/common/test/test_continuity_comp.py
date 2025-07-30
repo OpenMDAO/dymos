@@ -33,11 +33,16 @@ class TestContinuityComp(unittest.TestCase):
                 dm.options['include_check_partials'] = True
                 num_seg = 3
 
-                gd = GridData(num_segments=num_seg,
-                              transcription_order=[5, 3, 3],
-                              segment_ends=[0.0, 3.0, 10.0, 20],
-                              transcription=transcription,
-                              compressed=compressed == 'compressed')
+                if transcription == 'gauss-lobatto':
+                    gd = dm.GaussLobattoGrid(num_segments=num_seg,
+                                             nodes_per_seg=[5, 3, 3],
+                                             segment_ends=[0.0, 3.0, 10.0, 20],
+                                             compressed=compressed == 'compressed')
+                elif transcription == 'radau-ps':
+                    gd = dm.RadauGrid(num_segments=num_seg,
+                                      nodes_per_seg=[5, 3, 3],
+                                      segment_ends=[0.0, 3.0, 10.0, 20],
+                                      compressed=compressed == 'compressed')
 
                 self.p = om.Problem(model=om.Group())
 

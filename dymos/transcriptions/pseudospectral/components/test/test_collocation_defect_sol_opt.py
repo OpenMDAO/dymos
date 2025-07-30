@@ -88,8 +88,16 @@ class TestCollocationCompSolOpt(unittest.TestCase):
 
         p = om.Problem(model=om.Group())
 
-        gd = GridData(num_segments=n_segs, segment_ends=np.arange(n_segs+1),
-                      transcription=transcription, transcription_order=order, compressed=compressed)
+        if transcription == 'gauss-lobatto':
+            gd = dm.GaussLobattoGrid(num_segments=n_segs,
+                                     nodes_per_seg=order,
+                                     segment_ends=np.arange(n_segs+1),
+                                     compressed=compressed)
+        elif transcription == 'radau-ps':
+            gd = dm.RadauGrid(num_segments=n_segs,
+                              nodes_per_seg=order + 1,
+                              segment_ends=np.arange(n_segs+1),
+                              compressed=compressed)
 
         state_options = {'x': {'units': 'm', 'shape': (1, ), 'fix_initial': True,
                                'fix_final': False, 'solve_segments': False,

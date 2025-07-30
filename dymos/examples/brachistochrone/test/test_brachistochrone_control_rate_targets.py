@@ -2,11 +2,6 @@ import unittest
 
 import numpy as np
 
-try:
-    import matplotlib
-except ImportError:
-    matplotlib = None
-
 import openmdao.api as om
 from openmdao.utils.testing_utils import use_tempdirs
 from dymos.utils.testing_utils import assert_timeseries_near_equal
@@ -61,10 +56,6 @@ class BrachistochroneRateTargetODE(om.ExplicitComponent):
 
         self.add_output('vdot', val=np.zeros(nn), desc='acceleration magnitude', units='m/s**2')
 
-        self.add_output('check', val=np.zeros(nn),
-                        desc='check solution: v/sin(theta) = constant',
-                        units='m/s')
-
         # Setup partials
         arange = np.arange(self.options['num_nodes'])
         self.declare_partials(of='vdot', wrt=control_name, rows=arange, cols=arange)
@@ -74,9 +65,6 @@ class BrachistochroneRateTargetODE(om.ExplicitComponent):
 
         self.declare_partials(of='ydot', wrt='v', rows=arange, cols=arange)
         self.declare_partials(of='ydot', wrt=control_name, rows=arange, cols=arange)
-
-        self.declare_partials(of='check', wrt='v', rows=arange, cols=arange)
-        self.declare_partials(of='check', wrt=control_name, rows=arange, cols=arange)
 
         if self.options['static_gravity']:
             c = np.zeros(self.options['num_nodes'])
@@ -95,7 +83,7 @@ class BrachistochroneRateTargetODE(om.ExplicitComponent):
         outputs['vdot'] = g * cos_theta
         outputs['xdot'] = v * sin_theta
         outputs['ydot'] = -v * cos_theta
-        outputs['check'] = v / sin_theta
+        # outputs['check'] = v / sin_theta
 
     def compute_partials(self, inputs, partials):
         u_name = self.options['control_name']
@@ -113,9 +101,6 @@ class BrachistochroneRateTargetODE(om.ExplicitComponent):
 
         partials['ydot', 'v'] = -cos_theta
         partials['ydot', u_name] = v * sin_theta
-
-        partials['check', 'v'] = 1 / sin_theta
-        partials['check', u_name] = -v * cos_theta / sin_theta ** 2
 
 
 @use_tempdirs
@@ -169,7 +154,8 @@ class TestBrachistochroneControlRateTargets(unittest.TestCase):
 
                         phase.add_control('int_theta', lower=1.0E-6, upper=None, fix_initial=True,
                                           rate_targets=_unspecified if control_target_method == 'implicit' else ['theta'],
-                                          control_type=control_type, order=7)
+                                          control_type=control_type, order=7,
+                                          continuity=True, rate_continuity=True)
 
                         phase.add_parameter('g', units='m/s**2', opt=False, val=9.80665)
 
@@ -189,10 +175,8 @@ class TestBrachistochroneControlRateTargets(unittest.TestCase):
                         phase.set_state_val('v', [0, 9.9])
                         phase.set_control_val('int_theta', [1.0E-6, 100], units='deg*s')
 
-                        p.run_model()
-
                         # Solve for the optimal trajectory
-                        dm.run_problem(p, simulate=True, make_plots=True)
+                        dm.run_problem(p, simulate=True)
 
                         sol_db = p.get_outputs_dir() / 'dymos_solution.db'
                         sim_db = traj.sim_prob.get_outputs_dir() / 'dymos_simulation.db'

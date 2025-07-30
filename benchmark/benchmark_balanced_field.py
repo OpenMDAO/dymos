@@ -37,7 +37,7 @@ def _run_balanced_field_length_problem(tx=dm.GaussLobatto, timeseries=True, sim=
 
     # Second Phase: Rejected takeoff at V1 - no engines operable
     rto = dm.Phase(ode_class=BalancedFieldODEComp,
-                   transcription=dm.Radau(num_segments=3, solve_segments=solvesegs),
+                   transcription=tx(num_segments=3, solve_segments=solvesegs),
                    ode_init_kwargs={'mode': 'runway'})
     rto.set_time_options(fix_initial=False, duration_bounds=(1, 1000), duration_ref=1.0)
     rto.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0)
@@ -49,7 +49,7 @@ def _run_balanced_field_length_problem(tx=dm.GaussLobatto, timeseries=True, sim=
 
     # Third Phase: V1 to Vr - single engine operable
     v1_to_vr = dm.Phase(ode_class=BalancedFieldODEComp,
-                        transcription=dm.Radau(num_segments=3, solve_segments=solvesegs),
+                        transcription=tx(num_segments=3, solve_segments=solvesegs),
                         ode_init_kwargs={'mode': 'runway'})
     v1_to_vr.set_time_options(fix_initial=False, duration_bounds=(1, 1000), duration_ref=1.0)
     v1_to_vr.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0)
@@ -61,7 +61,7 @@ def _run_balanced_field_length_problem(tx=dm.GaussLobatto, timeseries=True, sim=
 
     # Fourth Phase: Rotate - single engine operable
     rotate = dm.Phase(ode_class=BalancedFieldODEComp,
-                      transcription=dm.Radau(num_segments=3, solve_segments=solvesegs),
+                      transcription=tx(num_segments=3, solve_segments=solvesegs),
                       ode_init_kwargs={'mode': 'runway'})
     rotate.set_time_options(fix_initial=False, duration_bounds=(1.0, 5), duration_ref=1.0)
     rotate.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0)
@@ -73,7 +73,7 @@ def _run_balanced_field_length_problem(tx=dm.GaussLobatto, timeseries=True, sim=
         rotate.add_timeseries_output('*')
 
     # Fifth Phase: Climb to target speed and altitude at end of runway.
-    climb = dm.Phase(ode_class=BalancedFieldODEComp, transcription=dm.Radau(num_segments=5),
+    climb = dm.Phase(ode_class=BalancedFieldODEComp, transcription=tx(num_segments=5),
                      ode_init_kwargs={'mode': 'climb'})
     climb.set_time_options(fix_initial=False, duration_bounds=(1, 100), duration_ref=1.0)
     climb.add_state('r', fix_initial=False, lower=0, ref=1000.0, defect_ref=1000.0)
@@ -198,6 +198,7 @@ def _run_balanced_field_length_problem(tx=dm.GaussLobatto, timeseries=True, sim=
     climb.add_boundary_constraint('h', loc='final', equals=35, ref=35, units='ft', linear=True)
     climb.add_boundary_constraint('gam', loc='final', equals=5, ref=5, units='deg', linear=True)
     climb.add_path_constraint('gam', lower=0, upper=5, ref=5, units='deg')
+    climb.add_path_constraint('h', lower=0, upper=35, ref=1, units='ft')
     climb.add_boundary_constraint('v_over_v_stall', loc='final', lower=1.25, ref=1.25)
 
     rto.add_objective('r', loc='final', ref=1000.0)

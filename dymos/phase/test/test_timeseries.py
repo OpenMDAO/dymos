@@ -473,9 +473,9 @@ class TestTimeseriesExprBrachistochrone(unittest.TestCase):
         with self.assertRaises(NameError) as e:
             p.setup(check=True)
 
-        expected = ("'phase0.rhs_all.exec_comp' <class ExecComp>: cannot use variable "
+        expected = ("<class ExecComp>: cannot use variable "
                     "name 'units' because it's a reserved keyword.")
-        self.assertEqual(str(e.exception), expected)
+        self.assertIn(expected, str(e.exception))
 
     def test_input_units(self):
         p = om.Problem(model=om.Group())

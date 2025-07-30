@@ -6,7 +6,6 @@ from scipy.linalg import block_diag
 
 import openmdao.api as om
 
-from ..transcriptions import GaussLobatto, Radau
 from ..utils.lagrange import lagrange_matrices
 from ..utils.misc import get_rate_units
 from ..utils.introspection import get_targets
@@ -325,22 +324,7 @@ def check_error(phases):
         refine_results[phase_path]['max_rel_error'] = np.zeros(numseg, dtype=float)  # Eq. 21
         refine_results[phase_path]['error_state'] = ['' for _ in phase.state_options]
 
-        # Instantiate a new phase as a copy of the old one, but first up the transcription order
-        # by 1 for Radau and by 2 for Gauss-Lobatto
-        new_num_segments = tx.options['num_segments']
-        new_segment_ends = tx.options['segment_ends']
-        new_compressed = tx.options['compressed']
-        if isinstance(tx, GaussLobatto):
-            new_order = tx.options['order'] + 2
-            new_tx = GaussLobatto(num_segments=new_num_segments, order=new_order,
-                                  segment_ends=new_segment_ends, compressed=new_compressed)
-        elif isinstance(tx, Radau):
-            new_order = tx.options['order'] + 1
-            new_tx = Radau(num_segments=new_num_segments, order=new_order,
-                           segment_ends=new_segment_ends, compressed=new_compressed)
-        else:
-            # Only refine GuassLobatto or Radau transcription phases
-            continue
+        new_tx = tx._get_refinement_error_transcription()
 
         # Let x be the interpolated states on the new transcription
         # Let f by the evaluated state rates given the interpolation of the states and controls
