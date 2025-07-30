@@ -612,18 +612,17 @@ regression_data[dm.GaussLobatto] = {
 
 @use_tempdirs
 class TestBalancedFieldLengthForDocs(unittest.TestCase):
-    def _make_problem(self, tx):
+    def _make_problem(self, tx, optimizer='IPOPT'):
         p = om.Problem()
 
-        _, optimizer = set_pyoptsparse_opt("IPOPT", fallback=True)
-
         # Use IPOPT if available, with fallback to SLSQP
-        p.driver = om.pyOptSparseDriver(optimizer="SNOPT")
-        p.driver.options["optimizer"] = optimizer
-        p.driver.declare_coloring()
-        p.driver.options["print_results"] = False
-        if optimizer == "IPOPT":
-            p.driver.opt_settings["print_level"] = 0
+        if optimizer is not None:
+            p.driver = om.pyOptSparseDriver(optimizer="IPOPT")
+            p.driver.options["optimizer"] = optimizer
+            p.driver.declare_coloring()
+            p.driver.options["print_results"] = False
+            if optimizer == "IPOPT":
+                p.driver.opt_settings["print_level"] = 0
 
         # First Phase: Brake release to V1 - both engines operable
         br_to_v1 = dm.Phase(
@@ -951,7 +950,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
         #
         # Setup the problem and set the initial guess
         #
-        p.setup(check=True)
+        p.setup()
 
         br_to_v1.set_time_val(initial=0.0, duration=35.0)
         br_to_v1.set_state_val("r", [0, 2500.0])
@@ -985,7 +984,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
     @require_pyoptsparse(optimizer="IPOPT")
     def test_balanced_field_length_for_docs(self):
         for tx in (dm.Radau, dm.GaussLobatto):
-            p = self._make_problem(tx)
+            p = self._make_problem(tx, optimizer='IPOPT')
 
             traj = p.model.traj
 
@@ -1014,7 +1013,7 @@ class TestBalancedFieldLengthForDocs(unittest.TestCase):
 
         # For now we only do this with GaussLobatto until we remove the legacy radau method.
         for tx in (dm.GaussLobatto,):
-            p = self._make_problem(tx)
+            p = self._make_problem(tx, optimizer=None)
             dm.run_problem(p, run_driver=False, simulate=False)
             driver_vars = p.list_driver_vars(out_stream=None)
 
