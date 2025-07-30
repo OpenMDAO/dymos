@@ -92,8 +92,8 @@ class TestRaceCarForDocs(unittest.TestCase):
                 # is positive while accelerating, negative while braking
 
                 # Performance Constraints
-                pmax = 960000  # W
-                phase.add_path_constraint('power', upper=pmax, ref=100000)  # engine power limit
+                pmax = 960_000.  # W
+                phase.add_path_constraint('power', upper=pmax, ref=pmax)  # engine power limit
 
                 # The following four constraints are the tire friction limits, with 'rr' designating the
                 # rear right wheel etc. This limit is computed in tireConstraintODE.py
@@ -142,7 +142,7 @@ class TestRaceCarForDocs(unittest.TestCase):
                 p.driver.opt_settings['compl_inf_tol'] = 1e-3
                 p.driver.opt_settings['acceptable_iter'] = 0
                 p.driver.opt_settings['tol'] = 1e-3
-                p.driver.opt_settings['print_level'] = 0
+                p.driver.opt_settings['print_level'] = 5
                 p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'  # for faster convergence
                 p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
                 p.driver.opt_settings['mu_strategy'] = 'monotone'
