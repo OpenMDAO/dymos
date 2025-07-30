@@ -198,6 +198,7 @@ def _run_balanced_field_length_problem(tx=dm.GaussLobatto, timeseries=True, sim=
     climb.add_boundary_constraint('h', loc='final', equals=35, ref=35, units='ft', linear=True)
     climb.add_boundary_constraint('gam', loc='final', equals=5, ref=5, units='deg', linear=True)
     climb.add_path_constraint('gam', lower=0, upper=5, ref=5, units='deg')
+    climb.add_path_constraint('h', lower=0, upper=35, ref=1, units='ft')
     climb.add_boundary_constraint('v_over_v_stall', loc='final', lower=1.25, ref=1.25)
 
     rto.add_objective('r', loc='final', ref=1000.0)

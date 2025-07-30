@@ -151,6 +151,20 @@ jobs:
             JAX: true
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
 
+          # latest versions dymos 2 testing
+          - NAME: latest_dymos_2
+            PY: '3'
+            NUMPY: '2'
+            SCIPY: '1'
+            PETSc: '3.23'
+            PYOPTSPARSE: 'latest'
+            SNOPT: '7.7'
+            OPENMDAO: 'dev'
+            OPTIONAL: '[all]'
+            JAX: true
+            DYMOS_2 : True
+            EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
+
           # oldest supported versions
           - NAME: oldest
             PY: '3.9'
@@ -348,10 +362,22 @@ jobs:
           pip install playwright
           playwright install --with-deps
 
+      - name: Set Environment for Dymos 2
+        if: ${{ matrix.DYMOS_2 }}
+        shell: bash -l {0}
+        run: |
+          echo "============================================================="
+          echo "Setting environement variable DYMOS_2=1"
+          echo "============================================================="
+          export DYMOS_2=1
+          echo "DYMOS_2=1" >> $GITHUB_ENV
+
       - name: Display environment info
         id: env_info
         if: ${{ ! matrix.EXCLUDE }}
         run: |
+          printenv
+
           conda info
           conda list
           conda env export --name test --file ${{ matrix.NAME }}_environment.yml
@@ -396,21 +422,27 @@ jobs:
         env:
           DYMOS_CHECK_PARTIALS: True
         run: |
+          HAS_ERRORS=false
           echo "============================================================="
           echo "Run Tests"
           echo "Environment:"
           echo "   DYMOS_CHECK_PARTIALS: $DYMOS_CHECK_PARTIALS"
           echo "============================================================="
-          testflo -n 1 docs/dymos_book/test --pre_announce
-          testflo -n 1 joss/test --pre_announce
-          testflo -b benchmark --pre_announce
+          testflo -n 1 docs/dymos_book/test --pre_announce || HAS_ERRORS=true
+          testflo -n 1 joss/test --pre_announce || HAS_ERRORS=true
+          testflo -b benchmark --pre_announce || HAS_ERRORS=true
           # Run the readme test from the checked out directory.
-          testflo -n 1 ./dymos/test/test_readme.py --pre_announce
+          testflo -n 1 ./dymos/test/test_readme.py --pre_announce || HAS_ERRORS=true
           cd $HOME
           if [[ "${{ matrix.NAME }}" != "latest" ]]; then
-            testflo dymos -n 4 --pre_announce --show_skipped --durations 20 --coverage --coverpkg dymos
+            testflo dymos -n 4 --pre_announce --show_skipped --durations 20 --coverage --coverpkg dymos || HAS_ERRORS=true
           else
-            testflo dymos -n 4 --pre_announce --show_skipped --durations 20
+            testflo dymos -n 4 --pre_announce --show_skipped --durations 20 || HAS_ERRORS=true
+          fi
+
+          if [ "$HAS_ERRORS" = true ]; then
+            echo "One or more commands failed"
+            exit 1
           fi
 
       - name: Submit coverage

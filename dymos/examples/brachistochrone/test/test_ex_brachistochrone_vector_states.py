@@ -4,15 +4,13 @@ import pathlib
 import unittest
 from numpy.testing import assert_almost_equal
 
-import sys
 
 from openmdao.utils.general_utils import set_pyoptsparse_opt, printoptions
-from openmdao.utils.testing_utils import use_tempdirs, set_env_vars_context
+from openmdao.utils.testing_utils import use_tempdirs
 from openmdao.utils.tests.test_hooks import hooks_active
 
-import dymos as dm
 import dymos.examples.brachistochrone.test.ex_brachistochrone_vector_states as ex_brachistochrone_vs
-from dymos.utils.testing_utils import assert_check_partials, _get_reports_dir
+from dymos.utils.testing_utils import assert_check_partials
 
 bokeh_available = importlib.util.find_spec('bokeh') is not None
 
@@ -117,10 +115,10 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
     @unittest.skipIf(not bokeh_available, 'bokeh unavailable')
     @hooks_active
     def test_bokeh_plots(self):
-        with set_env_vars_context(OPENMDAO_REPORTS='1'):
-            with dm.options.temporary(plots='bokeh'):
-                p = ex_brachistochrone_vs.brachistochrone_min_time(transcription='radau-ps',
-                                                                   compressed=False,
+        for tx in ('radau-ps', 'gauss-lobatto', 'birkhoff'):
+            with self.subTest(f'{tx=}'):
+                p = ex_brachistochrone_vs.brachistochrone_min_time(transcription=tx,
+                                                                   compressed=True,
                                                                    force_alloc_complex=True,
                                                                    run_driver=True,
                                                                    simulate=True,
@@ -129,7 +127,7 @@ class TestBrachistochroneVectorStatesExample(unittest.TestCase):
                 self.assert_results(p)
                 self.assert_partials(p)
 
-                html_file = pathlib.Path(_get_reports_dir(p)) / 'traj0_results_report.html'
+                html_file = pathlib.Path(p.get_reports_dir()) / 'traj0_results_report.html'
                 self.assertTrue(html_file.exists(), msg=f'{html_file} does not exist!')
 
                 with open(html_file) as f:

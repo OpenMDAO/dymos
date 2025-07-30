@@ -112,7 +112,7 @@ def make_traj(transcription='gauss-lobatto', transcription_order=3, compressed=F
                           scaler=0.01, lower=-180, upper=180)
     else:
 
-        burn2.set_time_options(initial_bounds=(0.5, 50), duration_bounds=(.5, 10), initial_ref=10, units='TU')
+        burn2.set_time_options(initial_bounds=(0.5, 100), duration_bounds=(.5, 10), initial_ref=10, units='TU')
         burn2.add_state('r', fix_initial=False, fix_final=True, defect_scaler=1.0E-2,
                         rate_source='r_dot', targets=['r'], units='DU')
         burn2.add_state('theta', fix_initial=False, fix_final=False, defect_scaler=1000.0,
@@ -206,6 +206,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
 
     p.driver = om.pyOptSparseDriver()
     p.driver.options['optimizer'] = optimizer
+    p.driver.options['invalid_desvar_behavior'] = 'raise'
     p.driver.declare_coloring()
     if optimizer == 'SNOPT':
         p.driver.opt_settings['Major iterations limit'] = max_iter
@@ -247,22 +248,23 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
 
     if burn1 in p.model.traj.phases._subsystems_myproc:
         burn1.set_time_val(initial=0.0, duration=2.25)
-        burn1.set_state_val('r', [1, 1.5])
-        burn1.set_state_val('theta', [0, 1.7])
+        burn1.set_state_val('r', [1.0, 1.5])
+        burn1.set_state_val('theta', [0.0, 1.7])
         burn1.set_state_val('vr', [0, 0])
-        burn1.set_state_val('vt', [1, 1])
+        burn1.set_state_val('vt', [1., 1.])
         burn1.set_state_val('accel', [0.1, 0.0])
-        burn1.set_state_val('deltav', [0, 0.1])
-        burn1.set_control_val('u1', [0.0, 0.0])
+        burn1.set_state_val('deltav', [0.0, 0.1])
+        burn1.set_control_val('u1', [0, 0])
 
     if coast in p.model.traj.phases._subsystems_myproc:
         coast.set_time_val(initial=2.25, duration=3.0)
         coast.set_state_val('r', [1.3, 1.5])
-        coast.set_state_val('theta', [2.1767, 1.7])
+        coast.set_state_val('theta', [2.18, 1.7])
         coast.set_state_val('vr', [0.3285, 0])
-        coast.set_state_val('vt', [0.97, 1])
-        coast.set_state_val('accel', [0, 0])
-        coast.set_parameter_val('u1', 0)
+        coast.set_state_val('vt', [0.97, 1.0])
+        coast.set_state_val('accel', [0.0, 0.0])
+        coast.set_state_val('deltav', [0.0, 0.0])
+        coast.set_parameter_val('u1', [0.])
 
     if burn2 in p.model.traj.phases._subsystems_myproc:
         if connected:
@@ -277,6 +279,7 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
 
         else:
             burn2.set_time_val(initial=5.25, duration=1.75)
+            burn2.set_val('t_initial', 5.25)
             burn2.set_state_val('r', [1, r_target])
             burn2.set_state_val('theta', [0, 4])
             burn2.set_state_val('vr', [0, 0])
@@ -284,11 +287,6 @@ def two_burn_orbit_raise_problem(transcription='gauss-lobatto', optimizer='SLSQP
             burn2.set_state_val('accel', [0.1, 0.0])
             burn2.set_state_val('deltav', [0.1, 0.2])
             burn2.set_control_val('u1', [0, 0])
-
-    p.final_setup()
-    if burn2 in p.model.traj.phases._subsystems_myproc:
-        print(burn2.get_val('t_initial'))
-        print(burn2.get_val('t_duration'))
 
     if run_driver or simulate:
         dm.run_problem(p, run_driver=run_driver, simulate=simulate, restart=restart, make_plots=True,

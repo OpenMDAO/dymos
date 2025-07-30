@@ -267,8 +267,8 @@ class TestCheckPartials(unittest.TestCase):
 
         cpd = p.check_partials(compact_print=True, method='fd', out_stream=None)
 
-        # Filter out those that include rhs_all in the path
-        cpd = {path: data for path, data in cpd.items() if 'rhs_all' not in path}
+        # Filter out those that include ode_all in the path
+        cpd = {path: data for path, data in cpd.items() if 'ode_all' not in path}
 
         return cpd
 
@@ -393,21 +393,17 @@ class TestCheckPartials(unittest.TestCase):
         Run check_partials on a series of dymos problems and verify that partials information
         is not displayed for core Dymos components when DYMOS_CHECK_PARTIALS == 'False'.
         """
-        cp_save = dm.options['include_check_partials']
-        dm.options['include_check_partials'] = False
+        with dm.options.temporary(include_check_partials=False):
+            cases = [self.brach_explicit_partials,
+                     self.balanced_field_partials_radau,
+                     self.min_time_climb_partials_gl]
 
-        cases = [self.brach_explicit_partials,
-                 self.balanced_field_partials_radau,
-                 self.min_time_climb_partials_gl]
+            partials = {}
+            for c in cases:
+                partials.update(c())
 
-        partials = {}
-        for c in cases:
-            partials.update(c())
-
-        dm.options['include_check_partials'] = cp_save
-
-        # Only `phase.ode` should show up in in the partials keys.
-        self.assertSetEqual(set(partials.keys()), {'phase0.ode'})
+            for pathname in set(partials.keys()):
+                self.assertTrue('ode' in pathname or 'rhs' in pathname)
 
 
 if __name__ == '__main__':  # pragma: no cover

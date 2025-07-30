@@ -642,8 +642,10 @@ class Trajectory(om.Group):
                 units[i] = phases[i].parameter_options[vars[i]]['units']
                 shapes[i] = phases[i].parameter_options[vars[i]]['shape']
             else:
-                rhs_source = phases[i].options['transcription']._rhs_source
-                sources[i] = f'{rhs_source}.{vars[i]}'
+                tx = phases[i].options['transcription']
+                rhs_source = tx._get_linkage_source_ode(promoted=False)
+                rhs_source_promoted = tx._get_linkage_source_ode(promoted=True)
+                sources[i] = f'{rhs_source_promoted}.{vars[i]}'
                 try:
                     meta = get_source_metadata(phases[i]._get_subsystem(rhs_source), vars[i], user_units=units[i],
                                                user_shape=_unspecified)

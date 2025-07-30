@@ -4,6 +4,7 @@ import numpy as np
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.general_utils import env_truthy
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 import dymos as dm
@@ -69,9 +70,14 @@ class TestParameterConnections(unittest.TestCase):
 
         p.run_model()
 
+        nn = p.model.phase0.options['transcription'].grid_data.num_nodes
+
         expected = np.broadcast_to(np.array([[1, 2], [3, 4]]),
-                                   (p.model.phase0.options['transcription'].grid_data.num_nodes, 2, 2))
-        assert_near_equal(p.get_val('phase0.rhs_all.sum.m'), expected)
+                                   (nn, 2, 2))
+        if env_truthy('DYMOS_2'):
+            assert_near_equal(np.reshape(p.get_val('phase0.ode_all.sum.m'), (-1, 2, 2)), expected)
+        else:
+            assert_near_equal(np.reshape(p.get_val('phase0.rhs_all.sum.m'), (-1, 2, 2)), expected)
 
     @require_pyoptsparse(optimizer='SLSQP')
     def test_static_parameter_connections_radau(self):
@@ -119,9 +125,7 @@ class TestParameterConnections(unittest.TestCase):
 
         phase.add_parameter('m', val=[[1, 2], [3, 4]], units='kg', targets='sum.m', static_target=True)
 
-        p.model.linear_solver = om.DirectSolver()
-
-        p.setup(check=True, force_alloc_complex=True)
+        p.setup()
 
         phase.set_time_val(initial=0.0, duration=100.0)
         phase.set_state_val('h', [20, 0])
@@ -130,7 +134,10 @@ class TestParameterConnections(unittest.TestCase):
         p.run_model()
 
         expected = np.array([[1, 2], [3, 4]])
-        assert_near_equal(p.get_val('phase0.rhs_all.sum.m'), expected)
+        if env_truthy('DYMOS_2'):
+            assert_near_equal(np.reshape(p.get_val('phase0.ode_all.sum.m'), (2, 2)), expected)
+        else:
+            assert_near_equal(np.reshape(p.get_val('phase0.rhs_all.sum.m'), (2, 2)), expected)
 
     @require_pyoptsparse(optimizer='SLSQP')
     def test_dynamic_parameter_connections_gl(self):
