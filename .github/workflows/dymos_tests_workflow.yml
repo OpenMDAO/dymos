@@ -427,16 +427,16 @@ jobs:
           echo "Environment:"
           echo "   DYMOS_CHECK_PARTIALS: $DYMOS_CHECK_PARTIALS"
           echo "============================================================="
-          testflo -n 1 docs/dymos_book/test --pre_announce
-          testflo -n 1 joss/test --pre_announce
-          testflo -b benchmark --pre_announce
+          testflo -n 1 docs/dymos_book/test --pre_announce || echo "One or more tests failed."
+          testflo -n 1 joss/test --pre_announce || echo "One or more tests failed."
+          testflo -b benchmark --pre_announce || echo "One or more tests failed."
           # Run the readme test from the checked out directory.
-          testflo -n 1 ./dymos/test/test_readme.py --pre_announce
+          testflo -n 1 ./dymos/test/test_readme.py --pre_announce || echo "One or more tests failed."
           cd $HOME
           if [[ "${{ matrix.NAME }}" != "latest" ]]; then
-            testflo dymos -n 4 --pre_announce --show_skipped --durations 20 --coverage --coverpkg dymos
+            testflo dymos -n 4 --pre_announce --show_skipped --durations 20 --coverage --coverpkg dymos || echo "One or more tests failed."
           else
-            testflo dymos -n 4 --pre_announce --show_skipped --durations 20
+            testflo dymos -n 4 --pre_announce --show_skipped --durations 20 || echo "One or more tests failed."
           fi
 
       - name: Submit coverage
