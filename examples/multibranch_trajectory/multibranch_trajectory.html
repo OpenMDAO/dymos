@@ -861,6 +861,11 @@ state of charge.</p>
 <span class="n">traj</span><span class="o">.</span><span class="n">link_phases</span><span class="p">(</span><span class="n">phases</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;phase0&#39;</span><span class="p">,</span> <span class="s1">&#39;phase1_bfail&#39;</span><span class="p">],</span> <span class="nb">vars</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;state_of_charge&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">])</span>
 <span class="n">traj</span><span class="o">.</span><span class="n">link_phases</span><span class="p">(</span><span class="n">phases</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;phase0&#39;</span><span class="p">,</span> <span class="s1">&#39;phase1_mfail&#39;</span><span class="p">],</span> <span class="nb">vars</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;state_of_charge&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">])</span>
 
+<span class="n">phase0</span><span class="o">.</span><span class="n">add_timeseries_output</span><span class="p">(</span><span class="s1">&#39;pwr_balance.I_Li&#39;</span><span class="p">)</span>
+<span class="n">phase1</span><span class="o">.</span><span class="n">add_timeseries_output</span><span class="p">(</span><span class="s1">&#39;pwr_balance.I_Li&#39;</span><span class="p">)</span>
+<span class="n">traj_p1_bfail</span><span class="o">.</span><span class="n">add_timeseries_output</span><span class="p">(</span><span class="s1">&#39;pwr_balance.I_Li&#39;</span><span class="p">)</span>
+<span class="n">traj_p1_mfail</span><span class="o">.</span><span class="n">add_timeseries_output</span><span class="p">(</span><span class="s1">&#39;pwr_balance.I_Li&#39;</span><span class="p">)</span>
+
 <span class="n">prob</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;assembled_jac_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;csc&#39;</span>
 <span class="n">prob</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">linear_solver</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">DirectSolver</span><span class="p">(</span><span class="n">assemble_jac</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
@@ -880,10 +885,10 @@ state of charge.</p>
 <span class="n">soc1m</span> <span class="o">=</span> <span class="n">prob</span><span class="p">[</span><span class="s1">&#39;traj.phase1_mfail.states:state_of_charge&#39;</span><span class="p">]</span>
 
 <span class="c1"># Plot Results</span>
-<span class="n">t0</span> <span class="o">=</span> <span class="n">prob</span><span class="p">[</span><span class="s1">&#39;traj.phases.phase0.timeseries.time&#39;</span><span class="p">]</span><span class="o">/</span><span class="mi">3600</span>
-<span class="n">t1</span> <span class="o">=</span> <span class="n">prob</span><span class="p">[</span><span class="s1">&#39;traj.phases.phase1.timeseries.time&#39;</span><span class="p">]</span><span class="o">/</span><span class="mi">3600</span>
-<span class="n">t1b</span> <span class="o">=</span> <span class="n">prob</span><span class="p">[</span><span class="s1">&#39;traj.phases.phase1_bfail.timeseries.time&#39;</span><span class="p">]</span><span class="o">/</span><span class="mi">3600</span>
-<span class="n">t1m</span> <span class="o">=</span> <span class="n">prob</span><span class="p">[</span><span class="s1">&#39;traj.phases.phase1_mfail.timeseries.time&#39;</span><span class="p">]</span><span class="o">/</span><span class="mi">3600</span>
+<span class="n">t0</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">)</span> <span class="o">/</span> <span class="mi">3600</span>
+<span class="n">t1</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase1.timeseries.time&#39;</span><span class="p">)</span> <span class="o">/</span> <span class="mi">3600</span>
+<span class="n">t1b</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase1_bfail.timeseries.time&#39;</span><span class="p">)</span> <span class="o">/</span> <span class="mi">3600</span>
+<span class="n">t1m</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase1_mfail.timeseries.time&#39;</span><span class="p">)</span> <span class="o">/</span> <span class="mi">3600</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t0</span><span class="p">,</span> <span class="n">soc0</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">)</span>
@@ -893,10 +898,10 @@ state of charge.</p>
 <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Time (hour)&#39;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;State of Charge (percent)&#39;</span><span class="p">)</span>
 
-<span class="n">I_Li0</span> <span class="o">=</span> <span class="n">prob</span><span class="p">[</span><span class="s1">&#39;traj.phases.phase0.rhs_all.pwr_balance.I_Li&#39;</span><span class="p">]</span>
-<span class="n">I_Li1</span> <span class="o">=</span> <span class="n">prob</span><span class="p">[</span><span class="s1">&#39;traj.phases.phase1.rhs_all.pwr_balance.I_Li&#39;</span><span class="p">]</span>
-<span class="n">I_Li1b</span> <span class="o">=</span> <span class="n">prob</span><span class="p">[</span><span class="s1">&#39;traj.phases.phase1_bfail.rhs_all.pwr_balance.I_Li&#39;</span><span class="p">]</span>
-<span class="n">I_Li1m</span> <span class="o">=</span> <span class="n">prob</span><span class="p">[</span><span class="s1">&#39;traj.phases.phase1_mfail.rhs_all.pwr_balance.I_Li&#39;</span><span class="p">]</span>
+<span class="n">I_Li0</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.I_Li&#39;</span><span class="p">)</span>
+<span class="n">I_Li1</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase1.timeseries.I_Li&#39;</span><span class="p">)</span>
+<span class="n">I_Li1b</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase1_bfail.timeseries.I_Li&#39;</span><span class="p">)</span>
+<span class="n">I_Li1m</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase1_mfail.timeseries.I_Li&#39;</span><span class="p">)</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t0</span><span class="p">,</span> <span class="n">I_Li0</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">)</span>
@@ -923,9 +928,9 @@ Total colors vs. total size: 6 vs 122  (95.08% improvement)
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem&#39; was computed 3 times.
 Time to compute sparsity:   0.0462 sec
-Time to compute coloring:   0.0579 sec
+Time to compute coloring:   0.0565 sec
 Memory to compute coloring:   0.3750 MB
-Coloring created on: 2025-07-29 19:37:44
+Coloring created on: 2025-07-30 17:09:49
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully    (Exit mode 0)
@@ -941,7 +946,7 @@ Optimization Complete
   ax.set_ylim([ymin_plot, ymax_plot])
 </pre></div>
 </div>
-<img alt="../../_images/6c1cad9562aa4d238e66517672e7b4397eec85c4741f7ab8894742b5518fdeb3.png" src="../../_images/6c1cad9562aa4d238e66517672e7b4397eec85c4741f7ab8894742b5518fdeb3.png" />
+<img alt="../../_images/95bd6c65a97fe1de0a81287947b778d7cc9b72d70880ae6f6fa204ae3026b95d.png" src="../../_images/95bd6c65a97fe1de0a81287947b778d7cc9b72d70880ae6f6fa204ae3026b95d.png" />
 </div>
 </div>
 </section>

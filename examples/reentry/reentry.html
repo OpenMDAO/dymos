@@ -526,8 +526,8 @@ optimal control problem governed by six equations of motion and limited
 by the aerodynamic heating rate. For a detailed layout of this problem
 and other optimal control problems see Betts <span id="id1">[<a class="reference internal" href="#id19" title="J. Betts. Practical Methods for Optimal Control and Estimation Using Nonlinear Programming. Society for Industrial and Applied Mathematics, second edition, 2010. URL: https://epubs.siam.org/doi/abs/10.1137/1.9780898718577, arXiv:https://epubs.siam.org/doi/pdf/10.1137/1.9780898718577, doi:10.1137/1.9780898718577.">Bet10</a>]</span>.
 The governing equations of motion for this problem are:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-f83b55ec-60fd-46c6-8cde-d3119ac456ec">
-<span class="eqno">(79)<a class="headerlink" href="#equation-f83b55ec-60fd-46c6-8cde-d3119ac456ec" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-c9f9f9e4-5e07-4a49-ba79-7487c450aba2">
+<span class="eqno">(79)<a class="headerlink" href="#equation-c9f9f9e4-5e07-4a49-ba79-7487c450aba2" title="Permalink to this equation">#</a></span>\[\begin{align}
   \frac{dh}{dt} &amp;= v \sin \gamma \\
   \frac{d\phi}{dt} &amp;= \frac{v}{r} \cos \gamma \frac{\sin \psi}{\cos \theta} \\
   \frac{d\theta}{dt} &amp;= \frac{v}{r} \cos \gamma \cos \psi  \\
@@ -550,8 +550,8 @@ final altitude, without exceding a maximum heat rate at the leading
 edges. This heat rate is constrained by <span class="math notranslate nohighlight">\(q \leq 70\)</span> where q
 <span class="math notranslate nohighlight">\([\frac{btu}{ft^2s}]\)</span> is the heating rate.</p>
 <p>The initial conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-e73f68ab-eef4-44cf-9e9f-2506d90ea8b7">
-<span class="eqno">(80)<a class="headerlink" href="#equation-e73f68ab-eef4-44cf-9e9f-2506d90ea8b7" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-cba71d76-f839-4ac7-978a-d999cd2a24c5">
+<span class="eqno">(80)<a class="headerlink" href="#equation-cba71d76-f839-4ac7-978a-d999cd2a24c5" title="Permalink to this equation">#</a></span>\[\begin{align}
   h_0 &amp;= 26000 \\
   v_0 &amp;= 25600 \\
   \phi_0 &amp;= 0 \\
@@ -560,8 +560,8 @@ edges. This heat rate is constrained by <span class="math notranslate nohighligh
   \psi_0 &amp;= \frac{\pi}{2}
 \end{align}\]</div>
 <p>and the final conditions are</p>
-<div class="amsmath math notranslate nohighlight" id="equation-4ee0de80-1b1a-4db5-a074-50de12f09f6f">
-<span class="eqno">(81)<a class="headerlink" href="#equation-4ee0de80-1b1a-4db5-a074-50de12f09f6f" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-f900fd88-3f4a-4e98-8dea-dd69b4581a42">
+<span class="eqno">(81)<a class="headerlink" href="#equation-f900fd88-3f4a-4e98-8dea-dd69b4581a42" title="Permalink to this equation">#</a></span>\[\begin{align}
   h_0 &amp;= 80000 \\
   v_0 &amp;= 2500 \\
   \gamma_0 &amp;= -0.08727 \\
@@ -579,13 +579,13 @@ second component computes the aerodynamic forces of lift and drag on the
 shuttle. The third component is where the heating rate on the leading
 edge of the shuttles wings is computed. The heating rate is given by
 <span class="math notranslate nohighlight">\(q = q_a q_r\)</span> where</p>
-<div class="amsmath math notranslate nohighlight" id="equation-189be1f0-7517-4a9a-93ae-4b9ae6b14285">
-<span class="eqno">(82)<a class="headerlink" href="#equation-189be1f0-7517-4a9a-93ae-4b9ae6b14285" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-73602d87-d475-40b1-a822-58fc5c6bfb72">
+<span class="eqno">(82)<a class="headerlink" href="#equation-73602d87-d475-40b1-a822-58fc5c6bfb72" title="Permalink to this equation">#</a></span>\[\begin{align}
   q_a &amp;= c_0 + c_1\alpha + c_2 \alpha^2 + c_3 \alpha^3
 \end{align}\]</div>
 <p>and</p>
-<div class="amsmath math notranslate nohighlight" id="equation-012b1187-e3ec-49db-a106-22860f0b5286">
-<span class="eqno">(83)<a class="headerlink" href="#equation-012b1187-e3ec-49db-a106-22860f0b5286" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-bc7127fd-478d-49fc-b4b1-c19b2a59c5a9">
+<span class="eqno">(83)<a class="headerlink" href="#equation-bc7127fd-478d-49fc-b4b1-c19b2a59c5a9" title="Permalink to this equation">#</a></span>\[\begin{align}
   q_r &amp;= 17700 \rho^.5 (.0001v)^{3.07}
 \end{align}\]</div>
 <p>where <span class="math notranslate nohighlight">\(c_0, c_1, c_2,\)</span> and <span class="math notranslate nohighlight">\(c_3\)</span> are constants, <span class="math notranslate nohighlight">\(\alpha\)</span> <span class="math notranslate nohighlight">\([deg]\)</span> is the
@@ -1085,25 +1085,25 @@ The two controls are <span class="math notranslate nohighlight">\(\alpha\)</span
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000371 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000548 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000023 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000024 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000181 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000247 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000074 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000110 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
@@ -1115,31 +1115,79 @@ The two controls are <span class="math notranslate nohighlight">\(\alpha\)</span
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.001354 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.001828 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000028 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000041 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000002 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000003 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000228 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000241 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000019 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000017 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000203 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000108 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000002 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.002218 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000031 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000003 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000248 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000014 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
@@ -1151,55 +1199,7 @@ The two controls are <span class="math notranslate nohighlight">\(\alpha\)</span
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000061 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000002 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.001359 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000033 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000002 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000223 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000020 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000128 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000060 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000058 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
@@ -1211,13 +1211,13 @@ The two controls are <span class="math notranslate nohighlight">\(\alpha\)</span
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.001294 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.001290 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000029 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000030 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
@@ -1232,10 +1232,10 @@ Total colors vs. total size: 20 vs 358  (94.41% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem&#39; was computed 3 times.
-Time to compute sparsity:   0.8520 sec
-Time to compute coloring:   0.5125 sec
+Time to compute sparsity:   0.8585 sec
+Time to compute coloring:   0.4985 sec
 Memory to compute coloring:   0.3750 MB
-Coloring created on: 2025-07-29 19:38:38
+Coloring created on: 2025-07-30 17:10:44
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>+------------------------------------------------------------------------------+
@@ -1280,11 +1280,11 @@ Coloring created on: 2025-07-29 19:38:38
 +------------------------------------------------------------------------------+
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/tmp/ipykernel_4103/3809073875.py:102: RuntimeWarning: invalid value encountered in divide
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/tmp/ipykernel_4167/3809073875.py:102: RuntimeWarning: invalid value encountered in divide
   outputs[&#39;gammadot&#39;] = lift / (m * v) * c_beta + c_gamma * (v / r - g / v)
-/tmp/ipykernel_4103/3809073875.py:102: RuntimeWarning: divide by zero encountered in divide
+/tmp/ipykernel_4167/3809073875.py:102: RuntimeWarning: divide by zero encountered in divide
   outputs[&#39;gammadot&#39;] = lift / (m * v) * c_beta + c_gamma * (v / r - g / v)
-/tmp/ipykernel_4103/3809073875.py:104: RuntimeWarning: invalid value encountered in divide
+/tmp/ipykernel_4167/3809073875.py:104: RuntimeWarning: invalid value encountered in divide
   outputs[&#39;psidot&#39;] = lift * s_beta / (m * v * c_gamma) + \
 </pre></div>
 </div>
@@ -1342,11 +1342,11 @@ Coloring created on: 2025-07-29 19:38:38
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                   24.9347
-       User Objective Time :       0.3624
-       User Sensitivity Time :     3.6162
-       Interface Time :            2.7979
-       Opt Solver Time:           18.1581
+    Total Time:                   24.9783
+       User Objective Time :       0.3816
+       User Sensitivity Time :     3.6663
+       Interface Time :            2.7877
+       Opt Solver Time:           18.1428
     Calls to Objective Function :     274
     Calls to Sens Function :          141
 
@@ -2062,11 +2062,11 @@ Coloring created on: 2025-07-29 19:38:38
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 275
-  runtime     : 2.6415E+01 s
+  runtime     : 2.6470E+01 s
   model_evals : 275
-  model_time  : 2.6108E-01 s
+  model_time  : 2.7592E-01 s
   deriv_evals : 141
-  deriv_time  : 2.7549E+00 s
+  deriv_time  : 2.7848E+00 s
   exit_status : SUCCESS
 </pre></div>
 </div>
