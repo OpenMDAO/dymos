@@ -384,7 +384,6 @@ def configure_states_introspection(state_options, time_options, control_options,
         # Automatically determine targets of state if left _unspecified
         targets = _get_targets_metadata(ode_inputs, state_name,
                                         user_targets=options['targets'])
-
         options['targets'] = list(targets.keys())
         if targets:
             if is_unspecified(options['units']):
@@ -874,7 +873,7 @@ def _configure_constraint_introspection(phase):
                 con['shape'] = control_shape
                 con['units'] = control_units if con['units'] is None else con['units']
                 if has_boundary_ode and constraint_type in ('initial', 'final'):
-                    con['constraint_path'] = f'boundary_vals.{var}'
+                    con['constraint_path'] = f'control_boundary_values:{var}'
                 else:
                     con['constraint_path'] = f'timeseries.{prefix}{var}'
 
@@ -887,7 +886,7 @@ def _configure_constraint_introspection(phase):
                 con['units'] = get_rate_units(control_units, time_units, deriv=1) \
                     if con['units'] is None else con['units']
                 if has_boundary_ode and constraint_type in ('initial', 'final'):
-                    con['constraint_path'] = f'boundary_vals.{var}'
+                    con['constraint_path'] = f'control_boundary_rates:{var}'
                 else:
                     con['constraint_path'] = f'timeseries.{prefix}{var}'
 
@@ -900,7 +899,7 @@ def _configure_constraint_introspection(phase):
                 con['units'] = get_rate_units(control_units, time_units, deriv=2) \
                     if con['units'] is None else con['units']
                 if has_boundary_ode and constraint_type in ('initial', 'final'):
-                    con['constraint_path'] = f'boundary_vals.{var}'
+                    con['constraint_path'] = f'control_boundary_rates:{var}'
                 else:
                     con['constraint_path'] = f'timeseries.{prefix}{var}'
 
