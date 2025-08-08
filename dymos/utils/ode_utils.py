@@ -256,6 +256,7 @@ class ODEGroup(om.Group):
                 prom_kwargs['src_indices'] = np.zeros(num_nodes, dtype=int)
             self.promotes('exec_comp', **prom_kwargs)
 
+
 def _make_ode_system(ode_class, num_nodes, ode_init_kwargs=None, calc_exprs=None, parameter_options=None):
     """
     Instantiate the ODE system, optionally including an ExecComp.
