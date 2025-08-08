@@ -551,7 +551,7 @@ A to B in the shortest possible time.</em></p>
 without friction along the wire moves from point A to point B in minimum time.</p>
 <div class="cell tag_remove-input docutils container">
 <div class="cell_output docutils container">
-<img alt="../../_images/24645d418db05c196302dc7eb0717986320716ad4a453b80b6a00ba7e61fa7fa.png" src="../../_images/24645d418db05c196302dc7eb0717986320716ad4a453b80b6a00ba7e61fa7fa.png" />
+<img alt="../../_images/6a78f80fc85b72562d13616776d77919a023403e355f284a3b8e018318175fae.png" src="../../_images/6a78f80fc85b72562d13616776d77919a023403e355f284a3b8e018318175fae.png" />
 </div>
 </div>
 <section id="state-variables">
@@ -566,8 +566,8 @@ without friction along the wire moves from point A to point B in minimum time.</
 <section id="system-dynamics">
 <h2>System dynamics<a class="headerlink" href="#system-dynamics" title="Link to this heading">#</a></h2>
 <p>From the free-body diagram above, the evolution of the state variables is given by the following ordinary differential equations (ODE).</p>
-<div class="amsmath math notranslate nohighlight" id="equation-ae0d6933-beff-4bc0-b608-af5b329ad4ef">
-<span class="eqno">(13)<a class="headerlink" href="#equation-ae0d6933-beff-4bc0-b608-af5b329ad4ef" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-0099d7b6-5e5b-4ab0-b0ee-4121e71c772e">
+<span class="eqno">(13)<a class="headerlink" href="#equation-0099d7b6-5e5b-4ab0-b0ee-4121e71c772e" title="Permalink to this equation">#</a></span>\[\begin{align}
     \frac{d x}{d t} &amp;= v \sin(\theta) \\
     \frac{d y}{d t} &amp;= -v \cos(\theta) \\
     \frac{d v}{d t} &amp;= g \cos(\theta)
@@ -585,8 +585,8 @@ without friction along the wire moves from point A to point B in minimum time.</
 <p>In this case, starting point <strong>A</strong> is given as <em>(0, 10)</em>.
 The point moving along the curve will begin there with zero initial velocity.</p>
 <p>The initial conditions are:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-ae42bf93-02df-452f-9e98-26ce1077ea50">
-<span class="eqno">(14)<a class="headerlink" href="#equation-ae42bf93-02df-452f-9e98-26ce1077ea50" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-e3738d86-77be-45f1-a619-90fb90b002f4">
+<span class="eqno">(14)<a class="headerlink" href="#equation-e3738d86-77be-45f1-a619-90fb90b002f4" title="Permalink to this equation">#</a></span>\[\begin{align}
     x_0 &amp;= 0 \\
     y_0 &amp;= 10 \\
     v_0 &amp;= 0
@@ -594,8 +594,8 @@ The point moving along the curve will begin there with zero initial velocity.</p
 <p>The end point <strong>B</strong> is given as <em>(10, 5)</em>.
 The point will end there, but the velocity at that point is not constrained.</p>
 <p>The final conditions are:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-7a64a837-425e-43bf-9021-44386b37ddbb">
-<span class="eqno">(15)<a class="headerlink" href="#equation-7a64a837-425e-43bf-9021-44386b37ddbb" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-0c9925fe-4209-4ba7-9c95-6b2bfd925ffc">
+<span class="eqno">(15)<a class="headerlink" href="#equation-0c9925fe-4209-4ba7-9c95-6b2bfd925ffc" title="Permalink to this equation">#</a></span>\[\begin{align}
     x_f &amp;= 10 \\
     y_f &amp;= 5 \\
     v_f &amp;= \mathrm{free}
@@ -771,13 +771,13 @@ Component: BrachistochroneODE &#39;ode&#39;
 +---------------+----------------+---------------+---------------+------------------------+------------+
 | vdot          | v              |  0.000000e+00 |  0.000000e+00 |         (0.000000e+00) |            |
 +---------------+----------------+---------------+---------------+------------------------+------------+
-| xdot          | g              |  0.000000e+00 | -0.000000e+00 |         (0.000000e+00) |            |
+| xdot          | g              |  0.000000e+00 |  0.000000e+00 |         (0.000000e+00) |            |
 +---------------+----------------+---------------+---------------+------------------------+------------+
 | xdot          | theta          |  0.000000e+00 |  0.000000e+00 |         (0.000000e+00) |            |
 +---------------+----------------+---------------+---------------+------------------------+------------+
 | xdot          | v              |  0.000000e+00 |  0.000000e+00 |         (0.000000e+00) |            |
 +---------------+----------------+---------------+---------------+------------------------+------------+
-| ydot          | g              |  0.000000e+00 |  0.000000e+00 |         (0.000000e+00) |            |
+| ydot          | g              |  0.000000e+00 | -0.000000e+00 |         (0.000000e+00) |            |
 +---------------+----------------+---------------+---------------+------------------------+------------+
 | ydot          | theta          |  0.000000e+00 |  0.000000e+00 |         (0.000000e+00) |            |
 +---------------+----------------+---------------+---------------+------------------------+------------+
@@ -869,10 +869,10 @@ Total colors vs. total size: 8 vs 50  (84.00% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem2&#39; was computed 3 times.
-Time to compute sparsity:   0.0221 sec
-Time to compute coloring:   0.0363 sec
-Memory to compute coloring:   0.2500 MB
-Coloring created on: 2025-07-30 17:04:40
+Time to compute sparsity:   0.0227 sec
+Time to compute coloring:   0.0379 sec
+Memory to compute coloring:   0.1250 MB
+Coloring created on: 2025-08-08 20:08:31
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully    (Exit mode 0)
@@ -910,7 +910,7 @@ Optimization Complete
 Done simulating trajectory traj
 </pre></div>
 </div>
-<img alt="../../_images/71ff7a41b27764d569251801cf5fee15bfa97ab3b578af3a4734741f52bd8dd8.png" src="../../_images/71ff7a41b27764d569251801cf5fee15bfa97ab3b578af3a4734741f52bd8dd8.png" />
+<img alt="../../_images/93a681e48945eaaa672354c27751ce2417f96b368a8f6119c210aba8ecc7b36c.png" src="../../_images/93a681e48945eaaa672354c27751ce2417f96b368a8f6119c210aba8ecc7b36c.png" />
 </div>
 </div>
 </section>
@@ -1045,7 +1045,7 @@ Optimization Complete
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/923cf812be1b71df1635bf1c99866c3bb3f89a30079e10dcfa42c88e54ec26a6.png" src="../../_images/923cf812be1b71df1635bf1c99866c3bb3f89a30079e10dcfa42c88e54ec26a6.png" />
+<img alt="../../_images/7f00872166284c9a6df418eb04548c402f888fad7a83e2ee036c48871c354981.png" src="../../_images/7f00872166284c9a6df418eb04548c402f888fad7a83e2ee036c48871c354981.png" />
 </div>
 </div>
 </section>

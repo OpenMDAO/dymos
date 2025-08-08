@@ -524,18 +524,18 @@ document.write(`
 Patterson <span id="id1">[<a class="reference internal" href="#id22" title="Michael A Patterson, William W Hager, and Anil V Rao. A ph mesh refinement method for optimal control. Optimal Control Applications and Methods, 36(4):398–421, 2015.">PHR15</a>]</span>. In this problem we seek to minimize both
 the distance traveled when moving between fixed boundary conditions and
 also to minimize the control <span class="math notranslate nohighlight">\(u\)</span> used. The cost function to be minimized is:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-37aceec8-062c-4e36-820f-9382d07d0da8">
-<span class="eqno">(53)<a class="headerlink" href="#equation-37aceec8-062c-4e36-820f-9382d07d0da8" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-4d3efe5e-733c-41b6-8138-c7c6e442050e">
+<span class="eqno">(53)<a class="headerlink" href="#equation-4d3efe5e-733c-41b6-8138-c7c6e442050e" title="Permalink to this equation">#</a></span>\[\begin{align}
     J &amp;= \frac{1}{2} \int_{0}^{t_f} (x^2 + u^2) dt
 \end{align}\]</div>
 <p>The system is subject to the dynamic constraints:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-531ef5fc-a37e-46f7-99de-3a0f0ad235f4">
-<span class="eqno">(54)<a class="headerlink" href="#equation-531ef5fc-a37e-46f7-99de-3a0f0ad235f4" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-1d461115-fe5e-477f-8844-223693cee395">
+<span class="eqno">(54)<a class="headerlink" href="#equation-1d461115-fe5e-477f-8844-223693cee395" title="Permalink to this equation">#</a></span>\[\begin{align}
     \frac{dx}{dt} &amp;= -x + u
 \end{align}\]</div>
 <p>The boundary conditions are:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-ccd96b58-6a39-4ab0-990b-191101d35f1a">
-<span class="eqno">(55)<a class="headerlink" href="#equation-ccd96b58-6a39-4ab0-990b-191101d35f1a" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-b836a912-5c19-4112-b892-370468f109ba">
+<span class="eqno">(55)<a class="headerlink" href="#equation-b836a912-5c19-4112-b892-370468f109ba" title="Permalink to this equation">#</a></span>\[\begin{align}
     x(t_0) &amp;= 1.5 \\
     x(t_f) &amp;= 1
 \end{align}\]</div>
@@ -545,14 +545,14 @@ the problem exhibits a <em>dive</em>, <em>cruise</em>, and <em>resurface</em> ty
 structure, where the all interesting behavior occurs at the beginning and
 end while remaining relatively constant in the middle.</p>
 <p>This problem has a known analytic optimal solution:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-ab7a0d06-94f2-473e-b09f-bc70cd566804">
-<span class="eqno">(56)<a class="headerlink" href="#equation-ab7a0d06-94f2-473e-b09f-bc70cd566804" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-ebff5bfd-7d0e-48b5-9db6-7b6b4426163c">
+<span class="eqno">(56)<a class="headerlink" href="#equation-ebff5bfd-7d0e-48b5-9db6-7b6b4426163c" title="Permalink to this equation">#</a></span>\[\begin{align}
     x^*(t) &amp;= c_1 e^{\sqrt{2} t} + c_2 e^{-\sqrt{2} t} \\
       u^*(t) &amp;= \dot{x}^*(t) + x^*(t)
 \end{align}\]</div>
 <p>where:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-fb5513a2-470c-4f9c-83ce-0781f9157ea8">
-<span class="eqno">(57)<a class="headerlink" href="#equation-fb5513a2-470c-4f9c-83ce-0781f9157ea8" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-2ec24e18-d003-4ddd-b43a-8004446b8c9c">
+<span class="eqno">(57)<a class="headerlink" href="#equation-2ec24e18-d003-4ddd-b43a-8004446b8c9c" title="Permalink to this equation">#</a></span>\[\begin{align}
     c_1 &amp;= \frac{1.5 e^{-\sqrt{2} t_f} - 1}{e^{-\sqrt{2} t_f} - e^{\sqrt{2} t_f}} \\
     c_2 &amp;= \frac{1 - 1.5 e^{\sqrt{2} t_f}}{e^{-\sqrt{2} t_f} - e^{\sqrt{2} t_f}}
 \end{align}\]</div>
@@ -666,25 +666,25 @@ To counter this, grid refinement algorithms are used to assess error in the inte
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000357 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000407 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000019 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000018 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000199 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000152 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000060 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000042 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
@@ -696,13 +696,13 @@ To counter this, grid refinement algorithms are used to assess error in the inte
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.001505 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.001275 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000027 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000031 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
@@ -714,43 +714,43 @@ To counter this, grid refinement algorithms are used to assess error in the inte
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000201 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000242 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000017 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000012 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000111 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000145 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000036 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000037 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000003 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000002 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.000982 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.001099 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000025 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000028 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
@@ -765,10 +765,10 @@ Total colors vs. total size: 9 vs 80  (88.75% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem&#39; was computed 3 times.
-Time to compute sparsity:   0.0993 sec
-Time to compute coloring:   0.0616 sec
+Time to compute sparsity:   0.1029 sec
+Time to compute coloring:   0.0652 sec
 Memory to compute coloring:   0.3750 MB
-Coloring created on: 2025-07-30 17:07:30
+Coloring created on: 2025-08-08 20:11:14
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -777,11 +777,11 @@ Coloring created on: 2025-07-30 17:07:30
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    0.5854
-       User Objective Time :       0.0124
-       User Sensitivity Time :     0.4912
-       Interface Time :            0.0403
-       Opt Solver Time:            0.0416
+    Total Time:                    0.6125
+       User Objective Time :       0.0140
+       User Sensitivity Time :     0.5157
+       Interface Time :            0.0409
+       Opt Solver Time:            0.0420
     Calls to Objective Function :      16
     Calls to Sens Function :           14
 
@@ -1043,10 +1043,10 @@ Total colors vs. total size: 15 vs 140  (89.29% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem&#39; was computed 3 times.
-Time to compute sparsity:   0.1878 sec
-Time to compute coloring:   0.1146 sec
+Time to compute sparsity:   0.1908 sec
+Time to compute coloring:   0.1225 sec
 Memory to compute coloring:   0.0000 MB
-Coloring created on: 2025-07-30 17:07:31
+Coloring created on: 2025-08-08 20:11:16
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1055,11 +1055,11 @@ Coloring created on: 2025-07-30 17:07:31
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    0.2704
-       User Objective Time :       0.0075
-       User Sensitivity Time :     0.0632
-       Interface Time :            0.0570
-       Opt Solver Time:            0.1426
+    Total Time:                    0.2822
+       User Objective Time :       0.0103
+       User Sensitivity Time :     0.0676
+       Interface Time :            0.0599
+       Opt Solver Time:            0.1444
     Calls to Objective Function :       9
     Calls to Sens Function :            8
 
@@ -1467,10 +1467,10 @@ Total colors vs. total size: 15 vs 294  (94.90% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem&#39; was computed 3 times.
-Time to compute sparsity:   0.4275 sec
-Time to compute coloring:   0.2458 sec
+Time to compute sparsity:   0.4321 sec
+Time to compute coloring:   0.2548 sec
 Memory to compute coloring:   0.0000 MB
-Coloring created on: 2025-07-30 17:07:32
+Coloring created on: 2025-08-08 20:11:17
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -1479,11 +1479,11 @@ Coloring created on: 2025-07-30 17:07:32
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    2.1783
-       User Objective Time :       0.0100
-       User Sensitivity Time :     0.0877
-       Interface Time :            0.2438
-       Opt Solver Time:            1.8368
+    Total Time:                    2.1892
+       User Objective Time :       0.0101
+       User Sensitivity Time :     0.0889
+       Interface Time :            0.2446
+       Opt Solver Time:            1.8457
     Calls to Objective Function :       9
     Calls to Sens Function :            9
 
@@ -2287,10 +2287,10 @@ Total colors vs. total size: 29 vs 448  (93.53% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem&#39; was computed 3 times.
-Time to compute sparsity:   0.7126 sec
-Time to compute coloring:   0.3999 sec
+Time to compute sparsity:   0.7212 sec
+Time to compute coloring:   0.4088 sec
 Memory to compute coloring:   0.3750 MB
-Coloring created on: 2025-07-30 17:07:36
+Coloring created on: 2025-08-08 20:11:21
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -2299,11 +2299,11 @@ Coloring created on: 2025-07-30 17:07:36
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    2.8597
-       User Objective Time :       0.0035
-       User Sensitivity Time :     0.0547
-       Interface Time :            0.1891
-       Opt Solver Time:            2.6125
+    Total Time:                    2.8511
+       User Objective Time :       0.0034
+       User Sensitivity Time :     0.0564
+       Interface Time :            0.1903
+       Opt Solver Time:            2.6010
     Calls to Objective Function :       3
     Calls to Sens Function :            3
 
@@ -3506,10 +3506,10 @@ Total colors vs. total size: 31 vs 658  (95.29% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem&#39; was computed 3 times.
-Time to compute sparsity:   1.1887 sec
-Time to compute coloring:   0.6149 sec
-Memory to compute coloring:   0.8750 MB
-Coloring created on: 2025-07-30 17:07:41
+Time to compute sparsity:   1.1868 sec
+Time to compute coloring:   0.6359 sec
+Memory to compute coloring:   0.7500 MB
+Coloring created on: 2025-08-08 20:11:26
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -3518,11 +3518,11 @@ Coloring created on: 2025-07-30 17:07:41
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    6.4891
-       User Objective Time :       0.0036
-       User Sensitivity Time :     0.0480
-       Interface Time :            0.2713
-       Opt Solver Time:            6.1662
+    Total Time:                    6.4472
+       User Objective Time :       0.0035
+       User Sensitivity Time :     0.0472
+       Interface Time :            0.2706
+       Opt Solver Time:            6.1258
     Calls to Objective Function :       3
     Calls to Sens Function :            2
 
@@ -5257,10 +5257,10 @@ Total colors vs. total size: 31 vs 792  (96.09% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem&#39; was computed 3 times.
-Time to compute sparsity:   1.5131 sec
-Time to compute coloring:   0.7620 sec
+Time to compute sparsity:   1.5287 sec
+Time to compute coloring:   0.7870 sec
 Memory to compute coloring:   1.0000 MB
-Coloring created on: 2025-07-30 17:07:51
+Coloring created on: 2025-08-08 20:11:35
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -5269,11 +5269,11 @@ Coloring created on: 2025-07-30 17:07:51
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    6.7266
+    Total Time:                    6.4057
        User Objective Time :       0.0025
-       User Sensitivity Time :     0.0281
-       Interface Time :            0.2071
-       Opt Solver Time:            6.4890
+       User Sensitivity Time :     0.0278
+       Interface Time :            0.2069
+       Opt Solver Time:            6.1685
     Calls to Objective Function :       2
     Calls to Sens Function :            1
 
@@ -7350,10 +7350,10 @@ Total colors vs. total size: 31 vs 816  (96.20% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem&#39; was computed 3 times.
-Time to compute sparsity:   1.5918 sec
-Time to compute coloring:   0.7840 sec
-Memory to compute coloring:   0.2500 MB
-Coloring created on: 2025-07-30 17:08:00
+Time to compute sparsity:   1.6140 sec
+Time to compute coloring:   0.8156 sec
+Memory to compute coloring:   0.1250 MB
+Coloring created on: 2025-08-08 20:11:45
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -7362,11 +7362,11 @@ Coloring created on: 2025-07-30 17:08:00
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    7.0989
+    Total Time:                    6.8885
        User Objective Time :       0.0025
-       User Sensitivity Time :     0.0291
-       Interface Time :            0.2205
-       Opt Solver Time:            6.8468
+       User Sensitivity Time :     0.0294
+       Interface Time :            0.2265
+       Opt Solver Time:            6.6301
     Calls to Objective Function :       2
     Calls to Sens Function :            1
 
@@ -9499,11 +9499,11 @@ Successfully completed grid refinement.
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 4
-  runtime     : 9.6200E+00 s
+  runtime     : 9.4699E+00 s
   model_evals : 4
-  model_time  : 2.9684E-03 s
+  model_time  : 2.9765E-03 s
   deriv_evals : 2
-  deriv_time  : 4.6749E-02 s
+  deriv_time  : 4.7100E-02 s
   exit_status : SUCCESS
 </pre></div>
 </div>
@@ -9526,7 +9526,7 @@ Driver:  pyOptSparseDriver
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/c00d3373ce8da6615c5f6bbdfa3008f0e1dc1d0051ea195b8ebbc868454512a2.png" src="../../_images/c00d3373ce8da6615c5f6bbdfa3008f0e1dc1d0051ea195b8ebbc868454512a2.png" />
+<img alt="../../_images/9f8da34dc1c755e3be78f0b654564a726d2aa7e708399ae65b64ff25fab150ab.png" src="../../_images/9f8da34dc1c755e3be78f0b654564a726d2aa7e708399ae65b64ff25fab150ab.png" />
 </div>
 </div>
 </section>
