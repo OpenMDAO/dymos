@@ -1754,15 +1754,21 @@ class Phase(om.Group):
             self._calc_exprs[expr] = kwargs
 
         output_name = expr.split('=')[0].strip()
+
+        if output_name in kwargs and 'promote_as' in kwargs[output_name]:
+            prom_output_name = kwargs[output_name]['promote_as']
+        else:
+            prom_output_name = output_name
+
         if add_timeseries and output_name not in self._timeseries['timeseries']['outputs']:
             output = expr.split('=')[0].strip()
             if 'units' in kwargs:
                 units = kwargs['units']
             elif output in kwargs:
-                units = kwargs[output]['units']
+                units = kwargs[output].get('units', None)
             else:
                 units = None
-            self.add_timeseries_output(output_name, units=units)
+            self.add_timeseries_output(prom_output_name, units=units)
 
     def set_time_options(self, units=_unspecified, fix_initial=_unspecified,
                          fix_duration=_unspecified, input_initial=_unspecified,

@@ -266,7 +266,10 @@ def configure_parameters_introspection(parameter_options, ode):
                              f"targets is tagged with 'dymos.static_target':\n{static_tagged_targets}")
 
         if is_unspecified(options['units']):
-            options['units'] = _get_common_metadata(targets, metadata_key='units')
+            try:
+                options['units'] = _get_common_metadata(targets, metadata_key='units')
+            except RuntimeError:
+                raise RuntimeError(f'{ode.msginfo}: Unable to find units for parameter {name}')
 
         # Check that all targets have the same shape.
         tgt_shapes = {}
