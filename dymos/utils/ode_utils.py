@@ -170,7 +170,7 @@ class ODEGroup(om.Group):
 
         self.add_subsystem('user_ode', ode, promotes_inputs=['*'], promotes_outputs=['*'])
         ec = om.ExecComp()
-        self.add_subsystem('exec_comp', ec, promotes_inputs=['*'], promotes_outputs=['*'])
+        self.add_subsystem('exec_comp', ec)
 
     def configure(self):
         """
@@ -181,6 +181,8 @@ class ODEGroup(om.Group):
         seen_kwargs = set()
         parser = ExprParser()
         ec = self._get_subsystem('exec_comp')
+
+        promotes = {}
 
         for expr, expr_kwargs in self._calc_exprs.items():
             common_units = _unspecified
@@ -208,6 +210,10 @@ class ODEGroup(om.Group):
                 if common_units is not _unspecified:
                     _expr_kwargs[output_var]['units'] = common_units
 
+            promotes[output_var] = {'promote_as': output_var}
+            if 'promote_as' in _expr_kwargs[output_var]:
+                promotes[output_var]['promote_as'] = _expr_kwargs[output_var].pop('promote_as')
+
             scalar_src_idxs = []
             param_options = self._parameter_options or {}
             scalar_sources = list(param_options.keys()) + ['t_initial', 't_duration', 't_final']
@@ -230,14 +236,25 @@ class ODEGroup(om.Group):
                     else:
                         _expr_kwargs[exec_var_name]['shape'] = (num_nodes,) + _expr_kwargs[exec_var_name]['shape']
 
+                    promotes[exec_var_name] = {'promote_as': _expr_kwargs[exec_var_name].get('promote_as', exec_var_name),
+                                               'scalar_src_idxs': False}
+                    if 'promote_as' in _expr_kwargs[exec_var_name]:
+                        _expr_kwargs[exec_var_name].pop('promote_as')
+
                     if exec_var_name in scalar_sources:
                         scalar_src_idxs.append(exec_var_name)
+                        promotes[exec_var_name]['scalar_src_idxs'] = True
 
             seen_kwargs |= _expr_kwargs.keys()
+
             ec.add_expr(expr, **_expr_kwargs)
-            if scalar_src_idxs:
-                self.promotes('exec_comp', inputs=scalar_src_idxs,
-                              src_indices=np.zeros(num_nodes, dtype=int))
+
+        for var, meta in promotes.items():
+            prom_as = [(var, meta['promote_as'])]
+            prom_kwargs = {'any': prom_as}
+            if meta.get('scalar_src_idxs', False):
+                prom_kwargs['src_indices'] = np.zeros(num_nodes, dtype=int)
+            self.promotes('exec_comp', **prom_kwargs)
 
 
 def _make_ode_system(ode_class, num_nodes, ode_init_kwargs=None, calc_exprs=None, parameter_options=None):

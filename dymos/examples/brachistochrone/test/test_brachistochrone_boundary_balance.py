@@ -73,6 +73,10 @@ class GuidedBrachistochroneODE(om.JaxExplicitComponent):
 @unittest.skipIf(om_version()[0] <= (3, 37, 0), 'Requires OpenMDAO version later than 3.37.0')
 @use_tempdirs
 class TestBrachistochroneBoundaryBalance(unittest.TestCase):
+    """
+    This test checks the boundary balance capability and tests the promote_as capability
+    in add_calc_expr.
+    """
 
     def make_problem(self, tx):
         p = om.Problem(model=om.Group())
@@ -91,10 +95,10 @@ class TestBrachistochroneBoundaryBalance(unittest.TestCase):
         phase.add_parameter('g', units='m/s**2')
         phase.add_parameter('theta_rate', units='deg/s')
 
-        phase.add_calc_expr('v2 = v * v')
+        phase.add_calc_expr('v2 = v * v', add_timeseres=True,
+                            v2={'units': 'm**2/s**2', 'promote_as': 'v:squared'})
 
         phase.add_timeseries_output('theta', units='deg')
-        phase.add_timeseries_output('v2', units='m**2/s**2')
 
         phase.add_boundary_balance(param='t_duration', name='x', tgt_val=10.0, loc='final', lower=0.1, upper=5.0)
         phase.add_boundary_balance(param='theta_rate', name='y', tgt_val=5.0, loc='final', lower=0.1, upper=100.0, res_ref=1.0)
@@ -136,7 +140,7 @@ class TestBrachistochroneBoundaryBalance(unittest.TestCase):
 
         thetaf = p.get_val('traj0.phase0.timeseries.theta')[-1]
 
-        v2_f = p.get_val('traj0.phase0.timeseries.v2')[-1]
+        v2_f = p.get_val('traj0.phase0.timeseries.v:squared')[-1]
 
         assert_almost_equal(t_initial, 0.0)
         assert_almost_equal(x0, 0.0)
@@ -156,7 +160,7 @@ class TestBrachistochroneBoundaryBalance(unittest.TestCase):
         self.assertNotIn('traj0.phase0.timeseries.theta_rate', outputs)
 
     def test_picard(self):
-        for grid_type in 'cgl', 'lgl':
+        for grid_type in ['cgl', 'lgl']:
             with self.subTest(f'{grid_type=}'):
                 tx = dm.PicardShooting(num_segments=1, nodes_per_seg=21, grid_type='cgl')
                 p = self.make_problem(tx=tx)
