@@ -25,7 +25,7 @@ from ..transcriptions import ExplicitShooting, GaussLobatto, Radau
 from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_time_introspection, _configure_constraint_introspection, \
     configure_controls_introspection, configure_parameters_introspection, \
-    configure_timeseries_output_introspection, classify_var
+    configure_timeseries_output_introspection, classify_var, auto_add_parameters
 from ..utils.misc import _unspecified, create_subprob
 from ..utils.lgl import lgl
 
@@ -198,6 +198,8 @@ class Phase(om.Group):
                              desc='Options for each control in this phase.')
         self.options.declare('boundary_balance_options', types=dict, default={},
                              desc='Options specifying boundary conditions to be satisfied with a solver.')
+        self.options.declare('auto_add_parameters', types=bool, default=True,
+                             desc='If True, add any otherwise-unconnected ODE inputs add non-optimal parameters.')
 
     @property
     def time_options(self):
@@ -2268,6 +2270,9 @@ class Phase(om.Group):
         # If this phase exists within a Trajectory, the trajectory will finalize them during setup.
         transcription = self.options['transcription']
         ode = transcription._get_ode(self)
+
+        if self.options['auto_add_parameters']:
+            auto_add_parameters(ode, self)
 
         configure_time_introspection(self.time_options, ode)
 

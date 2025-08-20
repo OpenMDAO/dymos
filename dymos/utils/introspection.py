@@ -70,6 +70,138 @@ def classify_var(var, time_options, state_options, parameter_options, control_op
     return 'ode'
 
 
+def auto_add_parameters(ode, phase):
+    """
+    Introspect the ODE and add any otherwise-unconnected inputs as parameters in the phase.
+
+    Parameters
+    ----------
+    ode : System
+        The ode system in which we are finding unconnected inputs to turn into parameters.
+    phase : Phase
+        The dymos phase to which were are adding parameters.
+    """
+    if hasattr(ode, '_setup_global_connections'):
+        ode._setup_global_connections()
+        connected_inputs = {ode._resolver.abs2prom(abs_tgt, 'input')
+                            for abs_tgt in ode._conn_global_abs_in2out}
+    else:
+        connected_inputs = set()
+
+    # Collect the inputs and outputs from the ODE
+    # Keep them in a dict by promoted name
+    ode_inputs = ode.get_io_metadata(iotypes=['input'], metadata_keys=['tags', 'units'],
+                                        get_remote=True)
+    prom_inputs = {meta['prom_name']: meta for meta in ode_inputs.values()}
+
+    # The unconnected inputs are those promoted inputs not involved in any
+    # connections to outputs. These are available to be targets from the phase
+    # variables.
+    unconn_inputs = set(prom_inputs.keys()) - connected_inputs
+
+    # Find Time Targets
+    time_name = phase.time_options['name']
+    t_phase_name = f'{time_name}_phase'
+    for name, key in [(time_name, 'targets'),
+                     (t_phase_name, 'time_phase_targets'),
+                     ('t_initial', 't_initial_targets'),
+                     ('t_duration', 't_duration_targets')]:
+        if is_unspecified(phase.time_options[key]):
+            if time_name in unconn_inputs:
+                phase.time_options[key] = [name]
+                unconn_inputs -= {name}
+            else:
+                phase.time_options[key] = []
+        else:
+            invalid_targets = set(phase.time_options[key])- unconn_inputs
+            if invalid_targets:
+                raise ValueError(f'{phase.msginfo}: One or more {name} targets is not'
+                f' available for connection in the ODE:\n{"\n  ".join(sorted(invalid_targets))}')
+
+            if name in (time_name, t_phase_name) and any(['dymos.static_target' in prom_inputs[target]['tags']
+                                                         for target in phase.time_options[key]]):
+                listing = '\n  '.join([f'{target} - {prom_inputs[target]["tags"]}' for target in phase.time_options[key]])
+                raise ValueError(f"{phase.msginfo}: '{name}' cannot be connected to its targets "
+                                    "because one or more targets are tagged with 'dymos.static_target'.\n"
+                                    f"{listing}")
+            unconn_inputs -= set(phase.time_options[key])
+
+    # Find Control Targets
+    for name in phase.control_options:
+        for targ_name, key in [(name,'targets'),
+                              (f'{name}_rate','rate_targets'),
+                              (f'{name}_rate2', 'rate2_targets')]:
+            if is_unspecified(phase.control_options[name][key]):
+                if targ_name in unconn_inputs:
+                    phase.control_options[name][key] = [targ_name]
+                    unconn_inputs -= {targ_name}
+                else:
+                    phase.control_options[name][key] = []
+            else:
+                invalid_targets = set(phase.control_options[name][key]) - unconn_inputs
+                if invalid_targets:
+                    raise ValueError(f'{phase.msginfo}: One or more {name} targets is not'
+                                     f' available for connection in the ODE:\n{"\n  ".join(sorted(invalid_targets))}')
+
+                if any(['dymos.static_target' in prom_inputs[target]['tags'] for target in phase.control_options[name][key]]):
+                    listing = '\n  '.join([f'{target} - {prom_inputs[target]["tags"]}'
+                                           for target in phase.control_options[name][key]])
+                    raise ValueError(f"{phase.msginfo}: '{targ_name}' cannot be connected to its targets "
+                                    "because one or more targets are tagged with 'dymos.static_target'.\n"
+                                    f"{listing}")
+                unconn_inputs -= set(phase.control_options[name][key])
+
+    # Find State Targets
+    for name in phase.state_options:
+        for targ_name, key in [(name,'targets')]:
+            if is_unspecified(phase.state_options[name][key]):
+                if targ_name in unconn_inputs:
+                    phase.state_options[name][key] = [targ_name]
+                    unconn_inputs -= {targ_name}
+                else:
+                    phase.state_options[name][key] = []
+            else:
+                invalid_targets = set(phase.state_options[name][key]) - unconn_inputs
+                if invalid_targets:
+                    raise ValueError(f'{phase.msginfo}: One or more {name} targets is not'
+                                     f' available for connection in the ODE:\n{"\n  ".join(sorted(invalid_targets))}')
+
+                if any(['dymos.static_target' in prom_inputs[target]['tags'] for target in phase.state_options[name][key]]):
+                    listing = '\n  '.join([f'{target} - {prom_inputs[target]["tags"]}'
+                                           for target in phase.state_options[name][key]])
+                    raise ValueError(f"{phase.msginfo}: '{targ_name}' cannot be connected to its targets "
+                                    "because one or more targets are tagged with 'dymos.static_target'.\n"
+                                    f"{listing}")
+                unconn_inputs -= set(phase.state_options[name][key])
+
+    # Find Explicit Parameter Targets
+    for name in phase.parameter_options:
+        for targ_name, key in [(name,'targets')]:
+            if is_unspecified(phase.parameter_options[name][key]):
+                if targ_name in unconn_inputs:
+                    phase.parameter_options[name][key] = [targ_name]
+                    unconn_inputs -= {targ_name}
+                else:
+                    phase.parameter_options[name][key] = []
+            else:
+                invalid_targets = set(phase.parameter_options[name][key]) - unconn_inputs
+                if invalid_targets:
+                    raise ValueError(f'{phase.msginfo}: One or more {name} targets is not'
+                                     f' available for connection in the ODE:\n{"\n  ".join(sorted(invalid_targets))}')
+
+                if any(['dymos.static_target' in prom_inputs[target]['tags'] for target in phase.parameter_options[name][key]]):
+                    listing = '\n  '.join([f'{target} - {prom_inputs[target]["tags"]}'
+                                           for target in phase.parameter_options[name][key]])
+                    raise ValueError(f"{phase.msginfo}: '{targ_name}' cannot be connected to its targets "
+                                    "because one or more targets are tagged with 'dymos.static_target'.\n"
+                                    f"{listing}")
+                unconn_inputs -= set(phase.parameter_options[name][key])
+
+    # Add the remaining unconnected inputs as parameters
+    for inp in unconn_inputs:
+        phase.add_parameter(inp, opt=False)
+
+
 def get_promoted_vars(ode, iotypes, metadata_keys=None, get_remote=True):
     """
     Returns a dictionary mapping the promoted names of all inputs in a system to their associated metadata.

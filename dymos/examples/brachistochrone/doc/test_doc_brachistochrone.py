@@ -216,6 +216,75 @@ class TestBrachistochroneForDocs(unittest.TestCase):
 
         plt.show()
 
+    def test_brachistochrone_auto_add_parameter(self):
+        import openmdao.api as om
+        from openmdao.utils.assert_utils import assert_near_equal
+        import dymos as dm
+        from dymos.examples.plotting import plot_results
+        from dymos.examples.brachistochrone import BrachistochroneODE
+
+        #
+        # Initialize the Problem and the optimization driver
+        #
+        p = om.Problem(model=om.Group())
+        p.driver = om.ScipyOptimizeDriver()
+        p.driver.declare_coloring()
+
+        #
+        # Create a trajectory and add a phase to it
+        #
+        traj = p.model.add_subsystem('traj', dm.Trajectory())
+
+        phase = traj.add_phase('phase0',
+                               dm.Phase(ode_class=BrachistochroneODE,
+                                        transcription=dm.Radau(num_segments=10),
+                                        auto_add_parameters=True))
+
+        #
+        # Set the variables
+        #
+        phase.set_time_options(fix_initial=True, duration_bounds=(.5, 10))
+
+        phase.add_state('x', fix_initial=True, fix_final=True)
+        phase.add_state('y', fix_initial=True, fix_final=True)
+        phase.add_state('v', fix_initial=True, fix_final=False)
+        phase.add_control('theta', continuity=True, rate_continuity=True,
+                          units='deg', lower=0.01, upper=179.9)
+
+        # Note: No parameter explicitly added.
+        #
+        # Minimize time at the end of the phase
+        #
+        phase.add_objective('time', loc='final', scaler=10)
+
+        p.model.linear_solver = om.DirectSolver()
+
+        #
+        # Setup the Problem
+        #
+        p.setup()
+
+        #
+        # Set the initial values
+        #
+        phase.set_time_val(initial=0.0, duration=2.0)
+
+        phase.set_state_val('x', [0, 10])
+        phase.set_state_val('y', [10, 5])
+        phase.set_state_val('v', [0, 9.9])
+        phase.set_parameter_val('g', 9.80665)
+
+        phase.set_control_val('theta', [5, 100.5])
+
+        #
+        # Solve for the optimal trajectory
+        #
+        dm.run_problem(p, simulate=True)
+
+        # Test the results
+        assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1], 1.8016,
+                          tolerance=1.0E-3)
+
     @require_pyoptsparse(optimizer='IPOPT')
     def test_brachistochrone_for_docs_coloring_demo(self):
         import openmdao.api as om
