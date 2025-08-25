@@ -199,7 +199,11 @@ def auto_add_parameters(ode, phase):
 
     # Add the remaining unconnected inputs as parameters
     for inp in unconn_inputs:
-        phase.add_parameter(inp, opt=False)
+        if '.' in inp:
+            name = inp.split('.')[-1]
+            phase.add_parameter(name, opt=False, targets=[inp])
+        else:
+            phase.add_parameter(inp, opt=False)
 
 
 def get_promoted_vars(ode, iotypes, metadata_keys=None, get_remote=True):
