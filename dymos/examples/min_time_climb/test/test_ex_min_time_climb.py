@@ -17,15 +17,12 @@ from dymos.utils.introspection import get_promoted_vars
 import dymos as dm
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse, set_env_vars_context
 
-
-bokeh_available = importlib.util.find_spec('bokeh') is not None
-
-
-import openmdao.api as om
 from dymos.models.atmosphere import USatm1976Comp
 from dymos.examples.min_time_climb.aero import AeroGroup
 from dymos.examples.min_time_climb.prop import PropGroup
 from dymos.models.eom import FlightPathEOM2D
+
+bokeh_available = importlib.util.find_spec('bokeh') is not None
 
 
 class MinTimeClimbODE(om.Group):
@@ -345,7 +342,6 @@ class TestMinTimeClimb(unittest.TestCase):
         input_vars = [meta['prom_name'] for meta in vars.values() if meta['io'] == 'input']
         param_vars = [var for var in input_vars if var.startswith('parameters:')]
         self.assertTrue(all(param_vars[i] <= param_vars[i + 1] for i in range(len(param_vars) - 1)))
-
 
 
 @use_tempdirs
