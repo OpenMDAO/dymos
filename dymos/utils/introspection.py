@@ -200,7 +200,15 @@ def auto_add_parameters(ode, phase):
     # Add the remaining unconnected inputs as parameters
     for inp in unconn_inputs:
         if '.' in inp:
-            name = inp.split('.')[-1]
+            # Handle parameters nested in the ODE
+            parts = inp.split('.')
+            # Handle duplicate names at different branches of the ODE
+            for i in range(-1, -len(parts), -1):
+                name = '_'.join(inp.split('.')[i:])
+                if name not in phase.parameter_options:
+                    break
+            else:
+                name = '_'.join(parts)
             phase.add_parameter(name, opt=False, targets=[inp])
         else:
             phase.add_parameter(inp, opt=False)
