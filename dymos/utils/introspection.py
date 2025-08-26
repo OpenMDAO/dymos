@@ -5,7 +5,7 @@ import openmdao.api as om
 import numpy as np
 from openmdao.utils.units import simplify_unit
 from openmdao.utils.general_utils import ensure_compatible
-from dymos.utils.misc import _unspecified, is_unspecified, is_none_or_unspecified
+from dymos.utils.misc import _unspecified, is_unspecified, is_none_or_unspecified, om_version
 from ..phase.options import StateOptionsDictionary, TimeseriesOutputOptionsDictionary
 from .misc import get_rate_units
 
@@ -81,6 +81,9 @@ def auto_add_parameters(ode, phase):
     phase : Phase
         The dymos phase to which were are adding parameters.
     """
+    if om_version()[0] < (3, 39, 0):
+        raise RuntimeError('The use of the auto_add_parameters capability requires OpenMDAO 3.39.0 or later.')
+
     if hasattr(ode, '_setup_global_connections'):
         ode._setup_global_connections()
         connected_inputs = {ode._resolver.abs2prom(abs_tgt, 'input')
