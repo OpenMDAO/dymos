@@ -198,7 +198,7 @@ class Phase(om.Group):
                              desc='Options for each control in this phase.')
         self.options.declare('boundary_balance_options', types=dict, default={},
                              desc='Options specifying boundary conditions to be satisfied with a solver.')
-        self.options.declare('auto_add_parameters', types=bool, default=True,
+        self.options.declare('auto_add_parameters', types=bool, default=False,
                              desc='If True, add any otherwise-unconnected ODE inputs add non-optimal parameters.')
 
     @property
