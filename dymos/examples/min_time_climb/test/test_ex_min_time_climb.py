@@ -340,7 +340,12 @@ class TestMinTimeClimb(unittest.TestCase):
 
         self._test_timeseries_units(p)
 
-        p.model.list_vars()
+        # Assert that parameters are in sorted order.
+        vars = p.model.traj.phases.phase0.param_comp.list_vars(out_stream=None, return_format='dict')
+        input_vars = [meta['prom_name'] for var, meta in vars.items() if meta['io'] == 'input']
+        param_vars = [var for var in input_vars if var.startswith('parameters:')]
+        self.assertTrue(all(param_vars[i] <= param_vars[i + 1] for i in range(len(param_vars) - 1)))
+
 
 
 @use_tempdirs
