@@ -15,15 +15,58 @@ from dymos.utils.testing_utils import assert_timeseries_near_equal, _get_reports
 from dymos.utils.introspection import get_promoted_vars
 
 import dymos as dm
-from dymos.examples.min_time_climb.min_time_climb_ode import MinTimeClimbODE
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse, set_env_vars_context
 
 
 bokeh_available = importlib.util.find_spec('bokeh') is not None
 
 
+import openmdao.api as om
+from dymos.models.atmosphere import USatm1976Comp
+from dymos.examples.min_time_climb.aero import AeroGroup
+from dymos.examples.min_time_climb.prop import PropGroup
+from dymos.models.eom import FlightPathEOM2D
+
+
+class MinTimeClimbODE(om.Group):
+
+    def initialize(self):
+        self.options.declare('num_nodes', types=int)
+
+    def setup(self):
+        nn = self.options['num_nodes']
+
+        self.add_subsystem(name='atmos',
+                           subsys=USatm1976Comp(num_nodes=nn, h_def='geodetic'),
+                           promotes_inputs=['h'])
+
+        self.add_subsystem(name='aero',
+                           subsys=AeroGroup(num_nodes=nn),
+                           promotes_inputs=['v', 'alpha', 'S'])
+
+        self.connect('atmos.sos', 'aero.sos')
+        self.connect('atmos.rho', 'aero.rho')
+
+        self.add_subsystem(name='prop',
+                           subsys=PropGroup(num_nodes=nn),
+                           promotes_inputs=['h'])
+
+        self.connect('aero.mach', 'prop.mach')
+
+        self.add_subsystem(name='flight_dynamics',
+                           subsys=FlightPathEOM2D(num_nodes=nn),
+                           promotes_inputs=['m', 'v', 'gam', 'alpha'])
+
+        self.connect('aero.f_drag', 'flight_dynamics.D')
+        self.connect('aero.f_lift', 'flight_dynamics.L')
+        self.connect('prop.thrust', 'flight_dynamics.T')
+
+        self.set_input_defaults('h', val=1.0)
+        self.set_input_defaults('alpha', val=0.0)
+
+
 def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
-                   transcription_order=3, force_alloc_complex=False, add_rate=False, time_name='time',
+                   transcription_order=3, add_rate=False, time_name='time',
                    simulate=True, path_constraints=True, make_plots=False):
 
     p = om.Problem(model=om.Group())
@@ -56,7 +99,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 
     traj = dm.Trajectory()
 
-    phase = dm.Phase(ode_class=MinTimeClimbODE, transcription=tx)
+    phase = dm.Phase(ode_class=MinTimeClimbODE, transcription=tx, auto_add_parameters=True)
     traj.add_phase('phase0', phase)
 
     p.model.add_subsystem('traj', traj)
@@ -88,9 +131,10 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
                       rate_continuity=True, rate_continuity_scaler=100.0,
                       rate2_continuity=False, targets=['alpha'])
 
-    phase.add_parameter('S', val=49.2386, units='m**2', opt=False, targets=['S'])
-    phase.add_parameter('Isp', val=1600.0, units='s', opt=False, targets=['Isp'])
-    phase.add_parameter('throttle', val=1.0, opt=False, targets=['throttle'])
+    # These are unnecessary with auto_add_parameters=True
+    # phase.add_parameter('S', val=49.2386, units='m**2', opt=False, targets=['S'])
+    # phase.add_parameter('Isp', val=1600.0, units='s', opt=False, targets=['Isp'])
+    # phase.add_parameter('throttle', val=1.0, opt=False, targets=['throttle'])
 
     phase.add_boundary_constraint('h', loc='final', equals=20000, scaler=1.0E-3)
     phase.add_boundary_constraint('aero.mach', loc='final', equals=1.0)
@@ -119,7 +163,7 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
 
     p.model.linear_solver = om.DirectSolver()
 
-    p.setup(check=True, force_alloc_complex=force_alloc_complex)
+    p.setup(check=True, force_alloc_complex=True)
 
     phase.set_time_val(initial=0.0, duration=350.0)
     phase.set_state_val('r', [0.0, 111319.54])
@@ -128,6 +172,13 @@ def min_time_climb(optimizer='SLSQP', num_seg=3, transcription='gauss-lobatto',
     phase.set_state_val('gam', [0.0, 0.0])
     phase.set_state_val('m', [19030.468, 16841.431])
     phase.set_control_val('alpha', [0.0, 0.0])
+
+    # phase.add_parameter('S', val=49.2386, units='m**2', opt=False, targets=['S'])
+    # phase.add_parameter('Isp', val=1600.0, units='s', opt=False, targets=['Isp'])
+    # phase.add_parameter('throttle', val=1.0, opt=False, targets=['throttle'])
+    phase.set_parameter_val('S', val=49.2386, units='m**2')
+    phase.set_parameter_val('Isp', val=1600., units='s')
+    phase.set_parameter_val('throttle', val=1.0)
 
     if transcription == 'birkhoff':
         phase.set_simulate_options(times_per_seg=200, atol=1.0E-6, rtol=1.0E-6)
@@ -281,8 +332,7 @@ class TestMinTimeClimb(unittest.TestCase):
         NUM_SEG = 1
         ORDER = 30
         p = min_time_climb(optimizer='IPOPT', num_seg=NUM_SEG, transcription_order=ORDER,
-                           transcription='birkhoff', add_rate=False, simulate=True, path_constraints=True,
-                           force_alloc_complex=True)
+                           transcription='birkhoff', add_rate=False, simulate=True, path_constraints=True)
 
         self._test_results(p)
 
@@ -340,7 +390,6 @@ class TestMinTimeClimbWithReports(TestMinTimeClimb):
                 NUM_SEG = 12
                 ORDER = 3
                 p = min_time_climb(optimizer='IPOPT', num_seg=NUM_SEG, transcription_order=ORDER,
-                                   force_alloc_complex=True,
                                    transcription='gauss-lobatto', add_rate=True, time_name='t',
                                    make_plots=True)
 
@@ -363,7 +412,7 @@ class TestMinTimeClimbWithReports(TestMinTimeClimb):
                 ORDER = 3
                 p = min_time_climb(optimizer='IPOPT', num_seg=NUM_SEG, transcription_order=ORDER,
                                    transcription='radau-ps', add_rate=True, time_name='t',
-                                   force_alloc_complex=True, make_plots=True)
+                                   make_plots=True)
 
                 self._test_results(p, time_name='t')
 
