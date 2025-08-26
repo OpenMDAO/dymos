@@ -167,6 +167,7 @@ class TestMinTimeClimb(unittest.TestCase):
         if om_version()[0] < (3, 39, 0):
             with self.assertRaises(RuntimeError) as e:
                 p.setup(check=True, force_alloc_complex=True)
+            return
         else:
             p.setup(check=True, force_alloc_complex=True)
 
