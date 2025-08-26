@@ -340,6 +340,8 @@ class TestMinTimeClimb(unittest.TestCase):
 
         self._test_timeseries_units(p)
 
+        p.model.list_vars()
+
 
 @use_tempdirs
 class TestMinTimeClimbWithReports(TestMinTimeClimb):

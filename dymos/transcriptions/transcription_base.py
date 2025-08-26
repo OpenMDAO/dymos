@@ -225,7 +225,7 @@ class TranscriptionBase(object):
         if phase.parameter_options:
             param_comp = phase._get_subsystem('param_comp')
 
-            for name, options in phase.parameter_options.items():
+            for name, options in sorted(phase.parameter_options.items()):
                 param_comp.add_parameter(name, val=options['val'], shape=options['shape'], units=options['units'])
                 if options['opt']:
                     lb = -INF_BOUND if options['lower'] is None else options['lower']
