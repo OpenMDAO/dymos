@@ -115,9 +115,9 @@ def auto_add_parameters(ode, phase):
         else:
             invalid_targets = set(phase.time_options[key]) - unconn_inputs
             if invalid_targets:
+                str_invalid_targets = '\n' + '\n  '.join(sorted(invalid_targets))
                 raise ValueError(f'{phase.msginfo}: One or more {name} targets is not'
-                                 ' available for connection in the '
-                                 f'ODE:\n{"\n  ".join(sorted(invalid_targets))}')
+                                 f' available for connection in the ODE: {str_invalid_targets}')
 
             if name in (time_name, t_phase_name) and any(['dymos.static_target' in prom_inputs[target]['tags']
                                                          for target in phase.time_options[key]]):
@@ -141,8 +141,9 @@ def auto_add_parameters(ode, phase):
             else:
                 invalid_targets = set(phase.control_options[name][key]) - unconn_inputs
                 if invalid_targets:
+                    str_invalid_targets = '\n' + '\n  '.join(sorted(invalid_targets))
                     raise ValueError(f'{phase.msginfo}: One or more {name} targets is not'
-                                     f' available for connection in the ODE:\n{"\n  ".join(sorted(invalid_targets))}')
+                                     f' available for connection in the ODE: {str_invalid_targets}')
 
                 if any(['dymos.static_target' in prom_inputs[target]['tags'] for target in phase.control_options[name][key]]):
                     listing = '\n  '.join([f'{target} - {prom_inputs[target]["tags"]}'
@@ -164,8 +165,9 @@ def auto_add_parameters(ode, phase):
             else:
                 invalid_targets = set(phase.state_options[name][key]) - unconn_inputs
                 if invalid_targets:
+                    str_invalid_targets = '\n' + '\n  '.join(sorted(invalid_targets))
                     raise ValueError(f'{phase.msginfo}: One or more {name} targets is not'
-                                     f' available for connection in the ODE:\n{"\n  ".join(sorted(invalid_targets))}')
+                                     f' available for connection in the ODE: {str_invalid_targets}')
 
                 if any(['dymos.static_target' in prom_inputs[target]['tags'] for target in phase.state_options[name][key]]):
                     listing = '\n  '.join([f'{target} - {prom_inputs[target]["tags"]}'
@@ -187,8 +189,9 @@ def auto_add_parameters(ode, phase):
             else:
                 invalid_targets = set(phase.parameter_options[name][key]) - unconn_inputs
                 if invalid_targets:
+                    str_invalid_targets = '\n' + '\n  '.join(sorted(invalid_targets))
                     raise ValueError(f'{phase.msginfo}: One or more {name} targets is not'
-                                     f' available for connection in the ODE:\n{"\n  ".join(sorted(invalid_targets))}')
+                                     f' available for connection in the ODE: {str_invalid_targets}')
                 unconn_inputs -= set(phase.parameter_options[name][key])
 
     # Add the remaining unconnected inputs as parameters
