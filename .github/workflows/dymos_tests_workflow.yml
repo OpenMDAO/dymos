@@ -218,6 +218,7 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           python-version: ${{ matrix.PY }}
+          miniconda-version: "2.5.1"
           channels: conda-forge
           conda-remove-defaults: true
 
