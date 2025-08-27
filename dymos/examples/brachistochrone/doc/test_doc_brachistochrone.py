@@ -11,6 +11,7 @@ except ImportError:
     matplotlib = None
 
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
+from dymos.utils.misc import om_version
 
 
 @use_tempdirs
@@ -262,28 +263,32 @@ class TestBrachistochroneForDocs(unittest.TestCase):
         #
         # Setup the Problem
         #
-        p.setup()
+        if om_version()[0] < (3, 39, 0):
+            with self.assertRaises(RuntimeError):
+                p.setup()
+        else:
+            p.setup()
 
-        #
-        # Set the initial values
-        #
-        phase.set_time_val(initial=0.0, duration=2.0)
+            #
+            # Set the initial values
+            #
+            phase.set_time_val(initial=0.0, duration=2.0)
 
-        phase.set_state_val('x', [0, 10])
-        phase.set_state_val('y', [10, 5])
-        phase.set_state_val('v', [0, 9.9])
-        phase.set_parameter_val('g', 9.80665)
+            phase.set_state_val('x', [0, 10])
+            phase.set_state_val('y', [10, 5])
+            phase.set_state_val('v', [0, 9.9])
+            phase.set_parameter_val('g', 9.80665)
 
-        phase.set_control_val('theta', [5, 100.5])
+            phase.set_control_val('theta', [5, 100.5])
 
-        #
-        # Solve for the optimal trajectory
-        #
-        dm.run_problem(p, simulate=True)
+            #
+            # Solve for the optimal trajectory
+            #
+            dm.run_problem(p, simulate=True)
 
-        # Test the results
-        assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1], 1.8016,
-                          tolerance=1.0E-3)
+            # Test the results
+            assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1], 1.8016,
+                            tolerance=1.0E-3)
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_brachistochrone_for_docs_coloring_demo(self):

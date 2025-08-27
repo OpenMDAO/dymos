@@ -165,7 +165,7 @@ class TestMinTimeClimb(unittest.TestCase):
         p.model.linear_solver = om.DirectSolver()
 
         if om_version()[0] < (3, 39, 0):
-            with self.assertRaises(RuntimeError) as e:
+            with self.assertRaises(RuntimeError):
                 p.setup(check=True, force_alloc_complex=True)
             return
         else:
