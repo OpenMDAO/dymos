@@ -380,7 +380,7 @@ jobs:
 
           conda info
           conda list
-          conda env export --name test --file ${{ matrix.NAME }}_environment.yml
+          conda env export --name test --file ${{ matrix.NAME }}_environment.yml --format=environment-yaml
 
           echo "============================================================="
           echo "Check installed versions of Python, Numpy and Scipy"
