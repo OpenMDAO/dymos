@@ -288,7 +288,7 @@ class TestBrachistochroneForDocs(unittest.TestCase):
 
             # Test the results
             assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1], 1.8016,
-                            tolerance=1.0E-3)
+                              tolerance=1.0E-3)
 
     @require_pyoptsparse(optimizer='IPOPT')
     def test_brachistochrone_for_docs_coloring_demo(self):
