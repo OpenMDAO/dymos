@@ -535,8 +535,8 @@ document.write(`
 Typically this evolution occurs in time, and the ODE represents equations of motion (EOM).
 The equations of motion can define a variety of systems, not just mechanical ones.
 In other fields they are sometimes referred to as <em>process equations</em>.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-e94d322f-4954-4727-bba5-fd70ae1398fb">
-<span class="eqno">(4)<a class="headerlink" href="#equation-e94d322f-4954-4727-bba5-fd70ae1398fb" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-bc4141fe-e58f-4f4a-a220-d5fb0ccbb686">
+<span class="eqno">(4)<a class="headerlink" href="#equation-bc4141fe-e58f-4f4a-a220-d5fb0ccbb686" title="Permalink to this equation">#</a></span>\[\begin{align}
     \dot{\bar{x}} = f_{ode}(\bar{x},t,\bar{u},\bar{d})
 \end{align}\]</div>
 <p>To represent EOM, Dymos uses a standard OpenMDAO System (a Group or Component).
@@ -871,12 +871,14 @@ setup, compute, and compute partials methods might look like this:</p>
     <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">c</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">c</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
 
+
 <span class="k">def</span><span class="w"> </span><span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">):</span>
     <span class="n">a</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">]</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span>
     <span class="n">b</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">]</span>
 
     <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="n">b</span>
+
 
 <span class="k">def</span><span class="w"> </span><span class="nf">compute_partials</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">partials</span><span class="p">):</span>
     <span class="n">a</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">]</span>
@@ -945,6 +947,7 @@ For instance, the brachistochrone ODE can be written as:</p>
                               <span class="s1">&#39;tags&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;state_rate_source:v&#39;</span><span class="p">]},</span>
                         <span class="n">has_diag_partials</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
+
 <span class="n">t</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">Radau</span><span class="p">(</span><span class="n">num_segments</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 <span class="n">phase</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">Phase</span><span class="p">(</span><span class="n">ode_class</span><span class="o">=</span><span class="n">ode</span><span class="p">,</span> <span class="n">transcription</span><span class="o">=</span><span class="n">t</span><span class="p">)</span>
 </pre></div>
@@ -958,6 +961,7 @@ Note that the implementation below does not deal with any options provided via t
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
 
 <span class="k">class</span><span class="w"> </span><span class="nc">CallableBrachistochroneODE</span><span class="p">(</span><span class="n">om</span><span class="o">.</span><span class="n">ExplicitComponent</span><span class="p">):</span>
 

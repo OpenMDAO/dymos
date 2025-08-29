@@ -552,6 +552,7 @@ current value of the polynomial controls.</p>
 
 <span class="n">g</span> <span class="o">=</span> <span class="mf">1.61544</span>  <span class="c1"># lunar gravity, m/s**2</span>
 
+
 <span class="k">class</span><span class="w"> </span><span class="nc">LaunchVehicle2DEOM</span><span class="p">(</span><span class="n">om</span><span class="o">.</span><span class="n">ExplicitComponent</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Simple 2D Cartesian Equations of Motion for a launch vehicle subject to thrust and drag.</span>
@@ -675,6 +676,7 @@ current value of the polynomial controls.</p>
         <span class="n">jacobian</span><span class="p">[</span><span class="s1">&#39;mdot&#39;</span><span class="p">,</span> <span class="s1">&#39;thrust&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">g</span> <span class="o">*</span> <span class="n">Isp</span><span class="p">)</span>
         <span class="n">jacobian</span><span class="p">[</span><span class="s1">&#39;mdot&#39;</span><span class="p">,</span> <span class="s1">&#39;Isp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">F_T</span> <span class="o">/</span> <span class="p">(</span><span class="n">g</span> <span class="o">*</span> <span class="n">Isp</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
 
+
 <span class="k">class</span><span class="w"> </span><span class="nc">LaunchVehicleLinearTangentODE</span><span class="p">(</span><span class="n">om</span><span class="o">.</span><span class="n">Group</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    The LaunchVehicleLinearTangentODE for this case consists of a guidance component and</span>
@@ -697,6 +699,7 @@ current value of the polynomial controls.</p>
         <span class="bp">self</span><span class="o">.</span><span class="n">add_subsystem</span><span class="p">(</span><span class="s1">&#39;eom&#39;</span><span class="p">,</span> <span class="n">LaunchVehicle2DEOM</span><span class="p">(</span><span class="n">num_nodes</span><span class="o">=</span><span class="n">nn</span><span class="p">))</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;guidance.theta&#39;</span><span class="p">,</span> <span class="s1">&#39;eom.theta&#39;</span><span class="p">)</span>
+
 
 <span class="c1">#</span>
 <span class="c1"># Setup and solve the optimal control problem</span>
@@ -793,73 +796,73 @@ current value of the polynomial controls.</p>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000348 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000342 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000023 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000021 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000166 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000252 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000057 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000090 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000002 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000001 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.001324 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.001666 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000031 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000029 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000002 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000003 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000220 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000199 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000018 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000019 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000159 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000135 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000052 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000051 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
@@ -871,7 +874,7 @@ current value of the polynomial controls.</p>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.001350 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.001425 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
@@ -892,10 +895,10 @@ Total colors vs. total size: 10 vs 398  (97.49% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem&#39; was computed 3 times.
-Time to compute sparsity:   0.1417 sec
-Time to compute coloring:   0.3957 sec
+Time to compute sparsity:   0.1256 sec
+Time to compute coloring:   0.3870 sec
 Memory to compute coloring:   0.6250 MB
-Coloring created on: 2025-08-08 20:15:29
+Coloring created on: 2025-08-29 00:34:40
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
@@ -904,11 +907,11 @@ Coloring created on: 2025-08-08 20:15:29
 
     Solution: 
 --------------------------------------------------------------------------------
-    Total Time:                    2.1283
-       User Objective Time :       0.0085
-       User Sensitivity Time :     1.0653
-       Interface Time :            0.0791
-       Opt Solver Time:            0.9753
+    Total Time:                    2.0342
+       User Objective Time :       0.0068
+       User Sensitivity Time :     1.0521
+       Interface Time :            0.0772
+       Opt Solver Time:            0.8981
     Calls to Objective Function :       6
     Calls to Sens Function :            5
 
@@ -1740,11 +1743,11 @@ Coloring created on: 2025-08-08 20:15:29
 Driver:  pyOptSparseDriver
   success     : True
   iterations  : 8
-  runtime     : 2.7341E+00 s
+  runtime     : 2.6110E+00 s
   model_evals : 8
-  model_time  : 7.8438E-03 s
+  model_time  : 6.1422E-03 s
   deriv_evals : 6
-  deriv_time  : 5.7696E-02 s
+  deriv_time  : 5.6264E-02 s
   exit_status : SUCCESS
 </pre></div>
 </div>

@@ -625,6 +625,7 @@ Rather than forcing them to rewrite this code in the form of OpenMDAO components
 <span class="kn">import</span><span class="w"> </span><span class="nn">openmdao.func_api</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">omf</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dymos.utils.misc</span><span class="w"> </span><span class="kn">import</span> <span class="n">om_version</span>
 
+
 <span class="k">def</span><span class="w"> </span><span class="nf">wrap_ode_func</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">flight_mode</span><span class="p">,</span> <span class="n">grad_method</span><span class="o">=</span><span class="s1">&#39;jax&#39;</span><span class="p">,</span> <span class="n">jax_jit</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the metadata from omf needed to create a new ExplciitFuncComp.</span>
@@ -884,7 +885,7 @@ This allows us to declare a single ODE component for use in the problem regardle
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.001401 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.001279 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
@@ -896,13 +897,64 @@ This allows us to declare a single ODE component for use in the problem regardle
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000547 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000493 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000578 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000269 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000001 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.003942 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000068 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000002 sec).
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.13/site-packages/openmdao/recorders/sqlite_recorder.py:231: UserWarning:The existing case recorder file, /home/runner/work/dymos/dymos/docs/dymos_book/examples/balanced_field/problem_out/dymos_solution.db, is being overwritten.
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000536 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000029 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000234 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000303 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
@@ -914,64 +966,13 @@ This allows us to declare a single ODE component for use in the problem regardle
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.004435 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.004086 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000097 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000003 sec).
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.13/site-packages/openmdao/recorders/sqlite_recorder.py:231: UserWarning:The existing case recorder file, /home/runner/work/dymos/dymos/docs/dymos_book/examples/balanced_field/problem_out/dymos_solution.db, is being overwritten.
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000578 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000034 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000251 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000500 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000003 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.004439 sec).
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000135 sec).
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000095 sec).
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
@@ -982,27 +983,27 @@ This allows us to declare a single ODE component for use in the problem regardle
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Coloring for &#39;traj.phases.br_to_v1.rhs_all&#39; (class ExplicitFuncComp)
 
-Jacobian shape: (132, 60)  (9.72% nonzero)
+Jacobian shape: (132, 60)  (9.73% nonzero)
 FWD solves: 16   REV solves: 0
 Total colors vs. total size: 16 vs 60  (73.33% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense partial jacobian for ExplicitFuncComp &#39;traj.phases.br_to_v1.rhs_all&#39; was computed 3 times.
 Time to compute sparsity:   0.0156 sec
-Time to compute coloring:   0.0097 sec
+Time to compute coloring:   0.0094 sec
 Memory to compute coloring:   0.1250 MB
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Coloring for &#39;traj.phases.rto.rhs_all&#39; (class ExplicitFuncComp)
 
-Jacobian shape: (132, 60)  (9.75% nonzero)
+Jacobian shape: (132, 60)  (9.72% nonzero)
 FWD solves: 16   REV solves: 0
 Total colors vs. total size: 16 vs 60  (73.33% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense partial jacobian for ExplicitFuncComp &#39;traj.phases.rto.rhs_all&#39; was computed 3 times.
-Time to compute sparsity:   0.0157 sec
-Time to compute coloring:   0.0104 sec
+Time to compute sparsity:   0.0152 sec
+Time to compute coloring:   0.0096 sec
 Memory to compute coloring:   0.1250 MB
 </pre></div>
 </div>
@@ -1014,9 +1015,9 @@ Total colors vs. total size: 16 vs 60  (73.33% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense partial jacobian for ExplicitFuncComp &#39;traj.phases.v1_to_vr.rhs_all&#39; was computed 3 times.
-Time to compute sparsity:   0.0155 sec
-Time to compute coloring:   0.0105 sec
-Memory to compute coloring:   0.1250 MB
+Time to compute sparsity:   0.0152 sec
+Time to compute coloring:   0.0097 sec
+Memory to compute coloring:   0.0000 MB
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Coloring for &#39;traj.phases.rotate.rhs_all&#39; (class ExplicitFuncComp)
@@ -1027,8 +1028,8 @@ Total colors vs. total size: 16 vs 60  (73.33% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense partial jacobian for ExplicitFuncComp &#39;traj.phases.rotate.rhs_all&#39; was computed 3 times.
-Time to compute sparsity:   0.0153 sec
-Time to compute coloring:   0.0104 sec
+Time to compute sparsity:   0.0151 sec
+Time to compute coloring:   0.0097 sec
 Memory to compute coloring:   0.1250 MB
 </pre></div>
 </div>
@@ -1040,9 +1041,9 @@ Total colors vs. total size: 16 vs 111  (85.59% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense partial jacobian for ExplicitFuncComp &#39;traj.phases.climb.rhs_all&#39; was computed 3 times.
-Time to compute sparsity:   0.0267 sec
-Time to compute coloring:   0.0187 sec
-Memory to compute coloring:   0.2500 MB
+Time to compute sparsity:   0.0262 sec
+Time to compute coloring:   0.0212 sec
+Memory to compute coloring:   0.1250 MB
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (178, 166)  (3.16% nonzero)
@@ -1051,13 +1052,14 @@ Total colors vs. total size: 14 vs 166  (91.57% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense total jacobian for Problem &#39;problem&#39; was computed 3 times.
-Time to compute sparsity:   2.4589 sec
-Time to compute coloring:   0.1233 sec
-Memory to compute coloring:   0.2500 MB
-Coloring created on: 2025-08-08 20:08:22
+Time to compute sparsity:   2.4782 sec
+Time to compute coloring:   0.1203 sec
+Memory to compute coloring:   0.3750 MB
+Coloring created on: 2025-08-29 00:27:55
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.13/site-packages/openmdao/core/total_jac.py:1731: DerivativesWarning:Constraints or objectives [(&#39;traj.climb.gam[path]&#39;, inds=[(np.int64(0), np.int64(0))])] cannot be impacted by the design variables of the problem.
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.13/site-packages/openmdao/core/total_jac.py:1670: DerivativesWarning:The following constraints or objectives cannot be impacted by the design variables of the problem at the current design point:
+  traj.climb.gam[path], inds=[(0, 0)]
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.13/site-packages/openmdao/recorders/sqlite_recorder.py:231: UserWarning:The existing case recorder file, /home/runner/work/dymos/dymos/docs/dymos_book/examples/balanced_field/problem_out/traj_simulation_0_out/dymos_simulation.db, is being overwritten.

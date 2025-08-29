@@ -808,8 +808,9 @@ Let’s try increasing that number to ten third-order segments.</p>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.13/site-packages/openmdao/core/driver.py:1240: DriverWarning:ScipyOptimizeDriver: objective(s) [&#39;traj.phase0.t&#39;] do not depend on any design variables. Please check your problem formulation.
-/usr/share/miniconda/envs/test/lib/python3.13/site-packages/openmdao/core/total_jac.py:1731: DerivativesWarning:Constraints or objectives [(&#39;traj.phase0.t&#39;, inds=[np.int64(39)])] cannot be impacted by the design variables of the problem.
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.13/site-packages/openmdao/core/driver.py:1276: DriverWarning:ScipyOptimizeDriver: objective(s) [&#39;traj.phase0.t&#39;] do not depend on any design variables. Please check your problem formulation.
+/usr/share/miniconda/envs/test/lib/python3.13/site-packages/openmdao/core/total_jac.py:1670: DerivativesWarning:The following constraints or objectives cannot be impacted by the design variables of the problem at the current design point:
+  traj.phase0.t, inds=[39]
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully    (Exit mode 0)
@@ -819,10 +820,11 @@ Let’s try increasing that number to ten third-order segments.</p>
             Gradient evaluations: 1
 Optimization Complete
 -----------------------------------
+
+Simulating trajectory traj
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Simulating trajectory traj
-Done simulating trajectory traj
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Done simulating trajectory traj
 </pre></div>
 </div>
 <img alt="../../_images/67e97dc5c57b1aaa39fa8046d8aca0091b59f5bc5abb5a110d1d6ae56757c01a.png" src="../../_images/67e97dc5c57b1aaa39fa8046d8aca0091b59f5bc5abb5a110d1d6ae56757c01a.png" />
@@ -904,8 +906,9 @@ Done simulating trajectory traj
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.13/site-packages/openmdao/core/driver.py:1240: DriverWarning:ScipyOptimizeDriver: objective(s) [&#39;traj.phase0.t&#39;] do not depend on any design variables. Please check your problem formulation.
-/usr/share/miniconda/envs/test/lib/python3.13/site-packages/openmdao/core/total_jac.py:1731: DerivativesWarning:Constraints or objectives [(&#39;traj.phase0.t&#39;, inds=[np.int64(31)])] cannot be impacted by the design variables of the problem.
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.13/site-packages/openmdao/core/driver.py:1276: DriverWarning:ScipyOptimizeDriver: objective(s) [&#39;traj.phase0.t&#39;] do not depend on any design variables. Please check your problem formulation.
+/usr/share/miniconda/envs/test/lib/python3.13/site-packages/openmdao/core/total_jac.py:1670: DerivativesWarning:The following constraints or objectives cannot be impacted by the design variables of the problem at the current design point:
+  traj.phase0.t, inds=[31]
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully    (Exit mode 0)
