@@ -59,7 +59,7 @@ phase.set_parameter_val('k', 1.0)
 phase.set_parameter_val('c', 0.5)
 phase.set_parameter_val('m', 1.0)
 
-starts= {}
+starts = {}
 
 starts['x'] = prob.get_val('traj.phase0.states:x')
 starts['v'] = prob.get_val('traj.phase0.states:v')
@@ -119,14 +119,16 @@ v_sol_line, = axes[1].plot(t_data, v_data, 'o')
 # v_dense_line, = axes[1].plot(t_data, v_data, '--')
 lines = x_sol_line, v_sol_line
 
+
 def init():
     return lines
+
 
 def update(frame):
     # xdata.append(frame)
     # ydata.append(np.sin(frame))
 
-    x_sol_line, x_dense_line, v_sol_line, v_dense_line = lines
+    x_sol_line, _, v_sol_line, _ = lines
 
     for j, state in enumerate(states):
         prob.set_val(f'traj.phase0.states:{state}', histories[state][frame, ...])
@@ -147,34 +149,13 @@ def update(frame):
     return x_sol_line, v_sol_line
     # return
 
+
 ani = FuncAnimation(fig, update, frames=range(NUM_FRAMES),
                     init_func=init, blit=True)
 
 plt.show()
 
-    # for j in range(NUM_SEG):
-    #     start_idx, end_idx = all_idxs[j, :]
-    #     t_seg_start = t_sol.ravel()[start_idx]
-    #     t_seg_end = t_sol.ravel()[end_idx - 1]
-        # print(t_seg_start, t_seg_end)
-        # print(state_sol[start_idx:end_idx])
-        # print(t_seg_start, t_seg_end)
-        # nodes_stau = phase.options['transcription'].grid_data.node_stau[start_idx:end_idx]
-        # lbi = LagrangeBarycentricInterpolant(nodes=nodes_stau, shape=(1,))
-        # # print(nodes_stau)
-        # lbi.setup(t_seg_start, t_seg_end, state_sol[start_idx:end_idx])
-        # t_interp = np.linspace(t_seg_start, t_seg_end, 100)
-        # with np.printoptions(linewidth=1024, edgeitems=500):
-        #     sol_interp = lbi.eval(t_interp)
-        #     soldot_interp = lbi.eval_deriv(0.0)
-        # axes[i].plot(t_interp, sol_interp, 'k-')
 
-
-
-# axes[-1].set_xlabel('time (s)')
-# # fig.legend((sol[0], sim[0]), ('solution', 'simulation'), 'lower right', ncol=2)
-# plt.tight_layout()
-# plt.show()
 fig, axes = plt.subplots(len(states), 1)
 for i, state in enumerate(states):
     state_sol = prob.get_val(f'traj.phase0.timeseries.{state}')
@@ -198,7 +179,6 @@ for i, state in enumerate(states):
         with np.printoptions(linewidth=1024, edgeitems=500):
             sol_interp = lbi.eval(t_interp)
         axes[i].plot(t_interp, sol_interp, 'k-')
-
 
 
 axes[-1].set_xlabel('time (s)')

@@ -66,7 +66,6 @@ def _clear_notebook_outputs(path=os.getcwd(), dry_run=True):
     return num_cleaned
 
 
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Clear notebook outputs in place.')
     parser.add_argument('path', nargs='?', default='.', help='The or directory path to clean.')
@@ -74,5 +73,5 @@ if __name__ == '__main__':
                         help='Print notebooks with outputs but do not clean them.')
     args = parser.parse_args()
     num_cleaned = _clear_notebook_outputs(path=args.path, dry_run=args.dryrun)
-    if num_cleaned > 0 and  args.dryrun:
+    if num_cleaned > 0 and args.dryrun:
         exit(1)
