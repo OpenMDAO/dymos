@@ -124,8 +124,8 @@ class MultipleShootingIterGroup(om.Group):
             else:
                 self.connect(f'seg_final_states:{state_name}',
                              f'picard_update_comp.seg_final_states:{state_name}')
-                if not fix_initial and not input_initial:
-                    self.add_design_var(name=f'initial_states:{state_name}',
+                if not fix_final and not input_final:
+                    self.add_design_var(name=f'final_states:{state_name}',
                                         lower=fb[0],
                                         upper=fb[1],
                                         scaler=scaler,
