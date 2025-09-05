@@ -8,6 +8,7 @@ from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 @use_tempdirs
 class TestCannonballImplicitDuration(unittest.TestCase):
 
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_cannonball_implicit_duration(self):
         import openmdao.api as om
         from scipy.interpolate import make_interp_spline
@@ -130,7 +131,8 @@ class TestCannonballImplicitDuration(unittest.TestCase):
 
         p = om.Problem(model=om.Group())
 
-        p.driver = om.ScipyOptimizeDriver()
+        p.driver = om.pyOptSparseDriver(optimizer='IPOPT')
+        p.driver.opt_settings['tol'] = 1.0E-4
 
         p.model.add_subsystem('size_comp', CannonballSizeComp(),
                               promotes_inputs=['radius', 'dens'])
@@ -150,11 +152,13 @@ class TestCannonballImplicitDuration(unittest.TestCase):
         # is obtained from the tags used on those outputs in the ODE.
         # The units of the states are automatically inferred by multiplying the units
         # of those rates by the time units.
-        phase.set_time_options(fix_initial=True, duration_bounds=(1, 100), units='s')
+        # Note the use of fix_duration here. We're not fixing it, its solved by the boundary balance,
+        # but this should be seen as "dont make this a design variable."
+        phase.set_time_options(fix_initial=True, fix_duration=True, duration_bounds=(1, 100), units='s')
         phase.add_state('r', fix_initial=True, solve_segments='forward')
         phase.add_state('h', fix_initial=True, solve_segments='forward')
-        phase.add_state('gam', fix_initial=False, initial_bounds=(0, np.pi/2), solve_segments='forward')
-        phase.add_state('v', fix_initial=False, solve_segments='forward')
+        phase.add_state('gam', fix_initial=False, initial_bounds=(25, 60), units='deg', solve_segments='forward')
+        phase.add_state('v', fix_initial=False, initial_bounds=(100, 800), solve_segments='forward')
 
         phase.add_parameter('S', units='m**2', static_target=True)
         phase.add_parameter('m', units='kg', static_target=True)
@@ -168,7 +172,7 @@ class TestCannonballImplicitDuration(unittest.TestCase):
         # The duration was bounded to be greater than 1 to ensure the solver did not
         # converge to the initial point.
         phase.add_boundary_balance(param='t_duration', name='h', tgt_val=0.0, loc='final',
-                                   lower=0.1, upper=100.0)
+                                   lower=10, upper=1000.0)
 
         # In this problem, the default ArmijoGoldsteinLS has issues with extrapolating
         # the states and causes the optimization to fail.
@@ -186,28 +190,30 @@ class TestCannonballImplicitDuration(unittest.TestCase):
         # Finish Problem Setup
         p.setup()
 
+        # p.set_solver_print(level=2)
+
         #############################################
         # Set constants and initial guesses
         #############################################
-        p.set_val('radius', 0.05, units='m')
+        p.set_val('radius', 0.04, units='m')
         p.set_val('dens', 7.87, units='g/cm**3')
 
         p.set_val('traj.phase.parameters:CD', 0.5)
 
-        phase.set_time_val(initial=0.0, duration=30.0)
+        phase.set_time_val(initial=0.0, duration=20.0)
 
         phase.set_state_val('r', [0, 500], units='m')
         phase.set_state_val('h', [0, 0])
-        phase.set_state_val('v', [100, 100])
+        phase.set_state_val('v', [500, 500])
         phase.set_state_val('gam', [45, -45], units='deg')
 
         #####################################################
         # Run the optimization and final explicit simulation
         #####################################################
-        dm.run_problem(p, simulate=True)
+        dm.run_problem(p, run_driver=True, simulate=False, make_plots=True)
 
         assert_near_equal(p.get_val('traj.phase.states:r')[-1],
-                          3183.25, tolerance=1.0)
+                          3183.25, tolerance=0.01)
 
 
 if __name__ == '__main__':  # pragma: no cover
