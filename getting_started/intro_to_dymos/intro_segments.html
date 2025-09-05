@@ -719,7 +719,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 Done simulating trajectory traj
 </pre></div>
 </div>
-<img alt="../../_images/614163a29f5cdaffdc7afa54d1f23797c9a580f9602cb0bfc2873b16df2c95fe.png" src="../../_images/614163a29f5cdaffdc7afa54d1f23797c9a580f9602cb0bfc2873b16df2c95fe.png" />
+<img alt="../../_images/b453a1a80827ab23cd842cd604f91b85109ba6fcc3b27e4294c4df33c8c2b9af.png" src="../../_images/b453a1a80827ab23cd842cd604f91b85109ba6fcc3b27e4294c4df33c8c2b9af.png" />
 </div>
 </div>
 <p>Why does this happen?
@@ -827,7 +827,7 @@ Simulating trajectory traj
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Done simulating trajectory traj
 </pre></div>
 </div>
-<img alt="../../_images/67e97dc5c57b1aaa39fa8046d8aca0091b59f5bc5abb5a110d1d6ae56757c01a.png" src="../../_images/67e97dc5c57b1aaa39fa8046d8aca0091b59f5bc5abb5a110d1d6ae56757c01a.png" />
+<img alt="../../_images/0738c68a6208711e4bd87ce54179443811627fbd1e7422ee68a289a6ec837552.png" src="../../_images/0738c68a6208711e4bd87ce54179443811627fbd1e7422ee68a289a6ec837552.png" />
 </div>
 </div>
 <p>Alternatively, we could stick with 4 segments but give each a higher order (7 in this case).</p>
@@ -925,7 +925,7 @@ Simulating trajectory traj
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Done simulating trajectory traj
 </pre></div>
 </div>
-<img alt="../../_images/1ab1762f1c6a8e302a4f5fbf05e60aedf94d6965698b3ef7c24849962a04813e.png" src="../../_images/1ab1762f1c6a8e302a4f5fbf05e60aedf94d6965698b3ef7c24849962a04813e.png" />
+<img alt="../../_images/1a5af7e9d837e5d0deec0d1471c0f86eb40f764e8d87af567f8854afaa23d23b.png" src="../../_images/1a5af7e9d837e5d0deec0d1471c0f86eb40f764e8d87af567f8854afaa23d23b.png" />
 </div>
 </div>
 <p>In both these cases, we obtained a better match of the dynamics using either more segments or higher-order segments. This gives the state interpolating polynomials enough freedom to more accurately match the true behavior of the system. Increasing the number of segments and increasing the segment orders both increase the number of discrete points, and thus slow down the solution a bit. Theres a balance to be found between using enough discretization points to get an accurate solution, and slowing down the analysis due to having an overabundance of points. In general, using a high number of low-order segments is preferable to using fewer high-order segments because it makes the constraint jacobian more sparse.</p>

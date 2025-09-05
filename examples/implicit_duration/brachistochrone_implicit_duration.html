@@ -662,7 +662,7 @@ Total colors vs. total size: 2 vs 81  (97.53% improvement)
 Sparsity computed using tolerance: 1e-25.
 Dense partial jacobian for BrachistochroneODE &#39;traj.phases.phase0.rhs_all&#39; was computed 3 times.
 Time to compute sparsity:   0.0076 sec
-Time to compute coloring:   0.0064 sec
+Time to compute coloring:   0.0067 sec
 Memory to compute coloring:   0.1250 MB
 NL: Newton 1 ; 3.98269488e-12 1.06379236e-13
 NL: Newton Converged
@@ -687,7 +687,7 @@ NL: Newton Converged
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/92827d13486d72b743b6cd8b900961114d9b011f0d5a820d6977bc0e823c6124.png" src="../../_images/92827d13486d72b743b6cd8b900961114d9b011f0d5a820d6977bc0e823c6124.png" />
+<img alt="../../_images/501ebfa9d4ed420de7f7dac7c68430b63de31fab048b9c2f2a12c4f818556cf8.png" src="../../_images/501ebfa9d4ed420de7f7dac7c68430b63de31fab048b9c2f2a12c4f818556cf8.png" />
 </div>
 </div>
 </section>
@@ -696,8 +696,8 @@ NL: Newton Converged
 <p>We can utilize the <code class="docutils literal notranslate"><span class="pre">add_boundary_balance</span></code> method on <code class="docutils literal notranslate"><span class="pre">Phase</span></code> to turn <code class="docutils literal notranslate"><span class="pre">t_duration</span></code> into an implicit output and provide it with a residual.</p>
 <p>In our case, we set <code class="docutils literal notranslate"><span class="pre">phase.add_boundary_balance(param='t_duration',</span> <span class="pre">name='x',</span> <span class="pre">tgt_val=10.0)</span></code></p>
 <p>This specifies that we want <code class="docutils literal notranslate"><span class="pre">t_duration</span></code> to be associated with the following residual:</p>
-<div class="amsmath math notranslate nohighlight" id="equation-41777635-b435-4722-ad03-4f68fc738d09">
-<span class="eqno">(96)<a class="headerlink" href="#equation-41777635-b435-4722-ad03-4f68fc738d09" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-72feeb4f-1db2-4eed-8a8a-3fb5936dcbf4">
+<span class="eqno">(96)<a class="headerlink" href="#equation-72feeb4f-1db2-4eed-8a8a-3fb5936dcbf4" title="Permalink to this equation">#</a></span>\[\begin{align}
   \mathcal{R}(t_d) = x - 10 = 0
 \end{align}\]</div>
 <p>Note that we limit the angle <span class="math notranslate nohighlight">\(\theta\)</span> to be between 0 and 180, the bead must move to the right and we can just terminate the propagation when x=10.</p>
@@ -776,8 +776,8 @@ Total colors vs. total size: 2 vs 81  (97.53% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense partial jacobian for BrachistochroneODE &#39;traj.phases.phase0.rhs_all&#39; was computed 3 times.
-Time to compute sparsity:   0.0072 sec
-Time to compute coloring:   0.0063 sec
+Time to compute sparsity:   0.0077 sec
+Time to compute coloring:   0.0065 sec
 Memory to compute coloring:   0.0000 MB
 NL: Newton Converged in 4 iterations
 </pre></div>
@@ -806,7 +806,7 @@ NL: Newton Converged in 4 iterations
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/61f900d03d49bb39a6bc7315fd95798467842236b2dc8195da30fd1fc99c3c88.png" src="../../_images/61f900d03d49bb39a6bc7315fd95798467842236b2dc8195da30fd1fc99c3c88.png" />
+<img alt="../../_images/a40944395e71e4932310fa62dde79735b941c61386b2dcfe3fdd8ca5a896cfbd.png" src="../../_images/a40944395e71e4932310fa62dde79735b941c61386b2dcfe3fdd8ca5a896cfbd.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>final time [1.7796735]
 final y [3.59263225]
 final theta [90.]
@@ -823,8 +823,8 @@ We can use this information to pose the brachistochrone as a boundary value prob
 That means that <code class="docutils literal notranslate"><span class="pre">theta_rate</span></code> is a parameter as far as dymos is concerned.
 We then make <code class="docutils literal notranslate"><span class="pre">theta</span></code> a state variable whose rate is provided by the <code class="docutils literal notranslate"><span class="pre">theta_rate</span></code> parameter.
 We’ll set the initial value of <code class="docutils literal notranslate"><span class="pre">theta</span></code> to zero degrees, since we know that is approximately correct for this problem.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-f4afdbf6-637a-4b89-a6cb-01d44be096b2">
-<span class="eqno">(97)<a class="headerlink" href="#equation-f4afdbf6-637a-4b89-a6cb-01d44be096b2" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-bfd7a4b3-812b-4da3-ad32-84f71a479c5b">
+<span class="eqno">(97)<a class="headerlink" href="#equation-bfd7a4b3-812b-4da3-ad32-84f71a479c5b" title="Permalink to this equation">#</a></span>\[\begin{align}
   \mathcal{R}(\dot{\theta}) &amp;= y_f - 5
 \end{align}\]</div>
 <p>Dymos currently doesn’t support making parameters implicit outputs, so we’re going to do this the manual OpenMDAO way.</p>
@@ -914,8 +914,8 @@ Total colors vs. total size: 2 vs 81  (97.53% improvement)
 
 Sparsity computed using tolerance: 1e-25.
 Dense partial jacobian for BrachistochroneODE &#39;traj.phases.phase0.rhs_all&#39; was computed 3 times.
-Time to compute sparsity:   0.0075 sec
-Time to compute coloring:   0.0065 sec
+Time to compute sparsity:   0.0074 sec
+Time to compute coloring:   0.0066 sec
 Memory to compute coloring:   0.0000 MB
 </pre></div>
 </div>
@@ -943,7 +943,7 @@ Memory to compute coloring:   0.0000 MB
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/f8fc788df1433b429fb6dd581c69ee188f9c1edadab2fe5a13d7b75f0cf4620f.png" src="../../_images/f8fc788df1433b429fb6dd581c69ee188f9c1edadab2fe5a13d7b75f0cf4620f.png" />
+<img alt="../../_images/0646de8cccc885edb4e728e7c026e4768828569787e35cfdaacbb542c0ce258f.png" src="../../_images/0646de8cccc885edb4e728e7c026e4768828569787e35cfdaacbb542c0ce258f.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>final time [1.80160313]
 final y [5.]
 final theta [100.50736083]
