@@ -5,9 +5,10 @@ import numpy as np
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 
 
-# @use_tempdirs
+@use_tempdirs
 class TestCannonballImplicitDuration(unittest.TestCase):
 
+    @require_pyoptsparse(optimizer='IPOPT')
     def test_cannonball_implicit_duration(self):
         import openmdao.api as om
         from scipy.interpolate import make_interp_spline
@@ -131,7 +132,6 @@ class TestCannonballImplicitDuration(unittest.TestCase):
         p = om.Problem(model=om.Group())
 
         p.driver = om.pyOptSparseDriver(optimizer='IPOPT')
-        p.driver.opt_settings['print_level'] = 5
         p.driver.opt_settings['tol'] = 1.0E-4
 
         p.model.add_subsystem('size_comp', CannonballSizeComp(),
