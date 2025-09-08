@@ -23,6 +23,7 @@ index_top = """
 
 """
 
+
 def header(filename, path):
 
     header = """# %s
@@ -103,7 +104,7 @@ def build_src_docs(top, src_dir, project_name='dymos'):
         package_name = project_name + "." + package
 
         # the sub_listing is going into each package dir and listing what's in it
-        package_dir = os.path.join(src_dir, package.replace('.','/'))
+        package_dir = os.path.join(src_dir, package.replace('.', '/'))
         for sub_listing in sorted(os.listdir(package_dir)):
             # don't want to catalog files twice, nor use init files nor test dir
             if (os.path.isdir(sub_listing) and sub_listing != "tests") or \

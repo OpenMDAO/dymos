@@ -3,6 +3,7 @@ import openmdao.api as om
 import dymos as dm
 import matplotlib.pyplot as plt
 
+
 # First define a system which computes the equations of motion
 class BrachistochroneEOM(om.ExplicitComponent):
     def initialize(self):
@@ -90,7 +91,7 @@ dm.run_problem(p, make_plots=True, simulate=True)
 fig, ax = plt.subplots(figsize=(6.4, 3.2))
 x = p.get_val('traj.phase0.timeseries.x', units='m')
 y = p.get_val('traj.phase0.timeseries.y', units='m')
-ax.plot(x,y, marker='o')
+ax.plot(x, y, marker='o')
 ax.set_xlabel('x (m)')
 ax.set_ylabel('y (m)')
 fig.savefig('brachistochrone_yx.png', bbox_inches='tight')
