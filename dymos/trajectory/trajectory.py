@@ -1389,15 +1389,14 @@ class Trajectory(om.Group):
             warnings.filterwarnings(action='ignore', category=om.UnusedOptionWarning)
             warnings.filterwarnings(action='ignore', category=om.SetupWarning)
             sim_prob.setup(check=False, parent=self)
-            sim_prob.final_setup()
 
-        # Assign trajectory parameter values
-        for name in self.parameter_options:
-            sim_traj.set_val(f'parameters:{name}', self.get_val(f'parameters:{name}'))
+            # Assign trajectory parameter values
+            for name in self.parameter_options:
+                sim_traj.set_val(f'parameters:{name}', self.get_val(f'parameters:{name}'))
 
-        for sim_phase_name, sim_phase in sim_traj._phases.items():
-            if sim_phase._is_local:
-                sim_phase.set_vals_from_phase(from_phase=self._phases[sim_phase_name])
+            for sim_phase_name, sim_phase in sim_traj._phases.items():
+                if sim_phase._is_local:
+                    sim_phase.set_vals_from_phase(from_phase=self._phases[sim_phase_name])
 
         if sim_traj.comm.rank == 0:
             print(f'\nSimulating trajectory {self.pathname}')

@@ -12,8 +12,6 @@ NUM_SEG = 1
 ORDER = 3
 
 
-
-
 def plot_tangent(x, y, slope, ax, dx=1, scale=1.0, *args, **kwargs):
     x = x.ravel()
     y = y.ravel()
@@ -43,6 +41,7 @@ class FallEOM(om.ExplicitComponent):
         vy = inputs['vy']
         outputs['y_dot'] = vy
         outputs['vy_dot'] = -9.80665
+
 
 # Instantiate an OpenMDAO Problem instance.
 prob = om.Problem()

@@ -99,9 +99,35 @@ class MultipleShootingIterGroup(om.Group):
         ms_update_comp.configure_io(phase)
 
         for state_name, options in state_options.items():
+            ib = (None, None) if options['initial_bounds'] is None else options['initial_bounds']
+            fb = (None, None) if options['final_bounds'] is None else options['final_bounds']
+            scaler = options['scaler']
+            adder = options['adder']
+            ref0 = options['ref0']
+            ref = options['ref']
+            fix_initial = options['fix_initial']
+            fix_final = options['fix_final']
+            input_initial = options['input_initial']
+            input_final = options['input_final']
             if options['solve_segments'] == 'forward':
                 self.connect(f'seg_initial_states:{state_name}',
                              f'picard_update_comp.seg_initial_states:{state_name}')
+                if not fix_initial and not input_initial:
+                    self.add_design_var(name=f'initial_states:{state_name}',
+                                        lower=ib[0],
+                                        upper=ib[1],
+                                        scaler=scaler,
+                                        adder=adder,
+                                        ref0=ref0,
+                                        ref=ref)
             else:
                 self.connect(f'seg_final_states:{state_name}',
                              f'picard_update_comp.seg_final_states:{state_name}')
+                if not fix_final and not input_final:
+                    self.add_design_var(name=f'final_states:{state_name}',
+                                        lower=fb[0],
+                                        upper=fb[1],
+                                        scaler=scaler,
+                                        adder=adder,
+                                        ref0=ref0,
+                                        ref=ref)

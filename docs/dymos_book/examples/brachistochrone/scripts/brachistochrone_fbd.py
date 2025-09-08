@@ -25,8 +25,10 @@ a = 0.1
 b = -0.5 - 10*a
 c = 10
 
+
 def y_wire(x):
     return a*x**2 + b*x + c, 2*a*x + b
+
 
 x = np.linspace(0, 10, 100)
 y, _ = y_wire(x)
@@ -74,6 +76,6 @@ plt.text(x+dx/2.0-0.5, y+dy/2.0-0.5, 'y')
 plt.ylim(1, 11)
 plt.xlim(-0.5, 10.5)
 
-    # plt.savefig('brachistochrone_fbd.png')
+# plt.savefig('brachistochrone_fbd.png')
 
-    # plt.show()
+# plt.show()
