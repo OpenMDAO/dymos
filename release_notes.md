@@ -3,7 +3,7 @@
 
 September 30, 2025
 
-This release features a refactor of the Radau transcription that should be transparent to users, but cleans up some of the internal machinery. Among other things, this will fix issues with checking totals in the model due to the hybrid implicit/explicit behavior of some of the old components. It also moves towards unifying the transcriptions so that all of them can separately accept "states:{name}", "initial_states:{name}", and "final_states:{name}". The plan is to apply this behavior to the Gauss-Lobatto transcription in the next release.
+This release features a refactor of the Radau transcription that should be transparent to users, but cleans up some of the internal machinery. Among other things, this will fix issues with checking totals in the model due to the hybrid implicit/explicit behavior of some of the old components. It also moves towards unifying the transcriptions so that all of them can separately accept "states:{name}", "initial_states:{name}", and "final_states:{name}". The plan is to apply this behavior to the Gauss-Lobatto transcription in the next release. To enable the use of this refactor Radau transcription set the environment variable `DYMOS_2=1`
 
 ## Backwards Incompatible API Changes & Deprecations
 
