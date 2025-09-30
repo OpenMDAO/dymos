@@ -19,7 +19,7 @@ class TestVanderpolExample(unittest.TestCase):
     @require_pyoptsparse(optimizer='IPOPT')
     def test_vanderpol_simulate_true(self):
         p = vanderpol(transcription='radau-ps', num_segments=30, transcription_order=3,
-                      compressed=True, optimizer='IPOPT', delay=0.005, distrib=True, use_pyoptsparse=True)
+                      compressed=True, optimizer='IPOPT', distrib=True, use_pyoptsparse=True)
 
         dm.run_problem(p, run_driver=True, simulate=True)
 
