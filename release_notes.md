@@ -1,9 +1,38 @@
 ********************************
+# Release Notes for Dymos 1.15.0
+
+September 30, 2025
+
+This release features a refactor of the Radau transcription that should be transparent to users, but cleans up some of the internal machinery. Among other things, this will fix issues with checking totals in the model due to the hybrid implicit/explicit behavior of some of the old components. It also moves towards unifying the transcriptions so that all of them can separately accept "states:{name}", "initial_states:{name}", and "final_states:{name}". The plan is to apply this behavior to the Gauss-Lobatto transcription in the next release. To enable the use of this refactor Radau transcription set the environment variable `DYMOS_2=1`
+
+## Backwards Incompatible API Changes & Deprecations
+
+None
+
+## Enhancements
+
+- Completed refactor of the Radau transcription. [#1196](https://github.com/OpenMDAO/dymos/pull/1196)
+- `add_calc_expr` can now promote variable names. [#1204](https://github.com/OpenMDAO/dymos/pull/1204)
+
+## Bug Fixes
+
+- Fixed a bug where picard shooting wasn't allowing initial or final state values to be design variables. [#1210](https://github.com/OpenMDAO/dymos/pull/1210)
+
+## Miscellaneous
+
+- Removed unncessary internal unit conversion from Timeseries and Interleave components. [#1198](https://github.com/OpenMDAO/dymos/pull/1198)
+- Updated GitHub workflows, use NumPy 2.2 as the baseline [#1199](https://github.com/OpenMDAO/dymos/pull/1199)
+- Hull problem Rework [#1201](https://github.com/OpenMDAO/dymos/pull/1201)
+- Updated ruff configuration and fixed issues found by ruff. [#1206](https://github.com/OpenMDAO/dymos/pull/1206)
+- Added fix for change in conda env export. [#1208](https://github.com/OpenMDAO/dymos/pull/1208)
+- Removed redundant final_setup calls. [#1211](https://github.com/OpenMDAO/dymos/pull/1211)
+
+********************************
 # Release Notes for Dymos 1.14.0
 
 June 16, 2025
 
-This release addresses issues found in 1.14.0.
+This release addresses issues found in 1.13.1.
 
 This is largely a bug fix release that catches a few issues with the recently-added PicardShooting transcription. One new experimental feature is the addition of `dt_dstau_targets` in the Phase time options. This lets ODE components have access to the dt_dstau ratio of each node, which in turn lets ODE components do things like computing rates of variables if they are known at all nodes across the phase.
 
