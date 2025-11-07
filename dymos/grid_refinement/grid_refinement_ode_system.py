@@ -123,8 +123,13 @@ class GridRefinementODESystem(om.Group):
             for tgt in targets:
                 self.promotes('ode', inputs=[(tgt, f'states:{name}')])
             if targets:
+                # Get the shape from state options, default to scalar if not specified
+                shape = options['shape']
+                if isinstance(shape, int):
+                    shape = (shape,)
+                val_shape = (num_nodes,) + shape
                 self.set_input_defaults(name=f'states:{name}',
-                                        val=np.ones(num_nodes),
+                                        val=np.ones(val_shape),
                                         units=options['units'])
 
         # Configure the controls
@@ -139,24 +144,39 @@ class GridRefinementODESystem(om.Group):
             if targets:
                 for tgt in targets:
                     self.promotes('ode', inputs=[(tgt, f'controls:{name}')])
+                # Get the shape from control options, default to scalar if not specified
+                shape = options['shape']
+                if isinstance(shape, int):
+                    shape = (shape,)
+                val_shape = (num_nodes,) + shape
                 self.set_input_defaults(name=f'controls:{name}',
-                                        val=np.ones(num_nodes),
+                                        val=np.ones(val_shape),
                                         units=options['units'])
 
             targets = get_targets(self.ode, f'{name}_rate', options['rate_targets'])
             if targets:
                 for tgt in targets:
                     self.promotes('ode', inputs=[(tgt, f'control_rates:{name}_rate')])
+                # Control rates have same shape as controls
+                shape = options['shape']
+                if isinstance(shape, int):
+                    shape = (shape,)
+                val_shape = (num_nodes,) + shape
                 self.set_input_defaults(name=f'control_rates:{name}_rate',
-                                        val=np.ones(num_nodes),
+                                        val=np.ones(val_shape),
                                         units=rate_units)
 
             targets = get_targets(self.ode, f'{name}_rate2', options['rate2_targets'])
             if targets:
                 for tgt in targets:
                     self.promotes('ode', inputs=[(tgt, f'control_rates:{name}_rate2')])
+                # Control rate2 has same shape as controls
+                shape = options.get('shape', (1,))
+                if isinstance(shape, int):
+                    shape = (shape,)
+                val_shape = (num_nodes,) + shape
                 self.set_input_defaults(name=f'control_rates:{name}_rate2',
-                                        val=np.ones(num_nodes),
+                                        val=np.ones(val_shape),
                                         units=rate2_units)
 
         # Configure the parameters
