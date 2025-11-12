@@ -26,7 +26,7 @@ from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_time_introspection, _configure_constraint_introspection, \
     configure_controls_introspection, configure_parameters_introspection, \
     configure_timeseries_output_introspection, classify_var
-from ..utils.misc import _unspecified, create_subprob
+from ..utils.misc import _unspecified, create_subprob, is_scalar_or_singleton
 from ..utils.lgl import lgl
 
 
@@ -2045,12 +2045,21 @@ class Phase(om.Group):
             nodes = None
         else:
             nodes = 'control_input'
-        if np.isscalar(vals):
+
+        try:
+            vals_shape = vals.shape
+        except:
+            vals_shape = None
+        if vals_shape is not None and vals_shape == self.get_val(f'controls:{name}').shape:
+            val = vals
+        elif is_scalar_or_singleton(vals):
             val = vals
         else:
             val = self.interp(name, ys=vals, xs=time_vals, nodes=nodes, kind=interpolation_kind)
+
         if units is None:
             units = control_options['units']
+
         self.set_val(f'controls:{name}', val=val, units=units)
 
     def set_polynomial_control_val(self, name, vals=None, time_vals=None,
