@@ -792,7 +792,15 @@ class Birkhoff(TranscriptionBase):
 
         """
         input_data = {}
-        if is_scalar_or_singleton(vals):
+        try:
+            vals_shape = vals.shape
+        except:
+            vals_shape = None
+        if vals_shape is not None and vals_shape == phase.get_val(f'states:{name}').shape:
+            input_data[f'states:{name}'] = vals
+            input_data[f'initial_states:{name}'] = vals[0, ...]
+            input_data[f'final_states:{name}'] = vals[-1, ...]
+        elif is_scalar_or_singleton(vals):
             input_data[f'states:{name}'] = vals
             input_data[f'initial_states:{name}'] = vals
             input_data[f'final_states:{name}'] = vals
