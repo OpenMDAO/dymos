@@ -36,6 +36,10 @@ SNOPT_summary.out
 # cProfile
 *.profile
 
+# OpenMDAO output directories
+*_out/
+profile_*_out/
+
 # Latex
 *.aux
 *.glo
