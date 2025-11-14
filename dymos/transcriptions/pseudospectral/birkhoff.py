@@ -791,17 +791,25 @@ class Birkhoff(TranscriptionBase):
             Dict containing the values that need to be set in the phase
 
         """
+        # TODO: vals should always be an array of (n,) + shape.
+        # If given a list or tuple of two things, turn them into that shape
+        # If n == 1, broadcast to all nodes.
+        # If n == 2, linearly interpolate to all nodes
+        # If n > 2 and time_vals are given, interpolate to nodes using those times
+        # If n == num_nodes and time is not given, assume we're getting the node values.
         input_data = {}
         try:
             vals_shape = vals.shape
-        except:
+        except AttributeError:
             vals_shape = None
-        if vals_shape is not None and vals_shape == phase.get_val(f'states:{name}').shape:
+        if vals_shape is not None and vals_shape == phase.get_val(f'states:{name}').shape and time_vals is None:
             input_data[f'states:{name}'] = vals
+            input_data[f'state_rates:{name}'] = np.zeros_like(vals)
             input_data[f'initial_states:{name}'] = vals[0, ...]
             input_data[f'final_states:{name}'] = vals[-1, ...]
         elif is_scalar_or_singleton(vals):
             input_data[f'states:{name}'] = vals
+            input_data[f'state_rates:{name}'] = np.zeros_like(vals)
             input_data[f'initial_states:{name}'] = vals
             input_data[f'final_states:{name}'] = vals
         else:
@@ -809,6 +817,26 @@ class Birkhoff(TranscriptionBase):
                                        nodes='state_input',
                                        kind=interpolation_kind)
             input_data[f'states:{name}'] = interp_vals
+            if time_vals is not None:
+                delta_x = np.diff(interp_vals, axis=0)  # Diff along time axis
+                delta_t = np.diff(time_vals)
+
+                # Broadcast delta_t to match delta_x shape for division
+                # delta_t needs to be reshaped to (N-1, 1, 1, ...) to broadcast correctly
+                shape_for_broadcast = [len(delta_t)] + [1] * (delta_x.ndim - 1)
+                delta_t_broadcast = delta_t.reshape(shape_for_broadcast)
+
+                # Compute rates
+                rates = delta_x / delta_t_broadcast
+
+                # Pad with zeros at the end (or beginning) to match original N dimension
+                # Padding at the end is common for forward differences
+                zero_shape = list(rates.shape)
+                zero_shape[0] = 1  # One row of zeros
+                zeros = np.zeros(zero_shape)
+
+                # Concatenate along time axis
+                input_data[f'state_rates:{name}'] = np.concatenate([rates, zeros], axis=0)
             input_data[f'initial_states:{name}'] = interp_vals[0, ...]
             input_data[f'final_states:{name}'] = interp_vals[-1, ...]
 
