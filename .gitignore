@@ -40,6 +40,9 @@ SNOPT_summary.out
 *_out/
 profile_*_out/
 
+# Performance optimization cache
+coloring_cache/
+
 # Latex
 *.aux
 *.glo
