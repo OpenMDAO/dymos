@@ -818,25 +818,21 @@ class Birkhoff(TranscriptionBase):
                                        kind=interpolation_kind)
             input_data[f'states:{name}'] = interp_vals
             if time_vals is not None:
-                delta_x = np.diff(interp_vals, axis=0)  # Diff along time axis
-                delta_t = np.diff(time_vals)
+                _, D = self.grid_data.phase_lagrange_matrices('all', 'all', sparse=True)
 
-                # Broadcast delta_t to match delta_x shape for division
-                # delta_t needs to be reshaped to (N-1, 1, 1, ...) to broadcast correctly
-                shape_for_broadcast = [len(delta_t)] + [1] * (delta_x.ndim - 1)
-                delta_t_broadcast = delta_t.reshape(shape_for_broadcast)
+                nn = self.grid_data.num_nodes
+                dt_dtau = time_vals[-1] - time_vals[0]
 
-                # Compute rates
-                rates = delta_x / delta_t_broadcast
+                shape = phase.state_options[name]['shape']
+                size = np.prod(shape)
+                u_flat = np.reshape(interp_vals,
+                                    (nn, size))
 
-                # Pad with zeros at the end (or beginning) to match original N dimension
-                # Padding at the end is common for forward differences
-                zero_shape = list(rates.shape)
-                zero_shape[0] = 1  # One row of zeros
-                zeros = np.zeros(zero_shape)
+                rate_flat = D.dot(u_flat) / dt_dtau
+                rate = np.reshape(rate_flat, (nn,) + shape)
 
                 # Concatenate along time axis
-                input_data[f'state_rates:{name}'] = np.concatenate([rates, zeros], axis=0)
+                input_data[f'state_rates:{name}'] = rate
             input_data[f'initial_states:{name}'] = interp_vals[0, ...]
             input_data[f'final_states:{name}'] = interp_vals[-1, ...]
 
