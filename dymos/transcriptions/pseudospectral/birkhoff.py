@@ -818,7 +818,7 @@ class Birkhoff(TranscriptionBase):
                                        kind=interpolation_kind)
             input_data[f'states:{name}'] = interp_vals
             if time_vals is not None:
-                _, D = self.grid_data.phase_lagrange_matrices('all', 'all', sparse=True)
+                _, D = self.grid_data.phase_lagrange_matrices('state_input', 'state_input', sparse=True)
 
                 nn = self.grid_data.num_nodes
                 dt_dtau = time_vals[-1] - time_vals[0]
