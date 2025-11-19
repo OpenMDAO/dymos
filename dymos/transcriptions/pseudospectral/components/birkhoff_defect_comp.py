@@ -164,11 +164,11 @@ class BirkhoffDefectComp(om.ExplicitComponent):
                 defect_ref_v = defect_ref
 
             if not options['solve_segments']:
-                
+                fix_initial_or_final = options['fix_initial'] or options['fix_final']
                 self.add_constraint(name=var_names['state_defect'],
                                     equals=0.0,
                                     ref=defect_ref_state,
-                                    linear=not options['fix_initial']) # TODO: Make this options['opt_initial'] and drop the not.
+                                    linear=not fix_initial_or_final)
 
                 self.add_constraint(name=var_names['state_rate_defect'],
                                     equals=0.0,

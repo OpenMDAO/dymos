@@ -9,7 +9,7 @@ from ..utils.constants import INF_BOUND
 from ..utils.indexing import get_constraint_flat_idxs
 from ..utils.introspection import configure_states_introspection, get_promoted_vars, \
     configure_states_discovery, _configure_boundary_balance_introspection
-from ..utils.misc import _unspecified, _format_phase_constraint_alias
+from ..utils.misc import _unspecified, _format_phase_constraint_alias, is_scalar_or_singleton
 
 
 class TranscriptionBase(object):
@@ -763,7 +763,7 @@ class TranscriptionBase(object):
         raise NotImplementedError(f'The transcription {self.__class__} does not provide an '
                                   f'implementation of _requires_continuity_constraints')
 
-    def _phase_set_state_val(self, phase, name, vals, times, interpolation_kind):
+    def _phase_set_state_val(self, phase, name, vals, time_vals, interpolation_kind):
         """
         Method to interpolate the provided input and return the variables that need to be set
         along with their appropriate value.
@@ -792,8 +792,56 @@ class TranscriptionBase(object):
             Dict containing the values that need to be set in the phase
 
         """
-        raise NotImplementedError(f'Transcription {self.__class__.__name__} does not implement method '
-                                  '_phase_set_val.')
+        # All phases at least set state vals at the input nodes
+        gd = self.grid_data
+        num_state_input_nodes = gd.subset_num_nodes['state_input']
+        state_shape = phase.state_options[name]['shape']
+        input_data = {}
+
+        if is_scalar_or_singleton(vals):
+            # Case 1: Given a single value for the state.
+            # Set all indices to that value, and rates to zero.
+            state_vals = np.broadcast_to(vals, (num_state_input_nodes,) + state_shape)
+        else:
+            vals_array = np.asarray(vals)
+            if vals_array.shape == state_shape:
+                # Case 2: We've been given a single value of a shaped state.
+                state_vals = np.broadcast_to(vals_array, (num_state_input_nodes,) + state_shape)
+            else:
+                if time_vals is None:
+                    # We've been given multiple values of the state and no time_vals
+                    # If the number of states given is the number of state_input nodes, set them appropriately.
+                    if vals_array.shape == (gd.subset_num_nodes['state_input'],) + state_shape:
+                        # states given at state input nodes.
+                        state_vals = vals
+
+                    else:
+                        # Try to coerce the vals given into shape (2,) + shape.
+                        try:
+                            # If we could perform the reshape, then linearly interp from start to end.
+                            vals_array_2xshape = vals_array.reshape((2,) + state_shape)
+                            state_vals = phase.interp(name, vals_array_2xshape, time_vals, nodes='state_input',
+                                                        kind=interpolation_kind)
+                        except ValueError:
+                            # If we fail, we don't have enough information to do any interpolation.
+                            msg = (f'{phase.msginfo}: set_state_val({name}, ...) called with state values of shape '
+                                f'{vals_array.shape} but no time values.\n'
+                                'Unable to interpolate state values across phase.\n')
+                            raise ValueError(msg)
+                elif vals_array.shape[0] == len(time_vals):
+                    # We've been given multiple values of the state and the same number of time vals.
+                    state_vals = phase.interp(name, vals, time_vals,
+                                              nodes='state_input',
+                                              kind=interpolation_kind)
+                else:
+                    msg = (f'{phase.msginfo}: set_state_val({name}, ...) called with state values of shape '
+                           f'{vals_array.shape} but {len(time_vals)} time values.\n'
+                           'If given, time_vals must be given at the same number of points as there are vals.\n')
+                    raise ValueError(msg)
+
+        input_data[f'states:{name}'] = state_vals
+
+        return input_data
 
     def _get_num_timeseries_nodes(self):
         """
