@@ -2048,7 +2048,7 @@ class Phase(om.Group):
 
         try:
             vals_shape = vals.shape
-        except:
+        except AttributeError:
             vals_shape = None
         if vals_shape is not None and vals_shape == self.get_val(f'controls:{name}').shape:
             val = vals

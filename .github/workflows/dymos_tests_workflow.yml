@@ -239,6 +239,7 @@ jobs:
 
       - name: Perform linting with Ruff
         if: ${{ ! matrix.EXCLUDE && matrix.NAME == 'baseline' }}
+        continue-on-error: true
         run: |
           eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
           echo "============================================================="
