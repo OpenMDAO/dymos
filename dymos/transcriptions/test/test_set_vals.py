@@ -10,6 +10,7 @@ import openmdao.api as om
 import dymos
 from dymos.examples.brachistochrone.doc.brachistochrone_ode import BrachistochroneODE
 
+
 @use_tempdirs
 class TestSetVal(unittest.TestCase):
 
@@ -25,8 +26,7 @@ class TestSetVal(unittest.TestCase):
                            dm.GaussLobatto(num_segments=5, order=3),
                            dm.Birkhoff(num_nodes=30),
                            dm.PicardShooting(num_segments=3, nodes_per_seg=11, solve_segments='forward'),
-                           dm.PicardShooting(num_segments=3, nodes_per_seg=11, solve_segments='backward')
-                        ):
+                           dm.PicardShooting(num_segments=3, nodes_per_seg=11, solve_segments='backward')):
 
                     with self.subTest(f'{tx.__class__.__name__}'):
 
@@ -132,7 +132,6 @@ class TestSetVal(unittest.TestCase):
                         assert_near_equal(x, x_new)
                         assert_near_equal(y, y_new)
                         assert_near_equal(v, v_new)
-
 
 
 if __name__ == '__main__':  # pragma: no cover

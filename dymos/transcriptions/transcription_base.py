@@ -820,13 +820,13 @@ class TranscriptionBase(object):
                         try:
                             # If we could perform the reshape, then linearly interp from start to end.
                             vals_array_2xshape = vals_array.reshape((2,) + state_shape)
-                            state_vals = phase.interp(name, vals_array_2xshape, time_vals, nodes='state_input',
-                                                        kind=interpolation_kind)
+                            state_vals = phase.interp(name, vals_array_2xshape, time_vals,
+                                                      nodes='state_input', kind=interpolation_kind)
                         except ValueError:
                             # If we fail, we don't have enough information to do any interpolation.
                             msg = (f'{phase.msginfo}: set_state_val({name}, ...) called with state values of shape '
-                                f'{vals_array.shape} but no time values.\n'
-                                'Unable to interpolate state values across phase.\n')
+                                   f'{vals_array.shape} but no time values.\n'
+                                   'Unable to interpolate state values across phase.\n')
                             raise ValueError(msg)
                 elif vals_array.shape[0] == len(time_vals):
                     # We've been given multiple values of the state and the same number of time vals.

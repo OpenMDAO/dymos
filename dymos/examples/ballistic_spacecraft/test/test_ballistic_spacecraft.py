@@ -110,10 +110,10 @@ class TestBallisticSpacecraft(unittest.TestCase):
                 traj = dm.Trajectory()
 
                 phase = traj.add_phase('phase0',
-                                        dm.Phase(ode_class=BallisticODEComp,
-                                                 transcription=tx,
-                                                 ode_init_kwargs={'mu': MU_SUN}),
-                                        promotes_inputs=['initial_states:v'])
+                                       dm.Phase(ode_class=BallisticODEComp,
+                                                transcription=tx,
+                                                ode_init_kwargs={'mu': MU_SUN}),
+                                       promotes_inputs=['initial_states:v'])
 
                 phase.set_time_options(units='TU', fix_initial=False, fix_duration=False, duration_bounds=(0.01, None))
 
@@ -148,9 +148,10 @@ class TestBallisticSpacecraft(unittest.TestCase):
                 p.model.set_input_defaults('v0', units='km/s', val=np.array([30, 0.01, 0.001]))
 
                 # The phase computes times at the nodes bvased on t_initial and t_duration.
-                # These are then fed back to the ephemeris to compute the positions of Earth and Mars at the initial and final times.
-                # We need a solver to resolve the residuals created by this feedback.
-                # In this case, since the downstream component computes the input for the previous component, NLBGS will do.
+                # These are then fed back to the ephemeris to compute the positions of Earth
+                # and Mars at the initial and final times. We need a solver to resolve the
+                # residuals created by this feedback. In this case, since the downstream
+                # component computes the input for the previous component, NLBGS will do.
                 p.model.nonlinear_solver = om.NonlinearBlockGS()
 
                 # Since the model is not feed-forward, the default "run once" linear solver will not work.
