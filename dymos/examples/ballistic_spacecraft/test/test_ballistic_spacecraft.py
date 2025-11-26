@@ -4,6 +4,7 @@ ballistic flight.
 
 This tests exists to make sure that we get correct behavior when connecting to
 the initial and final states within a phase to "pin" the initial states to those values.
+It's effectively solving Lambert's problem with more steps.
 
 This test also serves as an example of:
 - setting custom OpenMDAO units (canonical astrodynamic distance and time units)
