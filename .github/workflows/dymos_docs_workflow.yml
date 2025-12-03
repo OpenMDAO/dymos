@@ -45,7 +45,7 @@ jobs:
 
           # make sure the latest versions of things don't break the docs
           - NAME: latest
-            PY: '3'
+            PY: '3.13'
             NUMPY: '2'
             SCIPY: '1'
             PETSc: '3'

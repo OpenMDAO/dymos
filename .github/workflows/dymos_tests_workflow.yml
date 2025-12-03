@@ -140,7 +140,7 @@ jobs:
 
           # latest versions
           - NAME: latest
-            PY: '3'
+            PY: '3.13'
             NUMPY: '2'
             SCIPY: '1'
             PETSc: '3'
@@ -153,7 +153,7 @@ jobs:
 
           # latest versions dymos 2 testing
           - NAME: latest_dymos_2
-            PY: '3'
+            PY: '3.13'
             NUMPY: '2'
             SCIPY: '1'
             PETSc: '3'
@@ -167,9 +167,9 @@ jobs:
 
           # oldest supported versions
           - NAME: oldest
-            PY: '3.9'
-            NUMPY: '1.25'
-            SCIPY: '1.11'
+            PY: '3.10'
+            NUMPY: '2.0'
+            SCIPY: '1.12'
             OPENMPI: '4.0'
             MPI4PY: '3.0'
             PETSc: '3.13'
