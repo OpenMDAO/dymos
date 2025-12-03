@@ -13,166 +13,118 @@ on:
   release:
     types: [published]
 
-  # Trigger via workflow_dispatch event
+  # Allow running the workflow manually from the Actions tab
   workflow_dispatch:
+    inputs:
+      run_name:
+        type: string
+        description: 'Name of workflow run as it will appear under Actions tab:'
+        required: false
+        default: ""
+
+      baseline_no_snopt:
+        type: boolean
+        description: 'Include baseline_no_snopt in test matrix'
+        required: false
+        default: true
+
+      latest:
+        type: boolean
+        description: 'Include latest in test matrix'
+        required: false
+        default: true
+
+      debug_enabled:
+        type: boolean
+        description: 'Run the build with tmate debugging enabled'
+        required: false
+        default: false
+
+concurrency:
+  # Cancel any existing CI runs if we push to this branch
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+run-name: ${{ inputs.run_name }}
+
+permissions: {}
 
 jobs:
 
-  docs_ubuntu:
-    runs-on: ubuntu-22.04
+  docs:
 
-    defaults:
-      run:
-        shell: bash -l {0}
-
-    timeout-minutes: 90
+    timeout-minutes: 120
 
     strategy:
       fail-fast: false
       matrix:
         include:
-          # baseline versions except with pyoptsparse but no SNOPT
+          # baseline versions without SNOPT
           # build docs to verify those that use pyoptsparse do not use SNOPT
           - NAME: baseline_no_snopt
+            OS: ubuntu-24.04
             PY: '3.13'
             NUMPY: '2.2'
             SCIPY: '1.15'
             PETSc: '3.23'
-            PYOPTSPARSE: 'v2.13.1'
+            PYOPTSPARSE: '2.13.1'
+            PYOPTSPARSE_FROM: 'conda-forge'
             OPENMDAO: 'latest'
             OPTIONAL: '[docs]'
-            PUBLISH_DOCS: 1
+            JAX: true
+            PUBLISH_DOCS: true
+            EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && ! inputs.baseline_no_snopt }}
 
           # make sure the latest versions of things don't break the docs
           - NAME: latest
+            OS: ubuntu-24.04
             PY: '3.13'
             NUMPY: '2'
             SCIPY: '1'
             PETSc: '3'
             PYOPTSPARSE: 'latest'
+            PYOPTSPARSE_FROM: 'build_pyoptsparse'
             SNOPT: '7.7'
             OPENMDAO: 'dev'
             OPTIONAL: '[docs]'
-            PUBLISH_DOCS: 0
+            JAX: true
+            PUBLISH_DOCS: false
+            EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && ! inputs.latest }}
+
+    runs-on: ${{ matrix.OS }}
+
+    name: ${{ matrix.NAME }}
+
+    defaults:
+      run:
+        shell: bash -l {0}
 
     steps:
-      - name: Display run details
-        run: |
-          echo "============================================================="
-          echo "Run #${GITHUB_RUN_NUMBER}"
-          echo "Run ID: ${GITHUB_RUN_ID}"
-          echo "Testing: ${GITHUB_REPOSITORY}"
-          echo "Triggered by: ${GITHUB_EVENT_NAME}"
-          echo "Initiated by: ${GITHUB_ACTOR}"
-          echo "============================================================="
-
-      - name: Create SSH key
-        env:
-          SSH_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}
-          SSH_KNOWN_HOSTS: ${{secrets.SSH_KNOWN_HOSTS}}
-        run: |
-          mkdir -p ~/.ssh/
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-          sudo chmod 600 ~/.ssh/id_rsa
-          echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
-
-      - name: Checkout code
+      - name: Checkout Dymos code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for all tags and branches
 
       - name: Fetch tags
         run: |
-          git fetch --prune --unshallow --tags
+          git fetch --prune --unshallow --tags || true
 
-      - name: Setup conda
-        uses: conda-incubator/setup-miniconda@v3
+      - name: Setup and Install Dymos
+        id: setup_dymos_ci
+        uses: OpenMDAO/OpenMDAO/.github/actions/setup_openmdao_ci@master
         with:
-          python-version: ${{ matrix.PY }}
-          channels: conda-forge
-          conda-remove-defaults: true
-
-      - name: Install Numpy/Scipy
-        run: |
-          echo "============================================================="
-          echo "Install Numpy/Scipy"
-          echo "============================================================="
-          conda install numpy=${{ matrix.NUMPY }} scipy=${{ matrix.SCIPY }} -q -y
-
-      - name: Install jax
-        run: |
-          echo "============================================================="
-          echo "Install jax"
-          echo "============================================================="
-          python -m pip install jax
-
-      - name: Install PETSc
-        if: matrix.PETSc
-        run: |
-          echo "============================================================="
-          echo "Install PETSc"
-          echo "============================================================="
-          if [[ "${{ matrix.OPENMPI }}" && "${{ matrix.MPI4PY }}" ]]; then
-            conda install openmpi=${{ matrix.OPENMPI }} mpi4py=${{ matrix.MPI4PY }} petsc4py=${{ matrix.PETSc }} -q -y
-          elif [[ "${{ matrix.MPI4PY }}" ]]; then
-            conda install mpi4py=${{ matrix.MPI4PY }} petsc4py=${{ matrix.PETSc }} -q -y
-          else
-            conda install mpi4py petsc4py=${{ matrix.PETSc }} -q -y
-          fi
-          echo "-----------------------"
-          echo "Quick test of mpi4py:"
-          mpirun -n 2 python -c "from mpi4py import MPI; print(f'Rank: {MPI.COMM_WORLD.rank}')"
-          echo "-----------------------"
-          echo "Quick test of petsc4py:"
-          mpirun -n 2 python -c "import numpy; from mpi4py import MPI; comm = MPI.COMM_WORLD; import petsc4py; petsc4py.init(); x = petsc4py.PETSc.Vec().createWithArray(numpy.ones(5)*comm.rank, comm=comm);  print(x.getArray())"
-          echo "-----------------------"
-          echo "OMPI_MCA_rmaps_base_oversubscribe=1" >> $GITHUB_ENV
-
-      - name: Install pyOptSparse
-        if: matrix.PYOPTSPARSE
-        run: |
-          echo "============================================================="
-          echo "Install pyoptsparse"
-          echo "============================================================="
-
-          if [[ "${{ matrix.PYOPTSPARSE }}" == "conda-forge" ]]; then
-            if [[ "${{ matrix.SNOPT }}" ]]; then
-              echo "SNOPT ${{ matrix.SNOPT }} was requested but is not available on conda-forge"
-            fi
-
-            conda install -c conda-forge pyoptsparse
-          else
-            pip install git+https://github.com/OpenMDAO/build_pyoptsparse
-
-            if [[ "${{ matrix.PYOPTSPARSE }}" == "latest" ]]; then
-              LATEST_URL=`curl -fsSLI -o /dev/null -w %{url_effective} https://github.com/mdolab/pyoptsparse/releases/latest`
-              LATEST_VER=`echo $LATEST_URL | awk '{split($0,a,"/tag/"); print a[2]}'`
-              BRANCH="-b $LATEST_VER"
-            else
-              BRANCH="-b ${{ matrix.PYOPTSPARSE }}"
-            fi
-
-            if [[ "${{ matrix.PAROPT }}" ]]; then
-              PAROPT="-a"
-            fi
-
-            if [[ "${{ matrix.SNOPT }}" == "7.7" && "${{ secrets.SNOPT_LOCATION_77 }}" ]]; then
-              echo "  > Secure copying SNOPT 7.7 over SSH"
-              mkdir SNOPT
-              scp -qr ${{ secrets.SNOPT_LOCATION_77 }} SNOPT
-              SNOPT="-s SNOPT/src"
-            elif [[ "${{ matrix.SNOPT }}" == "7.2" && "${{ secrets.SNOPT_LOCATION_72 }}" ]]; then
-              echo "  > Secure copying SNOPT 7.2 over SSH"
-              mkdir SNOPT
-              scp -qr ${{ secrets.SNOPT_LOCATION_72 }} SNOPT
-              SNOPT="-s SNOPT/source"
-            elif [[ "${{ matrix.SNOPT }}" ]]; then
-              echo "SNOPT version ${{ matrix.SNOPT }} was requested but source is not available"
-            fi
-
-            build_pyoptsparse $BRANCH $PAROPT $SNOPT
-          fi
+          matrix_name: ${{ matrix.NAME }}
+          os_version: ${{ matrix.OS }}
+          python_version: ${{ matrix.PY }}
+          numpy_version: ${{ matrix.NUMPY }}
+          scipy_version: ${{ matrix.SCIPY }}
+          exclude: ${{ matrix.EXCLUDE }}
+          use_pypi: false
+          PEP517: false
+          optional: ${{ matrix.OPTIONAL }}
 
       - name: Install OpenMDAO
-        if: matrix.OPENMDAO
+        shell: bash -l {0}
         run: |
           echo "============================================================="
           echo "Install OpenMDAO"
@@ -185,14 +137,48 @@ jobs:
             pip install openmdao==${{ matrix.OPENMDAO }}
           fi
 
-      - name: Install bokeh
+      - name: Install pyOptSparse
+        if: matrix.PYOPTSPARSE
+        id: install_pyoptsparse
+        uses: OpenMDAO/OpenMDAO/.github/actions/install_pyoptsparse@master
+        with:
+          pyoptsparse_version: ${{ matrix.PYOPTSPARSE }}
+          pyoptsparse_from: ${{ matrix.PYOPTSPARSE_FROM }}
+          snopt_version: ${{ matrix.SNOPT }}
+          SECRET_ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          SECRET_ssh_known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+          SECRET_snopt_location: ${{ secrets.SNOPT_LOCATION }}
+          SECRET_snopt_location_72: ${{ secrets.SNOPT_LOCATION_72 }}
+          SECRET_snopt_location_77: ${{ secrets.SNOPT_LOCATION_77 }}
+
+      - name: Install PETSc and mpi4py
+        if: matrix.PETSc
+        id: install_petsc
+        uses: OpenMDAO/OpenMDAO/.github/actions/install_petsc@master
+        with:
+          openmpi_version: ${{ matrix.OPENMPI }}
+          petsc_version: ${{ matrix.PETSc }}
+          mpi4py_version: ${{ matrix.MPI4PY }}
+
+      - name: Install optional dependencies
+        if: matrix.OPTIONAL
+        id: install_optional_dependencies
+        uses: OpenMDAO/OpenMDAO/.github/actions/install_optional_dependencies@master
+        with:
+          os_version: ${{ matrix.OS }}
+          optional: ${{ matrix.OPTIONAL }}
+
+      - name: Install JAX
+        if: matrix.JAX
+        shell: bash -l {0}
         run: |
           echo "============================================================="
-          echo "Install additional packages for testing/coverage"
+          echo "Install JAX"
           echo "============================================================="
-          conda install bokeh
+          python -m pip install jax jaxlib
 
       - name: Install Dymos
+        shell: bash -l {0}
         run: |
           echo "============================================================="
           echo "Install Dymos"
@@ -200,66 +186,68 @@ jobs:
           pip install .${{ matrix.OPTIONAL }}
 
       - name: Display environment info
-        id: env_info
-        run: |
-          conda info
-          conda list
-
-          echo "============================================================="
-          echo "Check installed versions of Python, Numpy and Scipy"
-          echo "============================================================="
-          python -c "import sys; assert str(sys.version).startswith(str(${{ matrix.PY }})), \
-                    f'Python version {sys.version} is not the requested version (${{ matrix.PY }})'"
-
-          python -c "import numpy; assert str(numpy.__version__).startswith(str(${{ matrix.NUMPY }})), \
-                    f'Numpy version {numpy.__version__} is not the requested version (${{ matrix.NUMPY }})'"
-
-          python -c "import scipy; assert str(scipy.__version__).startswith(str(${{ matrix.SCIPY }})), \
-                    f'Scipy version {scipy.__version__} is not the requested version (${{ matrix.SCIPY }})'"
-
-      - name: Display dependency tree
-        if: failure() && steps.env_info.outcome == 'failure'
-        run: |
-          pip install pipdeptree
-          pipdeptree
+        id: display_env_info
+        uses: OpenMDAO/OpenMDAO/.github/actions/display_environment_info@master
+        with:
+          matrix_name: ${{ matrix.NAME }}
+          SECRET_slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          python_version: ${{ matrix.PY }}
+          numpy_version: ${{ matrix.NUMPY }}
+          scipy_version: ${{ matrix.SCIPY }}
 
       - name: Build docs
         id: build_docs
+        shell: bash -l {0}
+        continue-on-error: true
         run: |
           echo "============================================================="
-          echo "Building Docs"
+          echo "Building Dymos Docs"
           echo "============================================================="
           cd docs
           export PYDEVD_DISABLE_FILE_VALIDATION=1
           jupyter-book build -W --keep-going dymos_book
 
       - name: Display doc build reports
-        continue-on-error: True
-        if: failure() && steps.build_docs.outcome == 'failure'
+        if: steps.build_docs.outcome == 'failure'
+        shell: bash -l {0}
         run: |
-          echo $PWD
-          cd docs
-          find dymos_book/_build/html/reports/ -type f -name '*.log' \
+          echo "============================================================="
+          echo "Doc Build Reports"
+          echo "============================================================="
+          find docs/dymos_book/_build/html/reports/ -type f -name '*.log' \
           -exec echo "#################################################################" \; \
           -exec echo {} \; \
           -exec echo "#################################################################" \; \
           -exec cat {} \;
+          exit 1
+
+      - name: Archive built docs
+        if: steps.build_docs.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: built-docs-${{ matrix.NAME }}
+          path: docs/dymos_book/_build/html
+          retention-days: 5
 
       - name: Publish docs to github.io
         if: |
-          github.event_name == 'push' && matrix.PUBLISH_DOCS == '1'
+          github.event_name == 'push' &&
+          matrix.PUBLISH_DOCS &&
+          steps.build_docs.outcome == 'success'
+        shell: bash -l {0}
         run: |
           echo "============================================================="
           echo "Publishing Docs to github.io"
           echo "============================================================="
           pip install ghp-import
-          cd $HOME/work/dymos/dymos
           ghp-import -n -p -f docs/dymos_book/_build/html
 
       - name: Publish docs to openmdao.org
         if: |
           (github.event_name == 'push' || github.event_name == 'release') &&
-          matrix.PUBLISH_DOCS == '1'
+          matrix.PUBLISH_DOCS &&
+          steps.build_docs.outcome == 'success'
+        shell: bash -l {0}
         env:
           DOCS_LOCATION: ${{ secrets.DOCS_LOCATION }}
         run: |
@@ -273,9 +261,27 @@ jobs:
             echo "============================================================="
             echo "Publishing Docs to openmdao.org"
             echo "============================================================="
-            echo "Publish docs"
-            cd $HOME/work/dymos/dymos
             python -m openmdao.docs.upload_doc_version docs/dymos_book/_build/html/ ${{ secrets.DOCS_LOCATION }}
           else
             echo "Docs destination not available."
           fi
+
+      - name: Slack doc build failure
+        if: steps.build_docs.outcome == 'failure' && secrets.SLACK_WEBHOOK_URL != ''
+        uses: act10ns/slack@v2.0.0
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          status: ${{ steps.build_docs.outcome }}
+          message: |
+            Dymos doc build failed on `${{ matrix.NAME }}` build.
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+      - name: Fail the workflow if doc build failed
+        if: steps.build_docs.outcome == 'failure'
+        uses: actions/github-script@v8
+        with:
+          script: |
+              let docs_fail = ${{ steps.build_docs.outcome == 'failure' }};
+              if (docs_fail) {
+                  core.setFailed('Doc build failed.');
+              }
