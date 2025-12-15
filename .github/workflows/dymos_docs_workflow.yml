@@ -16,6 +16,11 @@ on:
   # Trigger via workflow_dispatch event
   workflow_dispatch:
 
+concurrency:
+  # Cancel any existing CI runs if we push to this branch
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
 
   docs_ubuntu:

@@ -140,6 +140,7 @@ jobs:
     steps:
       - name: Display run details
         run: |
+          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
           echo "============================================================="
           echo "Run #${GITHUB_RUN_NUMBER}"
           echo "Run ID: ${GITHUB_RUN_ID}"
@@ -161,7 +162,8 @@ jobs:
 
       - name: 'Setup OpenMDAO pixi Environment'
         id: setup_pixi_environment
-        uses: OpenMDAO/OpenMDAO/.github/actions/setup_openmdao_pixi@master
+        # uses: OpenMDAO/OpenMDAO/.github/actions/setup_openmdao_pixi@master
+        uses: robfalck/OpenMDAO/.github/actions/setup_openmdao_pixi@reusable_ci
         with:
           environment: '${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }}'
           openmdao_install_from: '${{ matrix.OPENMDAO_INSTALL_FROM }}'
@@ -170,6 +172,7 @@ jobs:
       - name: Install Dymos
         if: ${{ ! matrix.EXCLUDE }}
         run: |
+          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
           echo "============================================================="
           echo "Install Dymos"
           echo "============================================================="
@@ -192,6 +195,7 @@ jobs:
       - name: Install optional dependencies
         if: matrix.OPENMDAO_PIXI_ENVIRONMENT == 'dev'
         run: |
+          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
           echo "============================================================="
           echo "Install additional packages for testing/coverage"
           echo "============================================================="
@@ -203,6 +207,7 @@ jobs:
         if: matrix.DYMOS_2
         shell: bash -l {0}
         run: |
+          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
           echo "============================================================="
           echo "Setting environement variable DYMOS_2=1"
           echo "============================================================="
@@ -237,6 +242,7 @@ jobs:
       - name: Perform linting with Ruff
         if: ${{ ! matrix.EXCLUDE && matrix.NAME == 'baseline' }}
         run: |
+          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
           echo "============================================================="
           echo "Lint Dymos code per settings in pyproject.toml"
           echo "============================================================="
@@ -249,6 +255,7 @@ jobs:
           DYMOS_CHECK_PARTIALS: True
         continue-on-error: false
         run: |
+          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
           echo "============================================================="
           echo "Run Tests"
           echo "Environment:"
@@ -279,6 +286,7 @@ jobs:
           COVERALLS_SERVICE_NAME: "github"
           COVERALLS_PARALLEL: True
         run: |
+          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
           echo "============================================================="
           echo "Submit coverage"
           echo "============================================================="
