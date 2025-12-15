@@ -248,6 +248,39 @@ jobs:
           echo "============================================================="
           ruff check . --config pyproject.toml
 
+      - name: Check MPI and PETSc
+        continue-on-error: true
+        run: |
+          eval "$(pixi shell-hook -e ${{ matrix.PIXI_ENVIRONMENT }})"
+          if python -c "import mpi4py, petsc4py" 2>/dev/null; then
+            echo "============================================================="
+            echo "Check MPI and PETSc installation"
+            echo "============================================================="
+            export PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe
+            export OMPI_MCA_rmaps_base_oversubscribe=1
+            export OMPI_MCA_btl=^openib
+            echo "-----------------------"
+            echo "Quick test of mpi4py:"
+            mpirun -n 3 python -c "from mpi4py import MPI; print(f'Rank: {MPI.COMM_WORLD.rank}')"
+            echo "-----------------------"
+            echo "Quick test of petsc4py:"
+            mpirun -n 3 python -c "import numpy; from mpi4py import MPI; comm = MPI.COMM_WORLD; \
+              import petsc4py; petsc4py.init(); \
+              x = petsc4py.PETSc.Vec().createWithArray(numpy.ones(5)*comm.rank, comm=comm);  \
+              print(x.getArray())"
+            echo "-----------------------"
+
+            # shellcheck disable=SC2129
+            echo "PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe" >> "$GITHUB_ENV"
+            echo "OMPI_MCA_rmaps_base_oversubscribe=1" >> "$GITHUB_ENV"
+            echo "OMPI_MCA_btl=^openib" >> "$GITHUB_ENV"
+
+            echo "Workaround for intermittent failures with OMPI https://github.com/open-mpi/ompi/issues/7393"
+            echo "TMPDIR=/tmp" >> "$GITHUB_ENV"
+          else
+            echo "mpi4py or petsc4py not installed in this environment, skipping MPI checks"
+          fi
+
       - name: Run tests
         id: run_tests
         if: ${{ ! matrix.EXCLUDE }}
