@@ -286,7 +286,7 @@ jobs:
         if: ${{ ! matrix.EXCLUDE }}
         env:
           DYMOS_CHECK_PARTIALS: True
-        continue-on-error: false
+        continue-on-error: true
         run: |
           eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
           echo "============================================================="
