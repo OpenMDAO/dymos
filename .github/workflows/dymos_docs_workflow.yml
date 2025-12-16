@@ -23,8 +23,8 @@ concurrency:
 
 jobs:
 
-  docs_ubuntu:
-    runs-on: ubuntu-22.04
+  test_ubuntu:
+    runs-on: ubuntu-latest
 
     defaults:
       run:
@@ -36,33 +36,50 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # baseline versions except with pyoptsparse but no SNOPT
-          # build docs to verify those that use pyoptsparse do not use SNOPT
-          - NAME: baseline_no_snopt
-            PY: '3.13'
-            NUMPY: '2.2'
-            SCIPY: '1.15'
-            PETSc: '3.23'
-            PYOPTSPARSE: 'v2.13.1'
-            OPENMDAO: 'latest'
-            OPTIONAL: '[docs]'
-            PUBLISH_DOCS: 1
+          # baseline versions
+          - NAME: baseline
+            OPENMDAO_PIXI_ENVIRONMENT: 'py313'
+            OPENMDAO_INSTALL_FROM: 'pypi'
+            OPENMDAO: '3.41.0'
+            DYMOS_2: False
+            PEP517: True
+            EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
 
-          # make sure the latest versions of things don't break the docs
-          - NAME: latest
-            PY: '3'
-            NUMPY: '2'
-            SCIPY: '1'
-            PETSc: '3'
-            PYOPTSPARSE: 'latest'
-            SNOPT: '7.7'
-            OPENMDAO: 'dev'
-            OPTIONAL: '[docs]'
-            PUBLISH_DOCS: 0
+          # # baseline versions except no MPI/PETSc
+          # - NAME: no_mpi
+          #   OPENMDAO_PIXI_ENVIRONMENT: 'default'
+          #   OPENMDAO_INSTALL_FROM: 'pypi'
+          #   OPENMDAO: '3.41.0'
+          #   DYMOS_2 : False
+          #   EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
+
+          # # latest versions
+          # - NAME: latest
+          #   OPENMDAO_PIXI_ENVIRONMENT: 'py313'
+          #   OPENMDAO_INSTALL_FROM: 'github'
+          #   OPENMDAO: ''
+          #   DYMOS_2 : False
+          #   EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
+
+          # # latest versions dymos 2 testing
+          # - NAME: latest_dymos_2
+          #   OPENMDAO_PIXI_ENVIRONMENT: 'py313'
+          #   OPENMDAO_INSTALL_FROM: 'github'
+          #   OPENMDAO: ''
+          #   DYMOS_2 : True
+          #   EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
+
+          # # oldest supported versions
+          # - NAME: oldest
+          #   OPENMDAO_PIXI_ENVIRONMENT: 'oldest'
+          #   OPENMDAO_INSTALL_FROM: 'pypi'
+          #   OPENMDAO: '3.36.0'
+          #   EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.oldest }}
 
     steps:
       - name: Display run details
         run: |
+          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
           echo "============================================================="
           echo "Run #${GITHUB_RUN_NUMBER}"
           echo "Run ID: ${GITHUB_RUN_ID}"
@@ -70,163 +87,138 @@ jobs:
           echo "Triggered by: ${GITHUB_EVENT_NAME}"
           echo "Initiated by: ${GITHUB_ACTOR}"
           echo "============================================================="
-
-      - name: Create SSH key
-        env:
-          SSH_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}
-          SSH_KNOWN_HOSTS: ${{secrets.SSH_KNOWN_HOSTS}}
-        run: |
-          mkdir -p ~/.ssh/
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-          sudo chmod 600 ~/.ssh/id_rsa
-          echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            if [[ "${{ matrix.EXCLUDE }}" == "false" ]]; then
+              echo "Triggered by 'workflow_dispatch', '${{ matrix.NAME }}' build was selected and will run."
+            else
+              echo "Triggered by 'workflow_dispatch', '${{ matrix.NAME }}' build not selected and will not run."
+            fi
+          fi
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        if: ${{ ! matrix.EXCLUDE }}
+        uses: actions/checkout@v6
 
-      - name: Fetch tags
-        run: |
-          git fetch --prune --unshallow --tags
-
-      - name: Setup conda
-        uses: conda-incubator/setup-miniconda@v3
+      - name: 'Setup OpenMDAO pixi Environment'
+        id: setup_pixi_environment
+        # uses: OpenMDAO/OpenMDAO/.github/actions/setup_openmdao_pixi@master
+        uses: robfalck/OpenMDAO/.github/actions/setup_openmdao_pixi@reusable_ci
         with:
-          python-version: ${{ matrix.PY }}
-          channels: conda-forge
-          conda-remove-defaults: true
-
-      - name: Install Numpy/Scipy
-        run: |
-          echo "============================================================="
-          echo "Install Numpy/Scipy"
-          echo "============================================================="
-          conda install numpy=${{ matrix.NUMPY }} scipy=${{ matrix.SCIPY }} -q -y
-
-      - name: Install jax
-        run: |
-          echo "============================================================="
-          echo "Install jax"
-          echo "============================================================="
-          python -m pip install jax
-
-      - name: Install PETSc
-        if: matrix.PETSc
-        run: |
-          echo "============================================================="
-          echo "Install PETSc"
-          echo "============================================================="
-          if [[ "${{ matrix.OPENMPI }}" && "${{ matrix.MPI4PY }}" ]]; then
-            conda install openmpi=${{ matrix.OPENMPI }} mpi4py=${{ matrix.MPI4PY }} petsc4py=${{ matrix.PETSc }} -q -y
-          elif [[ "${{ matrix.MPI4PY }}" ]]; then
-            conda install mpi4py=${{ matrix.MPI4PY }} petsc4py=${{ matrix.PETSc }} -q -y
-          else
-            conda install mpi4py petsc4py=${{ matrix.PETSc }} -q -y
-          fi
-          echo "-----------------------"
-          echo "Quick test of mpi4py:"
-          mpirun -n 2 python -c "from mpi4py import MPI; print(f'Rank: {MPI.COMM_WORLD.rank}')"
-          echo "-----------------------"
-          echo "Quick test of petsc4py:"
-          mpirun -n 2 python -c "import numpy; from mpi4py import MPI; comm = MPI.COMM_WORLD; import petsc4py; petsc4py.init(); x = petsc4py.PETSc.Vec().createWithArray(numpy.ones(5)*comm.rank, comm=comm);  print(x.getArray())"
-          echo "-----------------------"
-          echo "OMPI_MCA_rmaps_base_oversubscribe=1" >> $GITHUB_ENV
-
-      - name: Install pyOptSparse
-        if: matrix.PYOPTSPARSE
-        run: |
-          echo "============================================================="
-          echo "Install pyoptsparse"
-          echo "============================================================="
-
-          if [[ "${{ matrix.PYOPTSPARSE }}" == "conda-forge" ]]; then
-            if [[ "${{ matrix.SNOPT }}" ]]; then
-              echo "SNOPT ${{ matrix.SNOPT }} was requested but is not available on conda-forge"
-            fi
-
-            conda install -c conda-forge pyoptsparse
-          else
-            pip install git+https://github.com/OpenMDAO/build_pyoptsparse
-
-            if [[ "${{ matrix.PYOPTSPARSE }}" == "latest" ]]; then
-              LATEST_URL=`curl -fsSLI -o /dev/null -w %{url_effective} https://github.com/mdolab/pyoptsparse/releases/latest`
-              LATEST_VER=`echo $LATEST_URL | awk '{split($0,a,"/tag/"); print a[2]}'`
-              BRANCH="-b $LATEST_VER"
-            else
-              BRANCH="-b ${{ matrix.PYOPTSPARSE }}"
-            fi
-
-            if [[ "${{ matrix.PAROPT }}" ]]; then
-              PAROPT="-a"
-            fi
-
-            if [[ "${{ matrix.SNOPT }}" == "7.7" && "${{ secrets.SNOPT_LOCATION_77 }}" ]]; then
-              echo "  > Secure copying SNOPT 7.7 over SSH"
-              mkdir SNOPT
-              scp -qr ${{ secrets.SNOPT_LOCATION_77 }} SNOPT
-              SNOPT="-s SNOPT/src"
-            elif [[ "${{ matrix.SNOPT }}" == "7.2" && "${{ secrets.SNOPT_LOCATION_72 }}" ]]; then
-              echo "  > Secure copying SNOPT 7.2 over SSH"
-              mkdir SNOPT
-              scp -qr ${{ secrets.SNOPT_LOCATION_72 }} SNOPT
-              SNOPT="-s SNOPT/source"
-            elif [[ "${{ matrix.SNOPT }}" ]]; then
-              echo "SNOPT version ${{ matrix.SNOPT }} was requested but source is not available"
-            fi
-
-            build_pyoptsparse $BRANCH $PAROPT $SNOPT
-          fi
-
-      - name: Install OpenMDAO
-        if: matrix.OPENMDAO
-        run: |
-          echo "============================================================="
-          echo "Install OpenMDAO"
-          echo "============================================================="
-          if [[ "${{ matrix.OPENMDAO }}" == "dev" ]]; then
-            pip install git+https://github.com/OpenMDAO/OpenMDAO
-          elif [[ "${{ matrix.OPENMDAO }}" == "latest" ]]; then
-            pip install openmdao
-          else
-            pip install openmdao==${{ matrix.OPENMDAO }}
-          fi
-
-      - name: Install bokeh
-        run: |
-          echo "============================================================="
-          echo "Install additional packages for testing/coverage"
-          echo "============================================================="
-          conda install bokeh
+          environment: '${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }}'
+          openmdao_install_from: '${{ matrix.OPENMDAO_INSTALL_FROM }}'
+          openmdao_version: '${{ matrix.OPENMDAO }}'
 
       - name: Install Dymos
+        if: ${{ ! matrix.EXCLUDE }}
         run: |
+          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
           echo "============================================================="
           echo "Install Dymos"
           echo "============================================================="
-          pip install .${{ matrix.OPTIONAL }}
+          if [[  "${{ inputs.use_pypi }}" == "true" ]]; then
+            echo "-----------------------------------------------------------"
+            echo "Installing from PyPI"
+            echo "-----------------------------------------------------------"
+            python -m pip install dymos --no-deps
+          elif [[ "${{ matrix.PEP517 }}" == "true" ]]; then
+            pip wheel --no-deps --use-pep517 .
+            WHEEL=$(find dymos-*.whl)
+            echo "-----------------------------------------------------------"
+            echo "Installing from wheel: $WHEEL"
+            echo "-----------------------------------------------------------"
+            python -m pip install "$WHEEL"
+          else
+            python -m pip install .  --no-deps
+          fi
 
-      - name: Display environment info
-        id: env_info
+      - name: Install optional dependencies
+        if: matrix.OPENMDAO_PIXI_ENVIRONMENT == 'dev'
         run: |
-          conda info
-          conda list
-
+          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
           echo "============================================================="
-          echo "Check installed versions of Python, Numpy and Scipy"
+          echo "Install additional packages for testing/coverage"
           echo "============================================================="
-          python -c "import sys; assert str(sys.version).startswith(str(${{ matrix.PY }})), \
-                    f'Python version {sys.version} is not the requested version (${{ matrix.PY }})'"
+          echo "Pre-install playwright dependencies to avoid 'Playwright Host validation warning'"
+          pip install playwright
+          playwright install --with-deps
 
-          python -c "import numpy; assert str(numpy.__version__).startswith(str(${{ matrix.NUMPY }})), \
-                    f'Numpy version {numpy.__version__} is not the requested version (${{ matrix.NUMPY }})'"
-
-          python -c "import scipy; assert str(scipy.__version__).startswith(str(${{ matrix.SCIPY }})), \
-                    f'Scipy version {scipy.__version__} is not the requested version (${{ matrix.SCIPY }})'"
-
-      - name: Display dependency tree
-        if: failure() && steps.env_info.outcome == 'failure'
+      - name: Set Environment for Dymos 2
+        if: matrix.DYMOS_2
+        shell: bash -l {0}
         run: |
-          pip install pipdeptree
-          pipdeptree
+          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
+          echo "============================================================="
+          echo "Setting environement variable DYMOS_2=1"
+          echo "============================================================="
+          export "$DYMOS_2"=1
+          echo "$DYMOS_2=1" >> $"GITHUB_ENV"
+
+      # - name: Display environment info
+      #   id: env_info
+      #   if: ${{ ! matrix.EXCLUDE }}
+      #   run: |
+      #     printenv
+
+      #     conda info
+      #     conda list
+      #     conda env export --name test --file environment.yml
+      #     mv environment.yml ${{ matrix.NAME }}_environment.yml
+
+      # - name: Display dependency tree
+      #   if: failure() && steps.env_info.outcome == 'failure'
+      #   run: |
+      #     pip install pipdeptree
+      #     pipdeptree
+
+      # - name: Upload environment artifact
+      #   if: ${{ ! matrix.EXCLUDE }}
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: ${{ matrix.NAME }}_environment
+      #     path: ${{ matrix.NAME }}_environment.yml
+      #     retention-days: 5
+
+      - name: Perform linting with Ruff
+        if: ${{ ! matrix.EXCLUDE && matrix.NAME == 'baseline' }}
+        run: |
+          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
+          echo "============================================================="
+          echo "Lint Dymos code per settings in pyproject.toml"
+          echo "============================================================="
+          ruff check . --config pyproject.toml
+
+      - name: Check MPI and PETSc
+        continue-on-error: true
+        run: |
+          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
+          if python -c "import mpi4py, petsc4py" 2>/dev/null; then
+            echo "============================================================="
+            echo "Check MPI and PETSc installation"
+            echo "============================================================="
+            export PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe
+            export OMPI_MCA_rmaps_base_oversubscribe=1
+            export OMPI_MCA_btl=^openib
+            echo "-----------------------"
+            echo "Quick test of mpi4py:"
+            mpirun -n 3 python -c "from mpi4py import MPI; print(f'Rank: {MPI.COMM_WORLD.rank}')"
+            echo "-----------------------"
+            echo "Quick test of petsc4py:"
+            mpirun -n 3 python -c "import numpy; from mpi4py import MPI; comm = MPI.COMM_WORLD; \
+              import petsc4py; petsc4py.init(); \
+              x = petsc4py.PETSc.Vec().createWithArray(numpy.ones(5)*comm.rank, comm=comm);  \
+              print(x.getArray())"
+            echo "-----------------------"
+
+            # shellcheck disable=SC2129
+            echo "PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe" >> "$GITHUB_ENV"
+            echo "OMPI_MCA_rmaps_base_oversubscribe=1" >> "$GITHUB_ENV"
+            echo "OMPI_MCA_btl=^openib" >> "$GITHUB_ENV"
+
+            echo "Workaround for intermittent failures with OMPI https://github.com/open-mpi/ompi/issues/7393"
+            echo "TMPDIR=/tmp" >> "$GITHUB_ENV"
+          else
+            echo "mpi4py or petsc4py not installed in this environment, skipping MPI checks"
+          fi
 
       - name: Build docs
         id: build_docs
