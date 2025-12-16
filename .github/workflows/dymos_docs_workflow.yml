@@ -38,7 +38,7 @@ jobs:
         include:
           # baseline versions
           - NAME: baseline
-            OPENMDAO_PIXI_ENVIRONMENT: 'py313'
+            OPENMDAO_PIXI_ENVIRONMENT: 'dev'
             OPENMDAO_INSTALL_FROM: 'pypi'
             OPENMDAO: '3.41.0'
             DYMOS_2: False
