@@ -251,7 +251,7 @@ jobs:
       - name: Check MPI and PETSc
         continue-on-error: true
         run: |
-          eval "$(pixi shell-hook -e ${{ matrix.PIXI_ENVIRONMENT }})"
+          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
           if python -c "import mpi4py, petsc4py" 2>/dev/null; then
             echo "============================================================="
             echo "Check MPI and PETSc installation"
