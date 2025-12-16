@@ -43,6 +43,7 @@ jobs:
             OPENMDAO: '3.41.0'
             DYMOS_2: False
             PEP517: True
+            PUBLISH_DOCS: True
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
 
           # # baseline versions except no MPI/PETSc
@@ -223,6 +224,7 @@ jobs:
       - name: Build docs
         id: build_docs
         run: |
+          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
           echo "============================================================="
           echo "Building Docs"
           echo "============================================================="
@@ -234,6 +236,7 @@ jobs:
         continue-on-error: True
         if: failure() && steps.build_docs.outcome == 'failure'
         run: |
+          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
           echo $PWD
           cd docs
           find dymos_book/_build/html/reports/ -type f -name '*.log' \
@@ -244,8 +247,9 @@ jobs:
 
       - name: Publish docs to github.io
         if: |
-          github.event_name == 'push' && matrix.PUBLISH_DOCS == '1'
+          github.event_name == 'push' && matrix.PUBLISH_DOCS
         run: |
+          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
           echo "============================================================="
           echo "Publishing Docs to github.io"
           echo "============================================================="
@@ -256,10 +260,11 @@ jobs:
       - name: Publish docs to openmdao.org
         if: |
           (github.event_name == 'push' || github.event_name == 'release') &&
-          matrix.PUBLISH_DOCS == '1'
+          matrix.PUBLISH_DOCS
         env:
           DOCS_LOCATION: ${{ secrets.DOCS_LOCATION }}
         run: |
+          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
           if [[ "${#DOCS_LOCATION}" ]]; then
             echo "============================================================="
             echo "Create env with openssl compatible with hosting service"
