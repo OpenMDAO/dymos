@@ -143,8 +143,9 @@ def eval_ode_on_grid(phase, transcription):
     t_phase_prev = t_prev - t_prev[0]
     t_initial = np.repeat(t_prev[0, 0], repeats=transcription.grid_data.num_nodes, axis=0)
     t_duration = np.repeat(t_prev[-1, 0], repeats=transcription.grid_data.num_nodes, axis=0)
-    t = np.dot(L, t_prev)
-    t_phase = np.dot(L, t_phase_prev)
+    # Use einsum to handle multi-dimensional arrays
+    t = np.einsum('ij,j...->i...', L, t_prev)
+    t_phase = np.einsum('ij,j...->i...', L, t_phase_prev)
     targets = get_targets(ode, 'time', phase.time_options['targets'])
     t_phase_targets = get_targets(ode, 't_phase', phase.time_options['time_phase_targets'])
     t_initial_targets = get_targets(ode, 't_initial', phase.time_options['t_initial_targets'])
@@ -163,7 +164,9 @@ def eval_ode_on_grid(phase, transcription):
 
     for name, options in phase.state_options.items():
         x_prev = phase.get_val(f'timeseries.{state_prefix}{name}', units=options['units'])
-        x[name] = np.dot(L, x_prev)
+        # Use einsum to handle multi-dimensional states (e.g., shape (n_nodes, n_arcs, 3))
+        # Contract L (shape m,n) with x_prev along first axis, preserve trailing dimensions
+        x[name] = np.einsum('ij,j...->i...', L, x_prev)
         targets = get_targets(ode, name, options['targets'])
         if targets:
             p_refine.set_val(f'states:{name}', x[name])
@@ -174,19 +177,22 @@ def eval_ode_on_grid(phase, transcription):
         rate2_targets = get_targets(ode, f'{name}_rate2', options['rate2_targets'])
 
         u_prev = phase.get_val(f'timeseries.{control_prefix}{name}', units=options['units'])
-        u[name] = np.dot(L, u_prev)
+        # Use einsum to handle multi-dimensional controls
+        u[name] = np.einsum('ij,j...->i...', L, u_prev)
         if targets:
             p_refine.set_val(f'controls:{name}', u[name])
 
         if phase.timeseries_options['include_control_rates']:
             if rate_targets:
                 u_rate_prev = phase.get_val(f'timeseries.control_rates:{name}_rate')
-                u_rate[name] = np.dot(L, u_rate_prev)
+                # Use einsum to handle multi-dimensional arrays
+                u_rate[name] = np.einsum('ij,j...->i...', L, u_rate_prev)
                 p_refine.set_val(f'control_rates:{name}_rate', u_rate[name])
 
             if rate2_targets:
                 u_rate2_prev = phase.get_val(f'timeseries.control_rates:{name}_rate2')
-                u_rate2[name] = np.dot(L, u_rate2_prev)
+                # Use einsum to handle multi-dimensional arrays
+                u_rate2[name] = np.einsum('ij,j...->i...', L, u_rate2_prev)
                 p_refine.set_val(f'control_rates:{name}_rate2', u_rate2[name])
 
     # Configure the parameters
@@ -286,9 +292,18 @@ def compute_state_quadratures(x_hat, f_hat, t_duration, transcription):
         x_prime[state_name][left_end_idxs, ...] = x_hat[state_name][left_end_idxs, ...]
         nnps = np.array(gd.subset_num_nodes_per_segment['all']) - 1
         left_end_idxs_repeated = np.repeat(left_end_idxs, nnps)
+        # Extract the indexed subset first to get the right shape for integration
+        f_hat_subset = f_hat[state_name][not_left_end_idxs, ...]
+        # Reshape to 2D for matrix multiply, then reshape back
+        original_shape = f_hat_subset.shape
+        f_hat_2d = f_hat_subset.reshape(original_shape[0], -1)  # (19, 3) or (19, 1*3)
+        integrated_2d = I @ f_hat_2d  # (19, 19) @ (19, 3) -> (19, 3)
+        integrated = integrated_2d.reshape(integrated_2d.shape[0], *original_shape[1:])  # Back to (19, 1, 3)
+        # Ensure dt_dstau broadcasts correctly by adding extra dimensions
+        dt_dstau_expanded = dt_dstau.reshape(dt_dstau.shape[0], *([1] * (len(original_shape) - 1)))
         x_prime[state_name][not_left_end_idxs, ...] = \
             x_hat[state_name][left_end_idxs_repeated, ...] \
-            + dt_dstau * np.dot(I, f_hat[state_name][not_left_end_idxs, ...])
+            + dt_dstau_expanded * integrated
 
     return x_prime
 

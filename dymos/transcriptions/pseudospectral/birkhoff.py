@@ -8,7 +8,7 @@ from ..common import TimeComp, TimeseriesOutputComp
 from .components import BirkhoffIterGroup, BirkhoffBoundaryGroup
 
 from ..grid_data import BirkhoffGrid
-from dymos.utils.misc import get_rate_units, _format_phase_constraint_alias, is_scalar_or_singleton
+from dymos.utils.misc import get_rate_units, _format_phase_constraint_alias
 from dymos.utils.introspection import get_promoted_vars, get_source_metadata
 from dymos.utils.indexing import get_constraint_flat_idxs, get_src_indices_by_row
 
@@ -791,18 +791,30 @@ class Birkhoff(TranscriptionBase):
             Dict containing the values that need to be set in the phase
 
         """
-        input_data = {}
-        if is_scalar_or_singleton(vals):
-            input_data[f'states:{name}'] = vals
-            input_data[f'initial_states:{name}'] = vals
-            input_data[f'final_states:{name}'] = vals
+        input_data = super()._phase_set_state_val(phase, name, vals, time_vals, interpolation_kind)
+
+        state_vals = input_data[f'states:{name}']
+        input_data[f'initial_states:{name}'] = state_vals[0, ...]
+        input_data[f'final_states:{name}'] = state_vals[-1, ...]
+
+        # Birkhoff also should provide a guess for state_rates if possible
+        if time_vals is not None:
+            gd = self.grid_data
+            num_state_input_nodes = gd.subset_num_nodes['state_input']
+            state_shape = phase.state_options[name]['shape']
+            _, D = self.grid_data.phase_lagrange_matrices('state_input', 'state_input', sparse=True)
+            dt_dtau = (time_vals[-1] - time_vals[0]) / 2
+            state_size = np.prod(state_shape)
+            u_flat = np.reshape(state_vals, (num_state_input_nodes, state_size))
+
+            rate_flat = D.dot(u_flat) / dt_dtau
+            rate = np.reshape(rate_flat, (num_state_input_nodes,) + state_shape)
+
+            # Concatenate along time axis
+            input_data[f'state_rates:{name}'] = rate
         else:
-            interp_vals = phase.interp(name, vals, time_vals,
-                                       nodes='state_input',
-                                       kind=interpolation_kind)
-            input_data[f'states:{name}'] = interp_vals
-            input_data[f'initial_states:{name}'] = interp_vals[0, ...]
-            input_data[f'final_states:{name}'] = interp_vals[-1, ...]
+            # Only try to provide a guess at the rate if corresponding times are also specified.
+            input_data[f'state_rates:{name}'] = np.zeros_like(state_vals)
 
         return input_data
 
