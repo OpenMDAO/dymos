@@ -41,7 +41,7 @@ docs = [
     "jax",
     "jaxlib",
     "jupyter",
-    "jupyter-book",
+    "jupyter-book<2",
     "matplotlib",
     "nbconvert",
     "notebook",
