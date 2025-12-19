@@ -116,17 +116,41 @@ jobs:
 
           # latest versions
           - NAME: latest
+<<<<<<< HEAD
             OPENMDAO_PIXI_ENVIRONMENT: 'py313'
             OPENMDAO_INSTALL_FROM: 'github'
             OPENMDAO: ''
             DYMOS_2 : False
+=======
+            PY: '3'
+            NUMPY: '2'
+            SCIPY: '1'
+            PETSc: '3'
+            PYOPTSPARSE: 'latest'
+            SNOPT: '7.7'
+            OPENMDAO: 'dev'
+            OPTIONAL: '[all]'
+            JAX: true
+>>>>>>> 1fea216f (guard for lack of pyoptsparse and jax in new test.)
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
 
           # latest versions dymos 2 testing
           - NAME: latest_dymos_2
+<<<<<<< HEAD
             OPENMDAO_PIXI_ENVIRONMENT: 'py313'
             OPENMDAO_INSTALL_FROM: 'github'
             OPENMDAO: ''
+=======
+            PY: '3'
+            NUMPY: '2'
+            SCIPY: '1'
+            PETSc: '3'
+            PYOPTSPARSE: 'latest'
+            SNOPT: '7.7'
+            OPENMDAO: 'dev'
+            OPTIONAL: '[all]'
+            JAX: true
+>>>>>>> 1fea216f (guard for lack of pyoptsparse and jax in new test.)
             DYMOS_2 : True
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
 

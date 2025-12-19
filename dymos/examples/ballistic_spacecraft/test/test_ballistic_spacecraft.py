@@ -50,11 +50,17 @@ c3 = jnp.array(jnp.dot(v_inf, v_inf))
 import unittest
 
 import numpy as np
-import jax.numpy as jnp
+
+try:
+    import jax
+    import jax.numpy as jnp
+except ImportError:
+    jax = None
 
 import openmdao.api as om
 import openmdao.utils.units as om_units
 from openmdao.utils.general_utils import env_truthy
+from openmdao.utils.testing_utils import require_pyoptsparse
 import dymos as dm
 
 from dymos.examples.ballistic_spacecraft.ephem_comp import EphemerisComp, KMPAU, MU_SUN
@@ -85,6 +91,8 @@ class C3Comp(om.JaxExplicitComponent):
 
 class TestBallisticSpacecraft(unittest.TestCase):
 
+    @unittest.skipIf(jax is None, 'requires jax and jaxlib')
+    @require_pyoptsparse('IPOPT')
     def test_ballistic_spacecraft(self):
         txs = {'birkhoff': dm.Birkhoff(num_nodes=20)}
 
