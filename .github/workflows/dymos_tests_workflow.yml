@@ -116,12 +116,6 @@ jobs:
 
           # latest versions
           - NAME: latest
-<<<<<<< HEAD
-            OPENMDAO_PIXI_ENVIRONMENT: 'py313'
-            OPENMDAO_INSTALL_FROM: 'github'
-            OPENMDAO: ''
-            DYMOS_2 : False
-=======
             PY: '3'
             NUMPY: '2'
             SCIPY: '1'
@@ -131,16 +125,10 @@ jobs:
             OPENMDAO: 'dev'
             OPTIONAL: '[all]'
             JAX: true
->>>>>>> 1fea216f (guard for lack of pyoptsparse and jax in new test.)
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
 
           # latest versions dymos 2 testing
           - NAME: latest_dymos_2
-<<<<<<< HEAD
-            OPENMDAO_PIXI_ENVIRONMENT: 'py313'
-            OPENMDAO_INSTALL_FROM: 'github'
-            OPENMDAO: ''
-=======
             PY: '3'
             NUMPY: '2'
             SCIPY: '1'
@@ -150,7 +138,6 @@ jobs:
             OPENMDAO: 'dev'
             OPTIONAL: '[all]'
             JAX: true
->>>>>>> 1fea216f (guard for lack of pyoptsparse and jax in new test.)
             DYMOS_2 : True
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
 
@@ -239,7 +226,6 @@ jobs:
 
       - name: Perform linting with Ruff
         if: ${{ ! matrix.EXCLUDE && matrix.NAME == 'baseline' }}
-        continue-on-error: true
         run: |
           eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
           echo "============================================================="
