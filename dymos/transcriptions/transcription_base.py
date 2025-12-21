@@ -813,29 +813,28 @@ class TranscriptionBase(object):
                 if vals_array.shape == (gd.subset_num_nodes['state_input'],) + state_shape:
                     # states given at state input nodes.
                     state_vals = vals
-
                 else:
                     # Try to coerce the vals given into shape (2,) + shape.
                     try:
                         # If we could perform the reshape, then linearly interp from start to end.
                         vals_array_2xshape = vals_array.reshape((2,) + state_shape)
                         state_vals = phase.interp(name, vals_array_2xshape, time_vals,
-                                                    nodes='state_input', kind=interpolation_kind)
+                                                  nodes='state_input', kind=interpolation_kind)
                     except ValueError:
                         # If we fail, we don't have enough information to do any interpolation.
                         msg = (f'{phase.msginfo}: set_state_val({name}, ...) called with state values of shape '
-                                f'{vals_array.shape} but no time values.\n'
-                                'Unable to interpolate state values across phase.\n')
+                               f'{vals_array.shape} but no time values.\n'
+                               'Unable to interpolate state values across phase.\n')
                         raise ValueError(msg)
             elif vals_array.shape[0] == len(time_vals):
                 # We've been given multiple values of the state and the same number of time vals.
                 state_vals = phase.interp(name, vals, time_vals,
-                                            nodes='state_input',
-                                            kind=interpolation_kind)
+                                          nodes='state_input',
+                                          kind=interpolation_kind)
             else:
                 msg = (f'{phase.msginfo}: set_state_val({name}, ...) called with state values of shape '
-                        f'{vals_array.shape} but {len(time_vals)} time values.\n'
-                        'If given, time_vals must be given at the same number of points as there are vals.\n')
+                       f'{vals_array.shape} but {len(time_vals)} time values.\n'
+                       'If given, time_vals must be given at the same number of points as there are vals.\n')
                 raise ValueError(msg)
 
         input_data[f'states:{name}'] = state_vals

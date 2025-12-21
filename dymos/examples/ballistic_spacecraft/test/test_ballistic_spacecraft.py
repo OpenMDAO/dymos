@@ -68,9 +68,9 @@ from dymos.examples.ballistic_spacecraft.ephem_comp import EphemerisComp, KMPAU,
 from dymos.examples.ballistic_spacecraft.ballistic_ode_comp import BallisticODEComp
 
 # Add our specific DU and TU to OpenMDAO's recognized units.
-om_units.add_unit('DU', f'{KMPAU}*1000*m')
+om_units.add_unit('DU_sun', f'{KMPAU}*1000*m')
 period = 2 * np.pi * np.sqrt(KMPAU ** 3 / MU_SUN)
-om_units.add_unit('TU', f'{period}*s')
+om_units.add_unit('TU_sun', f'{period}*s')
 
 
 class C3Comp(om.JaxExplicitComponent):
@@ -116,12 +116,12 @@ class TestBallisticSpacecraft(unittest.TestCase):
                                                 ode_init_kwargs={'mu': MU_SUN}),
                                        promotes_inputs=['initial_states:v'])
 
-                phase.set_time_options(units='TU', fix_initial=False, fix_duration=False, duration_bounds=(0.01, None))
+                phase.set_time_options(units='TU_sun', fix_initial=False, fix_duration=False, duration_bounds=(0.01, None))
 
-                phase.set_state_options('r', rate_source='r_dot', units='DU',
+                phase.set_state_options('r', rate_source='r_dot', units='DU_sun',
                                         fix_initial=True, fix_final=True)
 
-                phase.set_state_options('v', rate_source='v_dot', units='DU/TU',
+                phase.set_state_options('v', rate_source='v_dot', units='DU_sun/TU_sun',
                                         fix_initial=False, fix_final=False)
 
                 phase.add_timeseries_output('r_dot', units='km/s')
