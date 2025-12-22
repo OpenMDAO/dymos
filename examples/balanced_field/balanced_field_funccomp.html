@@ -1,0 +1,1203 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Balanced Field Length using OpenMDAO’s Function Wrapping Components. &#8212; Dymos</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../_static/myfile.css?v=9678755d" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'examples/balanced_field/balanced_field_funccomp';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="The Bryson-Denham Problem" href="../bryson_denham/bryson_denham.html" />
+    <link rel="prev" title="Aircraft Balanced Field Length Calculation" href="balanced_field.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/dymos_logo.png" class="logo__image only-light" alt="Dymos - Home"/>
+    <script>document.write(`<img src="../../_static/dymos_logo.png" class="logo__image only-dark" alt="Dymos - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../../index.html">
+                    Multidisciplinary Optimal Control Library
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Installation</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installing Dymos</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/optimal_control.html">Optimal Control</a></li>
+
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/transcriptions.html">Optimal Control Transcriptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/defining_odes.html">Defining ODEs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/collocation.html">What is collocation?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/intro_to_dymos/intro_ivp.html">Modeling Dynamic Systems with Dymos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/intro_to_dymos/intro_segments.html">Segments of Phases</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples and Tutorials</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../examples.html">Dymos by Example</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../brachistochrone/brachistochrone.html">The Brachistochrone</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../brachistochrone/brachistochrone_upstream_init_duration_states.html">The Brachistochrone with externally-sourced initial state values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../vanderpol/vanderpol.html">The Van der Pol Oscillator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="balanced_field.html">Aircraft Balanced Field Length Calculation</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Balanced Field Length using OpenMDAO’s Function Wrapping Components.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bryson_denham/bryson_denham.html">The Bryson-Denham Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../commercial_aircraft/commercial_aircraft.html">Commercial Aircraft Range Maximization by Differential Inclusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../double_integrator/double_integrator.html">Double Integrator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hull/hull_problem.html">The Hull Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hypersensitive/hypersensitive.html">Hyper-Sensitive Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../finite_burn_orbit_raise/finite_burn_orbit_raise.html">Two-Burn Orbit Raise</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../length_constrained_brachistochrone/length_constrained_brachistochrone.html">The Length-Constrained Brachistochrone</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../min_time_climb/min_time_climb.html">Supersonic Interceptor Minimum Time Climb</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../mountain_car/mountain_car.html">The Mountain Car Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../moon_landing/moon_landing.html">Moon Landing Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../multi_phase_cannonball/multi_phase_cannonball.html">Multi-Phase Cannonball</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../multibranch_trajectory/multibranch_trajectory.html">Multibranch Trajectory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../racecar/racecar.html">Race car Lap Simulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reentry/reentry.html">Single-Phase Space Shuttle Reentry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ssto_earth/ssto_earth.html">SSTO Earth Launch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ssto_moon_linear_tangent/ssto_moon_linear_tangent.html">SSTO Lunar Ascent with Linear Tangent Guidance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ssto_moon_polynomial_controls/ssto_moon_polynomial_controls.html">SSTO Lunar Ascent with Polynomial Controls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../robertson_problem/robertson_problem.html">The Robertson Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../water_rocket/water_rocket.html">Water Rocket</a></li>
+
+<li class="toctree-l2"><a class="reference internal" href="../cart_pole/cart_pole.html">Cart-Pole Optimal Control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../brachistochrone/brachistochrone_tandem_phases.html">Brachistochrone with tandem phases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../implicit_duration/brachistochrone_implicit_duration.html">Boundary Balance</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Feature Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../features/phases/phases_list.html">Phases</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/phases.html">Phases of a Trajectory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/analytic_phases.html">Analytic Phases in Dymos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/segments.html">Segments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/variables.html">Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/constraints.html">Constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/objective.html">Objective</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/timeseries.html">Timeseries Outputs</a></li>
+
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/calc_expressions.html">Calculation Expressions</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../features/trajectories/trajectories.html">Organizing Phases into Trajectories</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../features/exploiting_sparsity.html">Exploiting Sparsity for Faster Derivative Calculation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../features/plotting.html">Plotting Timeseries</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Frequently Asked Questions</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../faq/faq.html">Frequently Asked Questions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/add_ode_output_to_timeseries.html">How do I add an ODE output to the timeseries outputs?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/connect_scalar_parameters_to_ode.html">How do I connect a scalar input to the ODE?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/upstream_analysis.html">How do I connect the outputs of an upstream analysis as inputs to Dymos?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/downstream_analysis.html">How do I connect the outputs of Dymos to a downstream analysis?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/tandem_phases.html">How do I run two phases parallel-in-time?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/use_partial_coloring.html">How can I more efficiently use finite-differenced components in the ODE?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/debugging.html">How can I debug models when things go wrong?</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Dymos API Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../api/api.html">Dymos Reference API</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../api/run_problem_function.html">The run_problem function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/phase_api.html">Phase Options</a></li>
+
+<li class="toctree-l2"><a class="reference internal" href="../../api/transcriptions_api.html">The Transcriptions API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/trajectory_api.html">The Trajectory API</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../contributing/contributing.html">Contributing to Dymos</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-launch-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Launch interactive content">
+    <i class="fas fa-rocket"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://colab.research.google.com/github/OpenMDAO/dymos/blob/master/docs/dymos_book/examples/balanced_field/balanced_field_funccomp.ipynb" target="_blank"
+   class="btn btn-sm dropdown-item"
+   title="Launch on Colab"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  
+    <img alt="Colab logo" src="../../_static/images/logo_colab.png">
+  </span>
+<span class="btn__text-container">Colab</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/OpenMDAO/dymos" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/OpenMDAO/dymos/issues/new?title=Issue%20on%20page%20%2Fexamples/balanced_field/balanced_field_funccomp.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../../_sources/examples/balanced_field/balanced_field_funccomp.ipynb" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.ipynb</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Balanced Field Length using OpenMDAO’s Function Wrapping Components.</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-use-the-function-wrapping-capability">Why use the function wrapping capability?</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#runway-ode-function">Runway ODE function</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#climb-ode-function">Climb ODE function</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-component-creating-function">A component creating function</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-function-wrapping-component">The Function Wrapping Component</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#building-and-running-the-problem">Building and running the problem</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="balanced-field-length-using-openmdao-s-function-wrapping-components">
+<h1>Balanced Field Length using OpenMDAO’s Function Wrapping Components.<a class="headerlink" href="#balanced-field-length-using-openmdao-s-function-wrapping-components" title="Link to this heading">#</a></h1>
+<div class="admonition-things-you-ll-learn-through-this-example admonition">
+<p class="admonition-title">Things you’ll learn through this example</p>
+<ul class="simple">
+<li><p>How to build an ODE that uses existing functions rather than rewriting the dynamics as OpenMDAO components.</p></li>
+</ul>
+</div>
+<p>This example performs the same balanced field length optimization as the example found <a class="reference internal" href="balanced_field.html#examples-balanced-field"><span class="std std-ref">here</span></a>.
+The purpose of this example is to demonstrate the ability of OpenMDAO to wrap existing user-defined functions that was introduced with OpenMDAO 3.14.0.</p>
+<section id="why-use-the-function-wrapping-capability">
+<h2>Why use the function wrapping capability?<a class="headerlink" href="#why-use-the-function-wrapping-capability" title="Link to this heading">#</a></h2>
+<p>In many cases, users are likely to have existing code that performs their calculations.
+Rather than forcing them to rewrite this code in the form of OpenMDAO components, the function wrapping components make it easier to get models up and running in OpenMDAO.</p>
+<p>Also, doing so gives users another option for differentiating their models by providing a format that can be used by Google’s <a class="reference external" href="https://github.com/google/jax">jax package</a>, which is a python-based automatic differentiation (AD) tool that provides another option, in addition to complex-step, for providing derivatives across the user’s model.</p>
+<p>In our case, we have two functions to wrap: the runway ODE and the climb ODE.</p>
+<section id="runway-ode-function">
+<h3>Runway ODE function<a class="headerlink" href="#runway-ode-function" title="Link to this heading">#</a></h3>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">runway_ode</span><span class="p">(</span><span class="n">rho</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">CD0</span><span class="p">,</span> <span class="n">CL0</span><span class="p">,</span> <span class="n">CL_max</span><span class="p">,</span> <span class="n">alpha_max</span><span class="p">,</span> <span class="n">h_w</span><span class="p">,</span> <span class="n">AR</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">span</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">mu_r</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">alpha</span><span class="p">):</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="mf">9.80665</span>
+    <span class="n">W</span> <span class="o">=</span> <span class="n">m</span> <span class="o">*</span> <span class="n">g</span>
+    <span class="n">v_stall</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">W</span> <span class="o">/</span> <span class="n">rho</span> <span class="o">/</span> <span class="n">S</span> <span class="o">/</span> <span class="n">CL_max</span><span class="p">)</span>
+    <span class="n">v_over_v_stall</span> <span class="o">=</span> <span class="n">v</span> <span class="o">/</span> <span class="n">v_stall</span>
+
+    <span class="n">CL</span> <span class="o">=</span> <span class="n">CL0</span> <span class="o">+</span> <span class="p">(</span><span class="n">alpha</span> <span class="o">/</span> <span class="n">alpha_max</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">CL_max</span> <span class="o">-</span> <span class="n">CL0</span><span class="p">)</span>
+    <span class="n">K_nom</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">AR</span> <span class="o">*</span> <span class="n">e</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">span</span> <span class="o">/</span> <span class="mf">2.0</span>
+    <span class="n">fact</span> <span class="o">=</span> <span class="p">((</span><span class="n">h</span> <span class="o">+</span> <span class="n">h_w</span><span class="p">)</span> <span class="o">/</span> <span class="n">b</span><span class="p">)</span> <span class="o">**</span> <span class="mf">1.5</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="n">K_nom</span> <span class="o">*</span> <span class="mi">33</span> <span class="o">*</span> <span class="n">fact</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="mi">33</span> <span class="o">*</span> <span class="n">fact</span><span class="p">)</span>
+
+    <span class="n">q</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">rho</span> <span class="o">*</span> <span class="n">v</span> <span class="o">**</span> <span class="mi">2</span>
+    <span class="n">L</span> <span class="o">=</span> <span class="n">q</span> <span class="o">*</span> <span class="n">S</span> <span class="o">*</span> <span class="n">CL</span>
+    <span class="n">D</span> <span class="o">=</span> <span class="n">q</span> <span class="o">*</span> <span class="n">S</span> <span class="o">*</span> <span class="p">(</span><span class="n">CD0</span> <span class="o">+</span> <span class="n">K</span> <span class="o">*</span> <span class="n">CL</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># Compute the downward force on the landing gear</span>
+    <span class="n">calpha</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">alpha</span><span class="p">)</span>
+    <span class="n">salpha</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">alpha</span><span class="p">)</span>
+
+    <span class="c1"># Runway normal force</span>
+    <span class="n">F_r</span> <span class="o">=</span> <span class="n">m</span> <span class="o">*</span> <span class="n">g</span> <span class="o">-</span> <span class="n">L</span> <span class="o">*</span> <span class="n">calpha</span> <span class="o">-</span> <span class="n">T</span> <span class="o">*</span> <span class="n">salpha</span>
+
+    <span class="c1"># Compute the dynamics</span>
+    <span class="n">v_dot</span> <span class="o">=</span> <span class="p">(</span><span class="n">T</span> <span class="o">*</span> <span class="n">calpha</span> <span class="o">-</span> <span class="n">D</span> <span class="o">-</span> <span class="n">F_r</span> <span class="o">*</span> <span class="n">mu_r</span><span class="p">)</span> <span class="o">/</span> <span class="n">m</span>
+    <span class="n">r_dot</span> <span class="o">=</span> <span class="n">v</span>
+
+    <span class="k">return</span> <span class="n">CL</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">F_r</span><span class="p">,</span> <span class="n">v_dot</span><span class="p">,</span> <span class="n">r_dot</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">v_stall</span><span class="p">,</span> <span class="n">v_over_v_stall</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="climb-ode-function">
+<h3>Climb ODE function<a class="headerlink" href="#climb-ode-function" title="Link to this heading">#</a></h3>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">climb_ode</span><span class="p">(</span><span class="n">rho</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">CD0</span><span class="p">,</span> <span class="n">CL0</span><span class="p">,</span> <span class="n">CL_max</span><span class="p">,</span> <span class="n">alpha_max</span><span class="p">,</span> <span class="n">h_w</span><span class="p">,</span> <span class="n">AR</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">span</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">gam</span><span class="p">):</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="mf">9.80665</span>
+    <span class="n">W</span> <span class="o">=</span> <span class="n">m</span> <span class="o">*</span> <span class="n">g</span>
+    <span class="n">v_stall</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">W</span> <span class="o">/</span> <span class="n">rho</span> <span class="o">/</span> <span class="n">S</span> <span class="o">/</span> <span class="n">CL_max</span><span class="p">)</span>
+    <span class="n">v_over_v_stall</span> <span class="o">=</span> <span class="n">v</span> <span class="o">/</span> <span class="n">v_stall</span>
+
+    <span class="n">CL</span> <span class="o">=</span> <span class="n">CL0</span> <span class="o">+</span> <span class="p">(</span><span class="n">alpha</span> <span class="o">/</span> <span class="n">alpha_max</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">CL_max</span> <span class="o">-</span> <span class="n">CL0</span><span class="p">)</span>
+    <span class="n">K_nom</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">AR</span> <span class="o">*</span> <span class="n">e</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">span</span> <span class="o">/</span> <span class="mf">2.0</span>
+    <span class="n">fact</span> <span class="o">=</span> <span class="p">((</span><span class="n">h</span> <span class="o">+</span> <span class="n">h_w</span><span class="p">)</span> <span class="o">/</span> <span class="n">b</span><span class="p">)</span> <span class="o">**</span> <span class="mf">1.5</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="n">K_nom</span> <span class="o">*</span> <span class="mi">33</span> <span class="o">*</span> <span class="n">fact</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="mi">33</span> <span class="o">*</span> <span class="n">fact</span><span class="p">)</span>
+
+    <span class="n">q</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">rho</span> <span class="o">*</span> <span class="n">v</span> <span class="o">**</span> <span class="mi">2</span>
+    <span class="n">L</span> <span class="o">=</span> <span class="n">q</span> <span class="o">*</span> <span class="n">S</span> <span class="o">*</span> <span class="n">CL</span>
+    <span class="n">D</span> <span class="o">=</span> <span class="n">q</span> <span class="o">*</span> <span class="n">S</span> <span class="o">*</span> <span class="p">(</span><span class="n">CD0</span> <span class="o">+</span> <span class="n">K</span> <span class="o">*</span> <span class="n">CL</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># Compute the downward force on the landing gear</span>
+    <span class="n">calpha</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">alpha</span><span class="p">)</span>
+    <span class="n">salpha</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">alpha</span><span class="p">)</span>
+
+    <span class="c1"># Runway normal force</span>
+    <span class="n">F_r</span> <span class="o">=</span> <span class="n">m</span> <span class="o">*</span> <span class="n">g</span> <span class="o">-</span> <span class="n">L</span> <span class="o">*</span> <span class="n">calpha</span> <span class="o">-</span> <span class="n">T</span> <span class="o">*</span> <span class="n">salpha</span>
+
+    <span class="c1"># Compute the dynamics</span>
+    <span class="n">cgam</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">gam</span><span class="p">)</span>
+    <span class="n">sgam</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">gam</span><span class="p">)</span>
+    <span class="n">v_dot</span> <span class="o">=</span> <span class="p">(</span><span class="n">T</span> <span class="o">*</span> <span class="n">calpha</span> <span class="o">-</span> <span class="n">D</span><span class="p">)</span> <span class="o">/</span> <span class="n">m</span> <span class="o">-</span> <span class="n">g</span> <span class="o">*</span> <span class="n">sgam</span>
+    <span class="n">gam_dot</span> <span class="o">=</span> <span class="p">(</span><span class="n">T</span> <span class="o">*</span> <span class="n">salpha</span> <span class="o">+</span> <span class="n">L</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">m</span> <span class="o">*</span> <span class="n">v</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">g</span> <span class="o">/</span> <span class="n">v</span><span class="p">)</span> <span class="o">*</span> <span class="n">cgam</span>
+    <span class="n">h_dot</span> <span class="o">=</span> <span class="n">v</span> <span class="o">*</span> <span class="n">sgam</span>
+    <span class="n">r_dot</span> <span class="o">=</span> <span class="n">v</span> <span class="o">*</span> <span class="n">cgam</span>
+
+    <span class="k">return</span> <span class="n">CL</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">F_r</span><span class="p">,</span> <span class="n">v_dot</span><span class="p">,</span> <span class="n">r_dot</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">v_stall</span><span class="p">,</span> <span class="n">v_over_v_stall</span><span class="p">,</span> <span class="n">gam_dot</span><span class="p">,</span> <span class="n">h_dot</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="a-component-creating-function">
+<h3>A component creating function<a class="headerlink" href="#a-component-creating-function" title="Link to this heading">#</a></h3>
+<p>This function accepts num_nodes and returns a component that wraps the above functions.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">openmdao.api</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">om</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">openmdao.func_api</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">omf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dymos.utils.misc</span><span class="w"> </span><span class="kn">import</span> <span class="n">om_version</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">wrap_ode_func</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">flight_mode</span><span class="p">,</span> <span class="n">grad_method</span><span class="o">=</span><span class="s1">&#39;jax&#39;</span><span class="p">,</span> <span class="n">jax_jit</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the metadata from omf needed to create a new ExplciitFuncComp.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nn</span> <span class="o">=</span> <span class="n">num_nodes</span>
+    <span class="n">ode_func</span> <span class="o">=</span> <span class="n">runway_ode</span> <span class="k">if</span> <span class="n">flight_mode</span> <span class="o">==</span> <span class="s1">&#39;runway&#39;</span> <span class="k">else</span> <span class="n">climb_ode</span>
+
+    <span class="n">meta</span> <span class="o">=</span> <span class="p">(</span><span class="n">omf</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">ode_func</span><span class="p">)</span>
+               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;rho&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">1.225</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;atmospheric density at runway&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/m**3&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,))</span>
+               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;S&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">124.7</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;aerodynamic reference area&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m**2&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,))</span>
+               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;CD0&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;zero-lift drag coefficient&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,))</span>
+               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;CL0&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;zero-alpha lift coefficient&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,))</span>
+               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;CL_max&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;maximum lift coefficient for linear fit&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,))</span>
+               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;alpha_max&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;angle of attack at CL_max&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;rad&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,))</span>
+               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;h_w&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;height of the wing above the CG&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,))</span>
+               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;AR&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">9.45</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;wing aspect ratio&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,))</span>
+               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;e&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">0.801</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Oswald span efficiency factor&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,))</span>
+               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;span&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">35.7</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Wingspan&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,))</span>
+               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;thrust&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,))</span>
+
+               <span class="c1"># Dynamic inputs (can assume a different value at every node)</span>
+               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nn</span><span class="p">,),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;aircraft mass&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg&#39;</span><span class="p">)</span>
+               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nn</span><span class="p">,),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;aircraft true airspeed&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m/s&#39;</span><span class="p">)</span>
+               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nn</span><span class="p">,),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;altitude&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">)</span>
+               <span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nn</span><span class="p">,),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;angle of attack&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;rad&#39;</span><span class="p">)</span>
+
+               <span class="c1"># Outputs</span>
+               <span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="s1">&#39;CL&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nn</span><span class="p">,),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;lift coefficient&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+               <span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="s1">&#39;q&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nn</span><span class="p">,),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;dynamic pressure&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;Pa&#39;</span><span class="p">)</span>
+               <span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="s1">&#39;L&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nn</span><span class="p">,),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;lift force&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;N&#39;</span><span class="p">)</span>
+               <span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="s1">&#39;D&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nn</span><span class="p">,),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;drag force&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;N&#39;</span><span class="p">)</span>
+               <span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="s1">&#39;K&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">nn</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;drag-due-to-lift factor&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+               <span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="s1">&#39;F_r&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nn</span><span class="p">,),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;runway normal force&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;N&#39;</span><span class="p">)</span>
+               <span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="s1">&#39;v_dot&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nn</span><span class="p">,),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;rate of change of speed&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m/s**2&#39;</span><span class="p">,</span>
+                           <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dymos.state_rate_source:v&#39;</span><span class="p">])</span>
+               <span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="s1">&#39;r_dot&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nn</span><span class="p">,),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;rate of change of range&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m/s&#39;</span><span class="p">,</span>
+                           <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dymos.state_rate_source:r&#39;</span><span class="p">])</span>
+               <span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="s1">&#39;W&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nn</span><span class="p">,),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;aircraft weight&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;N&#39;</span><span class="p">)</span>
+               <span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="s1">&#39;v_stall&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nn</span><span class="p">,),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;stall speed&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m/s&#39;</span><span class="p">)</span>
+               <span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="s1">&#39;v_over_v_stall&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nn</span><span class="p">,),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;stall speed ratio&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+           <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">flight_mode</span> <span class="o">==</span> <span class="s1">&#39;runway&#39;</span><span class="p">:</span>
+        <span class="n">meta</span><span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;mu_r&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;runway friction coefficient&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">meta</span><span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;gam&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nn</span><span class="p">,),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;flight path angle&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;rad&#39;</span><span class="p">)</span>
+        <span class="n">meta</span><span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="s1">&#39;gam_dot&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nn</span><span class="p">,),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;rate of change of flight path angle&#39;</span><span class="p">,</span>
+                        <span class="n">units</span><span class="o">=</span><span class="s1">&#39;rad/s&#39;</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dymos.state_rate_source:gam&#39;</span><span class="p">])</span>
+        <span class="n">meta</span><span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="s1">&#39;h_dot&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nn</span><span class="p">,),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;rate of change of altitude&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m/s&#39;</span><span class="p">,</span>
+                        <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dymos.state_rate_source:h&#39;</span><span class="p">])</span>
+
+    <span class="n">meta</span><span class="o">.</span><span class="n">declare_coloring</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">grad_method</span><span class="p">)</span>
+    <span class="n">meta</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">grad_method</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">om_version</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">35</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">om</span><span class="o">.</span><span class="n">ExplicitFuncComp</span><span class="p">(</span><span class="n">meta</span><span class="p">,</span> <span class="n">derivs_method</span><span class="o">=</span><span class="n">grad_method</span><span class="p">,</span> <span class="n">use_jit</span><span class="o">=</span><span class="n">jax_jit</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">om</span><span class="o">.</span><span class="n">ExplicitFuncComp</span><span class="p">(</span><span class="n">meta</span><span class="p">,</span> <span class="n">use_jax</span><span class="o">=</span><span class="n">grad_method</span> <span class="o">==</span> <span class="s1">&#39;jax&#39;</span><span class="p">,</span> <span class="n">use_jit</span><span class="o">=</span><span class="n">jax_jit</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="the-function-wrapping-component">
+<h3>The Function Wrapping Component<a class="headerlink" href="#the-function-wrapping-component" title="Link to this heading">#</a></h3>
+<p>The following component wraps one of the above ODE functions depending on its ‘mode’.
+This allows us to declare a single ODE component for use in the problem regardless of whether the given phase models the ground roll or the climb.</p>
+</section>
+</section>
+<section id="building-and-running-the-problem">
+<h2>Building and running the problem<a class="headerlink" href="#building-and-running-the-problem" title="Link to this heading">#</a></h2>
+<p>This code is identical to that in the previous <a class="reference internal" href="balanced_field.html#examples-balanced-field"><span class="std std-ref">balanced field example</span></a>.</p>
+<div class="cell tag_output_scroll docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">openmdao.utils.general_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">set_pyoptsparse_opt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">dymos</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dm</span>
+
+<span class="n">p</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">Problem</span><span class="p">()</span>
+
+<span class="n">_</span><span class="p">,</span> <span class="n">optimizer</span> <span class="o">=</span> <span class="n">set_pyoptsparse_opt</span><span class="p">(</span><span class="s1">&#39;IPOPT&#39;</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">p</span><span class="o">.</span><span class="n">driver</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">pyOptSparseDriver</span><span class="p">()</span>
+<span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">declare_coloring</span><span class="p">()</span>
+
+<span class="c1"># Use IPOPT if available, with fallback to SLSQP</span>
+<span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;optimizer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">optimizer</span>
+<span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;print_results&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="k">if</span> <span class="n">optimizer</span> <span class="o">==</span> <span class="s1">&#39;IPOPT&#39;</span><span class="p">:</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">opt_settings</span><span class="p">[</span><span class="s1">&#39;print_level&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">opt_settings</span><span class="p">[</span><span class="s1">&#39;mu_strategy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;adaptive&#39;</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">opt_settings</span><span class="p">[</span><span class="s1">&#39;bound_mult_init_method&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;mu-based&#39;</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">opt_settings</span><span class="p">[</span><span class="s1">&#39;mu_init&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.01</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">opt_settings</span><span class="p">[</span><span class="s1">&#39;nlp_scaling_method&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;gradient-based&#39;</span>
+
+<span class="c1"># First Phase: Brake release to V1 - both engines operable</span>
+<span class="n">br_to_v1</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">Phase</span><span class="p">(</span><span class="n">ode_class</span><span class="o">=</span><span class="n">wrap_ode_func</span><span class="p">,</span> <span class="n">transcription</span><span class="o">=</span><span class="n">dm</span><span class="o">.</span><span class="n">Radau</span><span class="p">(</span><span class="n">num_segments</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+                    <span class="n">ode_init_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;flight_mode&#39;</span><span class="p">:</span> <span class="s1">&#39;runway&#39;</span><span class="p">})</span>
+<span class="n">br_to_v1</span><span class="o">.</span><span class="n">set_time_options</span><span class="p">(</span><span class="n">fix_initial</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">duration_bounds</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1000</span><span class="p">),</span> <span class="n">duration_ref</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>
+<span class="n">br_to_v1</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">,</span> <span class="n">defect_ref</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">)</span>
+<span class="n">br_to_v1</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="mf">100.0</span><span class="p">,</span> <span class="n">defect_ref</span><span class="o">=</span><span class="mf">100.0</span><span class="p">)</span>
+<span class="n">br_to_v1</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;deg&#39;</span><span class="p">)</span>
+<span class="n">br_to_v1</span><span class="o">.</span><span class="n">add_timeseries_output</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">)</span>
+
+<span class="c1"># Second Phase: Rejected takeoff at V1 - no engines operable</span>
+<span class="n">rto</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">Phase</span><span class="p">(</span><span class="n">ode_class</span><span class="o">=</span><span class="n">wrap_ode_func</span><span class="p">,</span> <span class="n">transcription</span><span class="o">=</span><span class="n">dm</span><span class="o">.</span><span class="n">Radau</span><span class="p">(</span><span class="n">num_segments</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+               <span class="n">ode_init_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;flight_mode&#39;</span><span class="p">:</span> <span class="s1">&#39;runway&#39;</span><span class="p">})</span>
+<span class="n">rto</span><span class="o">.</span><span class="n">set_time_options</span><span class="p">(</span><span class="n">fix_initial</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">duration_bounds</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1000</span><span class="p">),</span> <span class="n">duration_ref</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">rto</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">,</span> <span class="n">defect_ref</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">)</span>
+<span class="n">rto</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="mf">100.0</span><span class="p">,</span> <span class="n">defect_ref</span><span class="o">=</span><span class="mf">100.0</span><span class="p">)</span>
+<span class="n">rto</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;deg&#39;</span><span class="p">)</span>
+<span class="n">rto</span><span class="o">.</span><span class="n">add_timeseries_output</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">)</span>
+
+<span class="c1"># Third Phase: V1 to Vr - single engine operable</span>
+<span class="n">v1_to_vr</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">Phase</span><span class="p">(</span><span class="n">ode_class</span><span class="o">=</span><span class="n">wrap_ode_func</span><span class="p">,</span> <span class="n">transcription</span><span class="o">=</span><span class="n">dm</span><span class="o">.</span><span class="n">Radau</span><span class="p">(</span><span class="n">num_segments</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+                    <span class="n">ode_init_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;flight_mode&#39;</span><span class="p">:</span> <span class="s1">&#39;runway&#39;</span><span class="p">})</span>
+<span class="n">v1_to_vr</span><span class="o">.</span><span class="n">set_time_options</span><span class="p">(</span><span class="n">fix_initial</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">duration_bounds</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1000</span><span class="p">),</span> <span class="n">duration_ref</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">v1_to_vr</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">,</span> <span class="n">defect_ref</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">)</span>
+<span class="n">v1_to_vr</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="mf">100.0</span><span class="p">,</span> <span class="n">defect_ref</span><span class="o">=</span><span class="mf">100.0</span><span class="p">)</span>
+<span class="n">v1_to_vr</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;deg&#39;</span><span class="p">)</span>
+<span class="n">v1_to_vr</span><span class="o">.</span><span class="n">add_timeseries_output</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">)</span>
+
+<span class="c1"># Fourth Phase: Rotate - single engine operable</span>
+<span class="n">rotate</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">Phase</span><span class="p">(</span><span class="n">ode_class</span><span class="o">=</span><span class="n">wrap_ode_func</span><span class="p">,</span> <span class="n">transcription</span><span class="o">=</span><span class="n">dm</span><span class="o">.</span><span class="n">Radau</span><span class="p">(</span><span class="n">num_segments</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+                  <span class="n">ode_init_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;flight_mode&#39;</span><span class="p">:</span> <span class="s1">&#39;runway&#39;</span><span class="p">})</span>
+<span class="n">rotate</span><span class="o">.</span><span class="n">set_time_options</span><span class="p">(</span><span class="n">fix_initial</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">duration_bounds</span><span class="o">=</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="n">duration_ref</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">rotate</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">,</span> <span class="n">defect_ref</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">)</span>
+<span class="n">rotate</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="mf">100.0</span><span class="p">,</span> <span class="n">defect_ref</span><span class="o">=</span><span class="mf">100.0</span><span class="p">)</span>
+<span class="n">rotate</span><span class="o">.</span><span class="n">add_control</span><span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;deg&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+<span class="n">ref</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                   <span class="n">val</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span> <span class="n">control_type</span><span class="o">=</span><span class="s1">&#39;polynomial&#39;</span><span class="p">)</span>
+<span class="n">rotate</span><span class="o">.</span><span class="n">add_timeseries_output</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">)</span>
+
+<span class="c1"># Fifth Phase: Climb to target speed and altitude at end of runway.</span>
+<span class="n">climb</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">Phase</span><span class="p">(</span><span class="n">ode_class</span><span class="o">=</span><span class="n">wrap_ode_func</span><span class="p">,</span> <span class="n">transcription</span><span class="o">=</span><span class="n">dm</span><span class="o">.</span><span class="n">Radau</span><span class="p">(</span><span class="n">num_segments</span><span class="o">=</span><span class="mi">5</span><span class="p">),</span>
+                 <span class="n">ode_init_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;flight_mode&#39;</span><span class="p">:</span> <span class="s1">&#39;climb&#39;</span><span class="p">})</span>
+<span class="n">climb</span><span class="o">.</span><span class="n">set_time_options</span><span class="p">(</span><span class="n">fix_initial</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">duration_bounds</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span> <span class="n">duration_ref</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">climb</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">,</span> <span class="n">defect_ref</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">)</span>
+<span class="n">climb</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">defect_ref</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">climb</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="mf">100.0</span><span class="p">,</span> <span class="n">defect_ref</span><span class="o">=</span><span class="mf">100.0</span><span class="p">)</span>
+<span class="n">climb</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;gam&#39;</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">defect_ref</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+<span class="n">climb</span><span class="o">.</span><span class="n">add_control</span><span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;deg&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=-</span><span class="mi">10</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">climb</span><span class="o">.</span><span class="n">add_timeseries_output</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">)</span>
+
+<span class="c1"># Instantiate the trajectory and add phases</span>
+<span class="n">traj</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">Trajectory</span><span class="p">()</span>
+<span class="n">p</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">add_subsystem</span><span class="p">(</span><span class="s1">&#39;traj&#39;</span><span class="p">,</span> <span class="n">traj</span><span class="p">)</span>
+<span class="n">traj</span><span class="o">.</span><span class="n">add_phase</span><span class="p">(</span><span class="s1">&#39;br_to_v1&#39;</span><span class="p">,</span> <span class="n">br_to_v1</span><span class="p">)</span>
+<span class="n">traj</span><span class="o">.</span><span class="n">add_phase</span><span class="p">(</span><span class="s1">&#39;rto&#39;</span><span class="p">,</span> <span class="n">rto</span><span class="p">)</span>
+<span class="n">traj</span><span class="o">.</span><span class="n">add_phase</span><span class="p">(</span><span class="s1">&#39;v1_to_vr&#39;</span><span class="p">,</span> <span class="n">v1_to_vr</span><span class="p">)</span>
+<span class="n">traj</span><span class="o">.</span><span class="n">add_phase</span><span class="p">(</span><span class="s1">&#39;rotate&#39;</span><span class="p">,</span> <span class="n">rotate</span><span class="p">)</span>
+<span class="n">traj</span><span class="o">.</span><span class="n">add_phase</span><span class="p">(</span><span class="s1">&#39;climb&#39;</span><span class="p">,</span> <span class="n">climb</span><span class="p">)</span>
+
+<span class="n">all_phases</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;br_to_v1&#39;</span><span class="p">,</span> <span class="s1">&#39;v1_to_vr&#39;</span><span class="p">,</span> <span class="s1">&#39;rto&#39;</span><span class="p">,</span> <span class="s1">&#39;rotate&#39;</span><span class="p">,</span> <span class="s1">&#39;climb&#39;</span><span class="p">]</span>
+<span class="n">groundroll_phases</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;br_to_v1&#39;</span><span class="p">,</span> <span class="s1">&#39;v1_to_vr&#39;</span><span class="p">,</span> <span class="s1">&#39;rto&#39;</span><span class="p">,</span> <span class="s1">&#39;rotate&#39;</span><span class="p">]</span>
+
+<span class="c1"># Add parameters common to multiple phases to the trajectory</span>
+<span class="n">traj</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">174200.</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;lbm&#39;</span><span class="p">,</span>
+                   <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;aircraft mass&#39;</span><span class="p">,</span>
+                   <span class="n">targets</span><span class="o">=</span><span class="p">{</span><span class="n">phase</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;m&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">phase</span> <span class="ow">in</span> <span class="n">all_phases</span><span class="p">})</span>
+
+<span class="c1"># Handle parameters which change from phase to phase.</span>
+<span class="n">traj</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;T_nominal&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mi">27000</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;lbf&#39;</span><span class="p">,</span> <span class="n">static_target</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                   <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;nominal aircraft thrust&#39;</span><span class="p">,</span>
+                   <span class="n">targets</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;br_to_v1&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;T&#39;</span><span class="p">]})</span>
+
+<span class="n">traj</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;T_engine_out&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mi">27000</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;lbf&#39;</span><span class="p">,</span> <span class="n">static_target</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                   <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;thrust under a single engine&#39;</span><span class="p">,</span>
+                   <span class="n">targets</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;v1_to_vr&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;T&#39;</span><span class="p">],</span> <span class="s1">&#39;rotate&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;T&#39;</span><span class="p">],</span> <span class="s1">&#39;climb&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;T&#39;</span><span class="p">]})</span>
+
+<span class="n">traj</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;T_shutdown&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;lbf&#39;</span><span class="p">,</span> <span class="n">static_target</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                   <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;thrust when engines are shut down for rejected takeoff&#39;</span><span class="p">,</span>
+                   <span class="n">targets</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;rto&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;T&#39;</span><span class="p">]})</span>
+
+<span class="n">traj</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;mu_r_nominal&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">static_target</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                   <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;nominal runway friction coefficient&#39;</span><span class="p">,</span>
+                   <span class="n">targets</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;br_to_v1&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;mu_r&#39;</span><span class="p">],</span> <span class="s1">&#39;v1_to_vr&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;mu_r&#39;</span><span class="p">],</span>  <span class="s1">&#39;rotate&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;mu_r&#39;</span><span class="p">]})</span>
+
+<span class="n">traj</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;mu_r_braking&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">static_target</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                   <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;runway friction coefficient under braking&#39;</span><span class="p">,</span>
+                   <span class="n">targets</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;rto&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;mu_r&#39;</span><span class="p">]})</span>
+
+<span class="n">traj</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;h_runway&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;ft&#39;</span><span class="p">,</span>
+                   <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;runway altitude&#39;</span><span class="p">,</span>
+                   <span class="n">targets</span><span class="o">=</span><span class="p">{</span><span class="n">phase</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;h&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">phase</span> <span class="ow">in</span> <span class="n">groundroll_phases</span><span class="p">})</span>
+
+<span class="c1"># Here we&#39;re omitting some constants that are common throughout all phases for the sake of brevity.</span>
+<span class="c1"># Their correct defaults are specified in add_input calls to `wrap_ode_func`.</span>
+
+<span class="c1"># Standard &quot;end of first phase to beginning of second phase&quot; linkages</span>
+<span class="c1"># Alpha changes from being a parameter in v1_to_vr to a polynomial control</span>
+<span class="c1"># in rotate, to a dynamic control in `climb`.</span>
+<span class="n">traj</span><span class="o">.</span><span class="n">link_phases</span><span class="p">([</span><span class="s1">&#39;br_to_v1&#39;</span><span class="p">,</span> <span class="s1">&#39;v1_to_vr&#39;</span><span class="p">],</span> <span class="nb">vars</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s1">&#39;v&#39;</span><span class="p">])</span>
+<span class="n">traj</span><span class="o">.</span><span class="n">link_phases</span><span class="p">([</span><span class="s1">&#39;v1_to_vr&#39;</span><span class="p">,</span> <span class="s1">&#39;rotate&#39;</span><span class="p">],</span> <span class="nb">vars</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="s1">&#39;alpha&#39;</span><span class="p">])</span>
+<span class="n">traj</span><span class="o">.</span><span class="n">link_phases</span><span class="p">([</span><span class="s1">&#39;rotate&#39;</span><span class="p">,</span> <span class="s1">&#39;climb&#39;</span><span class="p">],</span> <span class="nb">vars</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="s1">&#39;alpha&#39;</span><span class="p">])</span>
+<span class="n">traj</span><span class="o">.</span><span class="n">link_phases</span><span class="p">([</span><span class="s1">&#39;br_to_v1&#39;</span><span class="p">,</span> <span class="s1">&#39;rto&#39;</span><span class="p">],</span> <span class="nb">vars</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s1">&#39;v&#39;</span><span class="p">])</span>
+
+<span class="c1"># Less common &quot;final value of r must match at ends of two phases&quot;.</span>
+<span class="n">traj</span><span class="o">.</span><span class="n">add_linkage_constraint</span><span class="p">(</span><span class="n">phase_a</span><span class="o">=</span><span class="s1">&#39;rto&#39;</span><span class="p">,</span> <span class="n">var_a</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">loc_a</span><span class="o">=</span><span class="s1">&#39;final&#39;</span><span class="p">,</span>
+                            <span class="n">phase_b</span><span class="o">=</span><span class="s1">&#39;climb&#39;</span><span class="p">,</span> <span class="n">var_b</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">loc_b</span><span class="o">=</span><span class="s1">&#39;final&#39;</span><span class="p">,</span>
+                            <span class="n">ref</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+
+<span class="c1"># Define the constraints and objective for the optimal control problem</span>
+<span class="n">v1_to_vr</span><span class="o">.</span><span class="n">add_boundary_constraint</span><span class="p">(</span><span class="s1">&#39;v_over_v_stall&#39;</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;final&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+<span class="n">rto</span><span class="o">.</span><span class="n">add_boundary_constraint</span><span class="p">(</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;final&#39;</span><span class="p">,</span> <span class="n">equals</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">linear</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">rotate</span><span class="o">.</span><span class="n">add_boundary_constraint</span><span class="p">(</span><span class="s1">&#39;F_r&#39;</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;final&#39;</span><span class="p">,</span> <span class="n">equals</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="mi">100000</span><span class="p">)</span>
+
+<span class="n">climb</span><span class="o">.</span><span class="n">add_boundary_constraint</span><span class="p">(</span><span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;final&#39;</span><span class="p">,</span> <span class="n">equals</span><span class="o">=</span><span class="mi">35</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="mi">35</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;ft&#39;</span><span class="p">,</span> <span class="n">linear</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">climb</span><span class="o">.</span><span class="n">add_boundary_constraint</span><span class="p">(</span><span class="s1">&#39;gam&#39;</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;final&#39;</span><span class="p">,</span> <span class="n">equals</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;deg&#39;</span><span class="p">,</span> <span class="n">linear</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">climb</span><span class="o">.</span><span class="n">add_path_constraint</span><span class="p">(</span><span class="s1">&#39;gam&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;deg&#39;</span><span class="p">)</span>
+<span class="n">climb</span><span class="o">.</span><span class="n">add_boundary_constraint</span><span class="p">(</span><span class="s1">&#39;v_over_v_stall&#39;</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;final&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">1.25</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="mf">1.25</span><span class="p">)</span>
+
+<span class="n">rto</span><span class="o">.</span><span class="n">add_objective</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;final&#39;</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">)</span>
+
+<span class="c1">#</span>
+<span class="c1"># Setup the problem and set the initial guess</span>
+<span class="c1">#</span>
+<span class="n">p</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">br_to_v1</span><span class="o">.</span><span class="n">set_time_val</span><span class="p">(</span><span class="n">initial</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">35.0</span><span class="p">)</span>
+<span class="n">br_to_v1</span><span class="o">.</span><span class="n">set_state_val</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">2500.0</span><span class="p">])</span>
+<span class="n">br_to_v1</span><span class="o">.</span><span class="n">set_state_val</span><span class="p">(</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.0001</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">])</span>
+<span class="n">br_to_v1</span><span class="o">.</span><span class="n">set_parameter_val</span><span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;deg&#39;</span><span class="p">)</span>
+
+<span class="n">v1_to_vr</span><span class="o">.</span><span class="n">set_time_val</span><span class="p">(</span><span class="n">initial</span><span class="o">=</span><span class="mf">35.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">35.0</span><span class="p">)</span>
+<span class="n">v1_to_vr</span><span class="o">.</span><span class="n">set_state_val</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">2500</span><span class="p">,</span> <span class="mf">300.0</span><span class="p">])</span>
+<span class="n">v1_to_vr</span><span class="o">.</span><span class="n">set_state_val</span><span class="p">(</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mf">110.0</span><span class="p">])</span>
+<span class="n">v1_to_vr</span><span class="o">.</span><span class="n">set_parameter_val</span><span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;deg&#39;</span><span class="p">)</span>
+
+<span class="n">rto</span><span class="o">.</span><span class="n">set_time_val</span><span class="p">(</span><span class="n">initial</span><span class="o">=</span><span class="mf">35.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">rto</span><span class="o">.</span><span class="n">set_state_val</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">2500</span><span class="p">,</span> <span class="mf">5000.0</span><span class="p">])</span>
+<span class="n">rto</span><span class="o">.</span><span class="n">set_state_val</span><span class="p">(</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">110</span><span class="p">,</span> <span class="mf">0.0001</span><span class="p">])</span>
+<span class="n">rto</span><span class="o">.</span><span class="n">set_parameter_val</span><span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;deg&#39;</span><span class="p">)</span>
+
+<span class="n">rotate</span><span class="o">.</span><span class="n">set_time_val</span><span class="p">(</span><span class="n">initial</span><span class="o">=</span><span class="mf">35.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">5.0</span><span class="p">)</span>
+<span class="n">rotate</span><span class="o">.</span><span class="n">set_state_val</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1750</span><span class="p">,</span> <span class="mf">1800.0</span><span class="p">])</span>
+<span class="n">rotate</span><span class="o">.</span><span class="n">set_state_val</span><span class="p">(</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">80</span><span class="p">,</span> <span class="mf">85.0</span><span class="p">])</span>
+<span class="n">rotate</span><span class="o">.</span><span class="n">set_control_val</span><span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;deg&#39;</span><span class="p">)</span>
+
+<span class="n">climb</span><span class="o">.</span><span class="n">set_time_val</span><span class="p">(</span><span class="n">initial</span><span class="o">=</span><span class="mf">30.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">20.0</span><span class="p">)</span>
+<span class="n">climb</span><span class="o">.</span><span class="n">set_state_val</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">5000</span><span class="p">,</span> <span class="mf">5500.0</span><span class="p">],</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;ft&#39;</span><span class="p">)</span>
+<span class="n">climb</span><span class="o">.</span><span class="n">set_state_val</span><span class="p">(</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">160</span><span class="p">,</span> <span class="mf">170.0</span><span class="p">],</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kn&#39;</span><span class="p">)</span>
+<span class="n">climb</span><span class="o">.</span><span class="n">set_state_val</span><span class="p">(</span><span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">35.0</span><span class="p">],</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;ft&#39;</span><span class="p">)</span>
+<span class="n">climb</span><span class="o">.</span><span class="n">set_state_val</span><span class="p">(</span><span class="s1">&#39;gam&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">],</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;deg&#39;</span><span class="p">)</span>
+<span class="n">climb</span><span class="o">.</span><span class="n">set_control_val</span><span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;deg&#39;</span><span class="p">)</span>
+
+<span class="n">dm</span><span class="o">.</span><span class="n">run_problem</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">run_driver</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">simulate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.rto.states:r&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.001237 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000045 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000502 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000498 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000002 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.003928 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000081 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000002 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Coloring for &#39;traj.phases.br_to_v1.rhs_all&#39; (class ExplicitFuncComp)
+
+Jacobian shape: (132, 60)  (9.72% nonzero)
+FWD solves: 16   REV solves: 0
+Total colors vs. total size: 16 vs 60  (73.33% improvement)
+
+Sparsity computed using tolerance: 1e-25.
+Dense partial jacobian for ExplicitFuncComp &#39;traj.phases.br_to_v1.rhs_all&#39; was computed 3 times.
+Time to compute sparsity:   0.0156 sec
+Time to compute coloring:   0.0095 sec
+Memory to compute coloring:   0.2500 MB
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Coloring for &#39;traj.phases.rto.rhs_all&#39; (class ExplicitFuncComp)
+
+Jacobian shape: (132, 60)  (9.75% nonzero)
+FWD solves: 16   REV solves: 0
+Total colors vs. total size: 16 vs 60  (73.33% improvement)
+
+Sparsity computed using tolerance: 1e-25.
+Dense partial jacobian for ExplicitFuncComp &#39;traj.phases.rto.rhs_all&#39; was computed 3 times.
+Time to compute sparsity:   0.0156 sec
+Time to compute coloring:   0.0098 sec
+Memory to compute coloring:   0.0000 MB
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Coloring for &#39;traj.phases.v1_to_vr.rhs_all&#39; (class ExplicitFuncComp)
+
+Jacobian shape: (132, 60)  (10.00% nonzero)
+FWD solves: 16   REV solves: 0
+Total colors vs. total size: 16 vs 60  (73.33% improvement)
+
+Sparsity computed using tolerance: 1e-25.
+Dense partial jacobian for ExplicitFuncComp &#39;traj.phases.v1_to_vr.rhs_all&#39; was computed 3 times.
+Time to compute sparsity:   0.0158 sec
+Time to compute coloring:   0.0097 sec
+Memory to compute coloring:   0.0000 MB
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Coloring for &#39;traj.phases.rotate.rhs_all&#39; (class ExplicitFuncComp)
+
+Jacobian shape: (132, 60)  (10.00% nonzero)
+FWD solves: 16   REV solves: 0
+Total colors vs. total size: 16 vs 60  (73.33% improvement)
+
+Sparsity computed using tolerance: 1e-25.
+Dense partial jacobian for ExplicitFuncComp &#39;traj.phases.rotate.rhs_all&#39; was computed 3 times.
+Time to compute sparsity:   0.0155 sec
+Time to compute coloring:   0.0096 sec
+Memory to compute coloring:   0.0000 MB
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Coloring for &#39;traj.phases.climb.rhs_all&#39; (class ExplicitFuncComp)
+
+Jacobian shape: (260, 111)  (5.54% nonzero)
+FWD solves: 16   REV solves: 0
+Total colors vs. total size: 16 vs 111  (85.59% improvement)
+
+Sparsity computed using tolerance: 1e-25.
+Dense partial jacobian for ExplicitFuncComp &#39;traj.phases.climb.rhs_all&#39; was computed 3 times.
+Time to compute sparsity:   0.0264 sec
+Time to compute coloring:   0.0179 sec
+Memory to compute coloring:   0.0000 MB
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (178, 166)  (3.16% nonzero)
+FWD solves: 14   REV solves: 0
+Total colors vs. total size: 14 vs 166  (91.57% improvement)
+
+Sparsity computed using tolerance: 1e-25.
+Dense total jacobian for Problem &#39;problem&#39; was computed 3 times.
+Time to compute sparsity:   2.5556 sec
+Time to compute coloring:   0.1217 sec
+Memory to compute coloring:   0.1250 MB
+Coloring created on: 2025-12-22 16:08:45
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/home/runner/work/dymos/dymos/.openmdao-pixi/.pixi/envs/dev/lib/python3.13/site-packages/openmdao/core/total_jac.py:1670: DerivativesWarning:The following constraints or objectives cannot be impacted by the design variables of the problem at the current design point:
+  traj.climb.gam[path], inds=[(0, 0)]
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Simulating trajectory traj
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Done simulating trajectory traj
+[2197.7135635]
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sol_case</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">CaseReader</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">get_outputs_dir</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;dymos_solution.db&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get_case</span><span class="p">(</span><span class="s1">&#39;final&#39;</span><span class="p">)</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">gridspec_kw</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;top&#39;</span><span class="p">:</span> <span class="mf">0.92</span><span class="p">},</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">phase</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;br_to_v1&#39;</span><span class="p">,</span> <span class="s1">&#39;rto&#39;</span><span class="p">,</span> <span class="s1">&#39;v1_to_vr&#39;</span><span class="p">,</span> <span class="s1">&#39;rotate&#39;</span><span class="p">,</span> <span class="s1">&#39;climb&#39;</span><span class="p">]:</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">sol_case</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;traj.</span><span class="si">{</span><span class="n">phase</span><span class="si">}</span><span class="s1">.timeseries.r&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;ft&#39;</span><span class="p">)</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">sol_case</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;traj.</span><span class="si">{</span><span class="n">phase</span><span class="si">}</span><span class="s1">.timeseries.v&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kn&#39;</span><span class="p">)</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">sol_case</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;traj.</span><span class="si">{</span><span class="n">phase</span><span class="si">}</span><span class="s1">.timeseries.time&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">)</span>
+    <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">phase</span><span class="p">)</span>
+    <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">phase</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s1">&#39;Balanced Field Length&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;time (s)&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;range (ft)&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;airspeed (kts)&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">tv1</span> <span class="o">=</span> <span class="n">sol_case</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.br_to_v1.timeseries.time&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="n">v1</span> <span class="o">=</span> <span class="n">sol_case</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.br_to_v1.timeseries.v&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kn&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+
+<span class="n">tf_rto</span> <span class="o">=</span> <span class="n">sol_case</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.rto.timeseries.time&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="n">rf_rto</span> <span class="o">=</span> <span class="n">sol_case</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.rto.timeseries.r&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;ft&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;field length = </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s1">5.1f</span><span class="si">}</span><span class="s1"> ft&#39;</span><span class="p">,</span> <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span>
+                 <span class="n">xycoords</span><span class="o">=</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="n">xytext</span><span class="o">=</span><span class="p">(</span><span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span>
+                 <span class="n">textcoords</span><span class="o">=</span><span class="s1">&#39;axes fraction&#39;</span><span class="p">,</span> <span class="n">arrowprops</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">arrowstyle</span><span class="o">=</span><span class="s1">&#39;-&gt;&#39;</span><span class="p">),</span>
+                 <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">verticalalignment</span><span class="o">=</span><span class="s1">&#39;top&#39;</span><span class="p">)</span>
+
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="n">tf_rto</span><span class="p">,</span> <span class="n">rf_rto</span><span class="p">),</span>
+                 <span class="n">xycoords</span><span class="o">=</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="n">xytext</span><span class="o">=</span><span class="p">(</span><span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span>
+                 <span class="n">textcoords</span><span class="o">=</span><span class="s1">&#39;axes fraction&#39;</span><span class="p">,</span> <span class="n">arrowprops</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">arrowstyle</span><span class="o">=</span><span class="s1">&#39;-&gt;&#39;</span><span class="p">),</span>
+                 <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">verticalalignment</span><span class="o">=</span><span class="s1">&#39;top&#39;</span><span class="p">)</span>
+
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;$v1$ = </span><span class="si">{</span><span class="n">v1</span><span class="si">:</span><span class="s1">5.1f</span><span class="si">}</span><span class="s1"> kts&#39;</span><span class="p">,</span> <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="n">tv1</span><span class="p">,</span> <span class="n">v1</span><span class="p">),</span> <span class="n">xycoords</span><span class="o">=</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="n">xytext</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span>
+                 <span class="n">textcoords</span><span class="o">=</span><span class="s1">&#39;axes fraction&#39;</span><span class="p">,</span> <span class="n">arrowprops</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">arrowstyle</span><span class="o">=</span><span class="s1">&#39;-&gt;&#39;</span><span class="p">),</span>
+                 <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">verticalalignment</span><span class="o">=</span><span class="s1">&#39;top&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../../_images/6ec25d8e9b6de9fe003847172cb2f130020739eaaf5f4c096454443c3561d495.png" src="../../_images/6ec25d8e9b6de9fe003847172cb2f130020739eaaf5f4c096454443c3561d495.png" />
+</div>
+</div>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
+<span class="target" id="id1"></span></section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./examples/balanced_field"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="balanced_field.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Aircraft Balanced Field Length Calculation</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../bryson_denham/bryson_denham.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">The Bryson-Denham Problem</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-use-the-function-wrapping-capability">Why use the function wrapping capability?</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#runway-ode-function">Runway ODE function</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#climb-ode-function">Climb ODE function</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-component-creating-function">A component creating function</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-function-wrapping-component">The Function Wrapping Component</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#building-and-running-the-problem">Building and running the problem</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By The Dymos Development Team
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

@@ -1,0 +1,1892 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>The Van der Pol Oscillator &#8212; Dymos</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../_static/myfile.css?v=9678755d" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'examples/vanderpol/vanderpol';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Aircraft Balanced Field Length Calculation" href="../balanced_field/balanced_field.html" />
+    <link rel="prev" title="The Brachistochrone with externally-sourced initial state values" href="../brachistochrone/brachistochrone_upstream_init_duration_states.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/dymos_logo.png" class="logo__image only-light" alt="Dymos - Home"/>
+    <script>document.write(`<img src="../../_static/dymos_logo.png" class="logo__image only-dark" alt="Dymos - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../../index.html">
+                    Multidisciplinary Optimal Control Library
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Installation</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installing Dymos</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/optimal_control.html">Optimal Control</a></li>
+
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/transcriptions.html">Optimal Control Transcriptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/defining_odes.html">Defining ODEs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/collocation.html">What is collocation?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/intro_to_dymos/intro_ivp.html">Modeling Dynamic Systems with Dymos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/intro_to_dymos/intro_segments.html">Segments of Phases</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples and Tutorials</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../examples.html">Dymos by Example</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../brachistochrone/brachistochrone.html">The Brachistochrone</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../brachistochrone/brachistochrone_upstream_init_duration_states.html">The Brachistochrone with externally-sourced initial state values</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">The Van der Pol Oscillator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../balanced_field/balanced_field.html">Aircraft Balanced Field Length Calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../balanced_field/balanced_field_funccomp.html">Balanced Field Length using OpenMDAO’s Function Wrapping Components.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bryson_denham/bryson_denham.html">The Bryson-Denham Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../commercial_aircraft/commercial_aircraft.html">Commercial Aircraft Range Maximization by Differential Inclusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../double_integrator/double_integrator.html">Double Integrator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hull/hull_problem.html">The Hull Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hypersensitive/hypersensitive.html">Hyper-Sensitive Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../finite_burn_orbit_raise/finite_burn_orbit_raise.html">Two-Burn Orbit Raise</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../length_constrained_brachistochrone/length_constrained_brachistochrone.html">The Length-Constrained Brachistochrone</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../min_time_climb/min_time_climb.html">Supersonic Interceptor Minimum Time Climb</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../mountain_car/mountain_car.html">The Mountain Car Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../moon_landing/moon_landing.html">Moon Landing Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../multi_phase_cannonball/multi_phase_cannonball.html">Multi-Phase Cannonball</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../multibranch_trajectory/multibranch_trajectory.html">Multibranch Trajectory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../racecar/racecar.html">Race car Lap Simulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reentry/reentry.html">Single-Phase Space Shuttle Reentry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ssto_earth/ssto_earth.html">SSTO Earth Launch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ssto_moon_linear_tangent/ssto_moon_linear_tangent.html">SSTO Lunar Ascent with Linear Tangent Guidance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ssto_moon_polynomial_controls/ssto_moon_polynomial_controls.html">SSTO Lunar Ascent with Polynomial Controls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../robertson_problem/robertson_problem.html">The Robertson Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../water_rocket/water_rocket.html">Water Rocket</a></li>
+
+<li class="toctree-l2"><a class="reference internal" href="../cart_pole/cart_pole.html">Cart-Pole Optimal Control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../brachistochrone/brachistochrone_tandem_phases.html">Brachistochrone with tandem phases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../implicit_duration/brachistochrone_implicit_duration.html">Boundary Balance</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Feature Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../features/phases/phases_list.html">Phases</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/phases.html">Phases of a Trajectory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/analytic_phases.html">Analytic Phases in Dymos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/segments.html">Segments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/variables.html">Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/constraints.html">Constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/objective.html">Objective</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/timeseries.html">Timeseries Outputs</a></li>
+
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/calc_expressions.html">Calculation Expressions</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../features/trajectories/trajectories.html">Organizing Phases into Trajectories</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../features/exploiting_sparsity.html">Exploiting Sparsity for Faster Derivative Calculation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../features/plotting.html">Plotting Timeseries</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Frequently Asked Questions</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../faq/faq.html">Frequently Asked Questions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/add_ode_output_to_timeseries.html">How do I add an ODE output to the timeseries outputs?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/connect_scalar_parameters_to_ode.html">How do I connect a scalar input to the ODE?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/upstream_analysis.html">How do I connect the outputs of an upstream analysis as inputs to Dymos?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/downstream_analysis.html">How do I connect the outputs of Dymos to a downstream analysis?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/tandem_phases.html">How do I run two phases parallel-in-time?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/use_partial_coloring.html">How can I more efficiently use finite-differenced components in the ODE?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/debugging.html">How can I debug models when things go wrong?</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Dymos API Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../api/api.html">Dymos Reference API</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../api/run_problem_function.html">The run_problem function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/phase_api.html">Phase Options</a></li>
+
+<li class="toctree-l2"><a class="reference internal" href="../../api/transcriptions_api.html">The Transcriptions API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/trajectory_api.html">The Trajectory API</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../contributing/contributing.html">Contributing to Dymos</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-launch-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Launch interactive content">
+    <i class="fas fa-rocket"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://colab.research.google.com/github/OpenMDAO/dymos/blob/master/docs/dymos_book/examples/vanderpol/vanderpol.ipynb" target="_blank"
+   class="btn btn-sm dropdown-item"
+   title="Launch on Colab"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  
+    <img alt="Colab logo" src="../../_static/images/logo_colab.png">
+  </span>
+<span class="btn__text-container">Colab</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/OpenMDAO/dymos" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/OpenMDAO/dymos/issues/new?title=Issue%20on%20page%20%2Fexamples/vanderpol/vanderpol.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../../_sources/examples/vanderpol/vanderpol.ipynb" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.ipynb</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>The Van der Pol Oscillator</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#state-variables">State Variables</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#system-dynamics">System Dynamics</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#control-variables">Control Variables</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-initial-and-final-conditions">The initial and final conditions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#defining-the-ode-as-an-openmdao-system">Defining the ODE as an OpenMDAO System</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#defining-the-dymos-problem">Defining the Dymos Problem</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simulating-the-problem-without-control">Simulating the Problem (without control)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#solving-the-optimal-control-problem">Solving the Optimal Control Problem</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#solving-the-optimal-control-problem-with-grid-refinement">Solving the Optimal Control Problem with Grid Refinement</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="the-van-der-pol-oscillator">
+<h1>The Van der Pol Oscillator<a class="headerlink" href="#the-van-der-pol-oscillator" title="Link to this heading">#</a></h1>
+<p>In dynamics, the Van Der Pol oscillator <span id="id1">[<a class="reference internal" href="#id23" title="Wikipedia contributors. Van der pol oscillator — Wikipedia, the free encyclopedia. 2020. [Online; accessed 12-June-2020]. URL: https://en.wikipedia.org/w/index.php?title=Van_der_Pol_oscillator&amp;oldid=953857769.">Wikipediacontributors20</a>]</span> is a non-conservative oscillator with non-linear damping. It evolves in time according to the second-order differential equation:</p>
+<div class="amsmath math notranslate nohighlight" id="equation-78db8e2a-4f59-4d77-a0db-857b563e58aa">
+<span class="eqno">(16)<a class="headerlink" href="#equation-78db8e2a-4f59-4d77-a0db-857b563e58aa" title="Permalink to this equation">#</a></span>\[\begin{align}
+    \frac{d^2x}{dt^2} - u (1 - x^2) \frac{dx}{dt} + x &amp;= 0
+\end{align}\]</div>
+<p>where <span class="math notranslate nohighlight">\(x\)</span> is the position coordinate (a function of the time <span class="math notranslate nohighlight">\(t\)</span>), and <span class="math notranslate nohighlight">\(u\)</span> is a scalar parameter
+indicating the nonlinearity and the strength of the damping.</p>
+<p>To make this an optimal control problem, we want to find the smallest control that will dampen the oscillation
+(drive the state variables to zero). We can express this as an objective function <span class="math notranslate nohighlight">\(J\)</span> to minimize:</p>
+<div class="amsmath math notranslate nohighlight" id="equation-af4110af-d88f-491d-a8da-9bc06d3be53b">
+<span class="eqno">(17)<a class="headerlink" href="#equation-af4110af-d88f-491d-a8da-9bc06d3be53b" title="Permalink to this equation">#</a></span>\[\begin{align}
+    J &amp;= \int x^2_0 + x^2_1 + u^2
+\end{align}\]</div>
+<p>In other words, we want to find the optimal (smallest) trajectory of the control <span class="math notranslate nohighlight">\(u\)</span> such that the oscillation
+and the oscillation’s rate of change are driven to zero.</p>
+<section id="state-variables">
+<h2>State Variables<a class="headerlink" href="#state-variables" title="Link to this heading">#</a></h2>
+<p>There are three <em>state</em> variables are used to define the configuration of the system at any given instant in time.</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(x_1\)</span>: The primary output of the oscillator.</p></li>
+<li><p><span class="math notranslate nohighlight">\(x_0\)</span>: The rate of change of the primary output.</p></li>
+<li><p><span class="math notranslate nohighlight">\(J\)</span>: The objective function to be minimized.</p></li>
+</ul>
+<p>The objective function is included as a state variable so that Dymos will do the integration.</p>
+<p>The <span class="math notranslate nohighlight">\(x_1\)</span> and <span class="math notranslate nohighlight">\(x_0\)</span> state variables are also inputs to the system, along with the control <span class="math notranslate nohighlight">\(u\)</span>.</p>
+</section>
+<section id="system-dynamics">
+<h2>System Dynamics<a class="headerlink" href="#system-dynamics" title="Link to this heading">#</a></h2>
+<p>The evolution of the state variables is given by the following ordinary differential equations (ODE):</p>
+<div class="amsmath math notranslate nohighlight" id="equation-a97e3b5f-445f-44b8-b40a-c0eee4aa663f">
+<span class="eqno">(18)<a class="headerlink" href="#equation-a97e3b5f-445f-44b8-b40a-c0eee4aa663f" title="Permalink to this equation">#</a></span>\[\begin{align}
+    \frac{dx_0}{dt} &amp;= (1 - x^2_1) x_0 - x_1 + u \\
+    \frac{dx_1}{dt} &amp;= x_0 \\
+    \frac{dJ}{dt} &amp;= x^2_0 + x^2_1 + u^2
+\end{align}\]</div>
+</section>
+<section id="control-variables">
+<h2>Control Variables<a class="headerlink" href="#control-variables" title="Link to this heading">#</a></h2>
+<p>This system has a single control variable:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(u\)</span>: The control input.</p></li>
+</ul>
+<p>The control variable has a constraint: <span class="math notranslate nohighlight">\(-0.75 \leq u \leq 1.0\)</span></p>
+</section>
+<section id="the-initial-and-final-conditions">
+<h2>The initial and final conditions<a class="headerlink" href="#the-initial-and-final-conditions" title="Link to this heading">#</a></h2>
+<p>The initial conditions are:</p>
+<div class="amsmath math notranslate nohighlight" id="equation-018de8f3-0a7a-4f5c-9e59-d6a894ded52a">
+<span class="eqno">(19)<a class="headerlink" href="#equation-018de8f3-0a7a-4f5c-9e59-d6a894ded52a" title="Permalink to this equation">#</a></span>\[\begin{align}
+    t_i &amp;= 0 \\
+    x_{0i} &amp;= 1 \\
+    x_{1i} &amp;= 1 \\
+      u_i &amp;= -0.75
+\end{align}\]</div>
+<p>The final conditions are:</p>
+<div class="amsmath math notranslate nohighlight" id="equation-85dfb624-de07-4c98-9351-e1e56abbde70">
+<span class="eqno">(20)<a class="headerlink" href="#equation-85dfb624-de07-4c98-9351-e1e56abbde70" title="Permalink to this equation">#</a></span>\[\begin{align}
+    t_f &amp;= 10 \\
+    x_{0f} &amp;= 0 \\
+    x_{1f} &amp;= 0 \\
+      u_f &amp;= 0
+\end{align}\]</div>
+</section>
+<section id="defining-the-ode-as-an-openmdao-system">
+<h2>Defining the ODE as an OpenMDAO System<a class="headerlink" href="#defining-the-ode-as-an-openmdao-system" title="Link to this heading">#</a></h2>
+<p>In Dymos, the ODE is an OpenMDAO System (a Component, or a Group of components).
+The following <em>ExplicitComponent</em> computes the state rates for the Van der Pol problem.</p>
+<p>More detail on the workings of an <em>ExplicitComponent</em> can be found in the OpenMDAO documentation.  In summary:</p>
+<ul class="simple">
+<li><p><strong>initialize</strong>:  Called at setup, and used to define options for the component.  <strong>ALL</strong> Dymos ODE components
+should have the property <code class="docutils literal notranslate"><span class="pre">num_nodes</span></code>, which defines the number of points at which the outputs are simultaneously computed.</p></li>
+<li><p><strong>setup</strong>: Used to add inputs and outputs to the component, and declare which outputs (and indices of outputs)
+are dependent on each of the inputs.</p></li>
+<li><p><strong>compute</strong>: Used to compute the outputs, given the inputs.</p></li>
+<li><p><strong>compute_partials</strong>: Used to compute the derivatives of the outputs with respect to each of the inputs analytically.
+This method may be omitted if finite difference or complex-step approximations are used, though analytic is recommended.</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Things to note about the Van der Pol ODE system</p>
+<ul class="simple">
+<li><p>Only the <em>vanderpol_ode</em> class below is important for defining the basic problem. The other classes are
+used to demonstrate Message Passing Interface (MPI) parallel calculation of the system. They can be ignored.</p></li>
+<li><p><span class="math notranslate nohighlight">\(x_1\)</span>, <span class="math notranslate nohighlight">\(x_0\)</span>, and <span class="math notranslate nohighlight">\(u\)</span> are inputs.</p></li>
+<li><p><span class="math notranslate nohighlight">\(\dot{x_1}\)</span>, <span class="math notranslate nohighlight">\(\dot{x_0}\)</span>, and <span class="math notranslate nohighlight">\(\dot{J}\)</span> are outputs.</p></li>
+<li><p><strong>declare_partials</strong> is called for every output with respect to every input.</p></li>
+<li><p>For efficiency, partial derrivatives that are constant have values specified in the <strong>setup</strong> method rather than
+the <strong>compute_partials</strong> method. So although 7 partials are declared, only 5 are computed in <strong>compute_partials</strong>.</p></li>
+<li><p>This ODE includes some additional complexity to allow it to run in parallel. See the Van der Pol example in the dymos examples directory for an example of how to run the problem under MPI.</p></li>
+</ul>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">openmdao.api</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">om</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">openmdao.utils.array_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">evenly_distrib_idxs</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">VanderpolODE</span><span class="p">(</span><span class="n">om</span><span class="o">.</span><span class="n">ExplicitComponent</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;intentionally slow version of vanderpol_ode for effects of demonstrating distributed component calculations</span>
+
+<span class="sd">    MPI can run this component in multiple processes, distributing the calculation of derivatives.</span>
+<span class="sd">    This code has a delay in it to simulate a longer computation. It should run faster with more processes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">progress_prints</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">declare</span><span class="p">(</span><span class="s1">&#39;num_nodes&#39;</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">declare</span><span class="p">(</span><span class="s1">&#39;distrib&#39;</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="nb">bool</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">nn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;num_nodes&#39;</span><span class="p">]</span>
+        <span class="n">comm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">comm</span>
+        <span class="n">rank</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">rank</span>
+
+        <span class="n">sizes</span><span class="p">,</span> <span class="n">offsets</span> <span class="o">=</span> <span class="n">evenly_distrib_idxs</span><span class="p">(</span><span class="n">comm</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">nn</span><span class="p">)</span>  <span class="c1"># (#cpus, #inputs) -&gt; (size array, offset array)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_idx</span> <span class="o">=</span> <span class="n">offsets</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">io_size</span> <span class="o">=</span> <span class="n">sizes</span><span class="p">[</span><span class="n">rank</span><span class="p">]</span>  <span class="c1"># number of inputs and outputs managed by this distributed process</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">end_idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_idx</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">io_size</span>
+
+        <span class="c1"># inputs: 2 states and a control</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;x0&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">nn</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;derivative of Output&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;V/s&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;x1&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">nn</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Output&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;V&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;u&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">nn</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;control&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="c1"># outputs: derivative of states</span>
+        <span class="c1"># the objective function will be treated as a state for computation, so its derivative is an output</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="s1">&#39;x0dot&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">io_size</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;second derivative of Output&#39;</span><span class="p">,</span>
+                        <span class="n">units</span><span class="o">=</span><span class="s1">&#39;V/s**2&#39;</span><span class="p">,</span> <span class="n">distributed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;distrib&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="s1">&#39;x1dot&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">io_size</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;derivative of Output&#39;</span><span class="p">,</span>
+                        <span class="n">units</span><span class="o">=</span><span class="s1">&#39;V/s&#39;</span><span class="p">,</span> <span class="n">distributed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;distrib&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="s1">&#39;Jdot&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">io_size</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;derivative of objective&#39;</span><span class="p">,</span>
+                        <span class="n">units</span><span class="o">=</span><span class="s1">&#39;1.0/s&#39;</span><span class="p">,</span> <span class="n">distributed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;distrib&#39;</span><span class="p">])</span>
+
+        <span class="c1"># self.declare_coloring(method=&#39;cs&#39;)</span>
+        <span class="c1"># # partials</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">io_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">r</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_idx</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;x0dot&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;x0&#39;</span><span class="p">,</span>  <span class="n">rows</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">c</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;x0dot&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;x1&#39;</span><span class="p">,</span>  <span class="n">rows</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">c</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;x0dot&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;u&#39;</span><span class="p">,</span>   <span class="n">rows</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">c</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;x1dot&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;x0&#39;</span><span class="p">,</span>  <span class="n">rows</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">c</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;Jdot&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;x0&#39;</span><span class="p">,</span>  <span class="n">rows</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">c</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;Jdot&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;x1&#39;</span><span class="p">,</span>  <span class="n">rows</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">c</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;Jdot&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;u&#39;</span><span class="p">,</span>   <span class="n">rows</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">c</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">):</span>
+
+        <span class="c1"># The inputs contain the entire vector, be each rank will only operate on a portion of it.</span>
+        <span class="n">x0</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;x0&#39;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">start_idx</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">end_idx</span><span class="p">]</span>
+        <span class="n">x1</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;x1&#39;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">start_idx</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">end_idx</span><span class="p">]</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;u&#39;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">start_idx</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">end_idx</span><span class="p">]</span>
+
+        <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;x0dot&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">x1</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">x0</span> <span class="o">-</span> <span class="n">x1</span> <span class="o">+</span> <span class="n">u</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;x1dot&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x0</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;Jdot&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x0</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">x1</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">u</span><span class="o">**</span><span class="mi">2</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_partials</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">jacobian</span><span class="p">):</span>
+        <span class="n">x0</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;x0&#39;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">start_idx</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">end_idx</span><span class="p">]</span>
+        <span class="n">x1</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;x1&#39;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">start_idx</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">end_idx</span><span class="p">]</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;u&#39;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">start_idx</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">end_idx</span><span class="p">]</span>
+
+        <span class="n">jacobian</span><span class="p">[</span><span class="s1">&#39;x0dot&#39;</span><span class="p">,</span> <span class="s1">&#39;x0&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">x1</span> <span class="o">*</span> <span class="n">x1</span>
+        <span class="n">jacobian</span><span class="p">[</span><span class="s1">&#39;x0dot&#39;</span><span class="p">,</span> <span class="s1">&#39;x1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">x1</span> <span class="o">*</span> <span class="n">x0</span> <span class="o">-</span> <span class="mf">1.0</span>
+
+        <span class="n">jacobian</span><span class="p">[</span><span class="s1">&#39;Jdot&#39;</span><span class="p">,</span> <span class="s1">&#39;x0&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">x0</span>
+        <span class="n">jacobian</span><span class="p">[</span><span class="s1">&#39;Jdot&#39;</span><span class="p">,</span> <span class="s1">&#39;x1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">x1</span>
+        <span class="n">jacobian</span><span class="p">[</span><span class="s1">&#39;Jdot&#39;</span><span class="p">,</span> <span class="s1">&#39;u&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">u</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="defining-the-dymos-problem">
+<h2>Defining the Dymos Problem<a class="headerlink" href="#defining-the-dymos-problem" title="Link to this heading">#</a></h2>
+<p>Once the ODEs are defined, they are used to create a Dymos <em>Problem</em> object that allows solution.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Things to note about the Van der Pol Dymos Problem definition</p>
+<ul class="simple">
+<li><p>The <strong>vanderpol</strong> function creates and returns a Dymos <em>Problem</em> instance that can be used
+for simulation or optimization.</p></li>
+<li><p>The <strong>vanderpol</strong> function has optional arguments for specifying options for the
+type of transcription, number of segments, optimizer, etc. These can be ignored
+when first trying to understand the code.</p></li>
+<li><p>The <em>Problem</em> object has a <em>Trajectory</em> object, and the trajectory has a single <em>Phase</em>.
+Most of the problem setup is performed by calling methods on the phase (<strong>set_time_options</strong>,
+<strong>add_state</strong>, <strong>add_boundary_constraint</strong>, <strong>add_objective</strong>).</p></li>
+<li><p>The <strong>add_state</strong> and <strong>add_control</strong> calls include the <em>target</em> parameter for <span class="math notranslate nohighlight">\(x_0\)</span>, <span class="math notranslate nohighlight">\(x_1\)</span>, and <span class="math notranslate nohighlight">\(u\)</span>.
+This is required so that the inputs are correctly calculated.</p></li>
+<li><p>Initial (linear) guesses are supplied for the states and control.</p></li>
+</ul>
+</div>
+<div class="cell tag_output_scroll docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">openmdao.api</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">om</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">dymos</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dm</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">vanderpol</span><span class="p">(</span><span class="n">transcription</span><span class="o">=</span><span class="s1">&#39;gauss-lobatto&#39;</span><span class="p">,</span> <span class="n">num_segments</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">transcription_order</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+              <span class="n">compressed</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="s1">&#39;SLSQP&#39;</span><span class="p">,</span> <span class="n">use_pyoptsparse</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Dymos problem definition for optimal control of a Van der Pol oscillator&quot;&quot;&quot;</span>
+
+    <span class="c1"># define the OpenMDAO problem</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">om</span><span class="o">.</span><span class="n">Group</span><span class="p">())</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">use_pyoptsparse</span><span class="p">:</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">driver</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">ScipyOptimizeDriver</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">driver</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">pyOptSparseDriver</span><span class="p">(</span><span class="n">print_results</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;optimizer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">optimizer</span>
+    <span class="k">if</span> <span class="n">use_pyoptsparse</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">optimizer</span> <span class="o">==</span> <span class="s1">&#39;SNOPT&#39;</span><span class="p">:</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">opt_settings</span><span class="p">[</span><span class="s1">&#39;iSumm&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">6</span>  <span class="c1"># show detailed SNOPT output</span>
+        <span class="k">elif</span> <span class="n">optimizer</span> <span class="o">==</span> <span class="s1">&#39;IPOPT&#39;</span><span class="p">:</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">opt_settings</span><span class="p">[</span><span class="s1">&#39;print_level&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">declare_coloring</span><span class="p">()</span>
+
+    <span class="c1"># define a Trajectory object and add to model</span>
+    <span class="n">traj</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">Trajectory</span><span class="p">()</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">add_subsystem</span><span class="p">(</span><span class="s1">&#39;traj&#39;</span><span class="p">,</span> <span class="n">subsys</span><span class="o">=</span><span class="n">traj</span><span class="p">)</span>
+
+    <span class="c1"># define a Transcription</span>
+    <span class="k">if</span> <span class="n">transcription</span> <span class="o">==</span> <span class="s1">&#39;gauss-lobatto&#39;</span><span class="p">:</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">GaussLobatto</span><span class="p">(</span><span class="n">num_segments</span><span class="o">=</span><span class="n">num_segments</span><span class="p">,</span>
+                            <span class="n">order</span><span class="o">=</span><span class="n">transcription_order</span><span class="p">,</span>
+                            <span class="n">compressed</span><span class="o">=</span><span class="n">compressed</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">transcription</span> <span class="o">==</span> <span class="s1">&#39;radau-ps&#39;</span><span class="p">:</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">Radau</span><span class="p">(</span><span class="n">num_segments</span><span class="o">=</span><span class="n">num_segments</span><span class="p">,</span>
+                     <span class="n">order</span><span class="o">=</span><span class="n">transcription_order</span><span class="p">,</span>
+                     <span class="n">compressed</span><span class="o">=</span><span class="n">compressed</span><span class="p">)</span>
+
+    <span class="c1"># define a Phase as specified above and add to Phase</span>
+    <span class="n">phase</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">Phase</span><span class="p">(</span><span class="n">ode_class</span><span class="o">=</span><span class="n">VanderpolODE</span><span class="p">,</span> <span class="n">transcription</span><span class="o">=</span><span class="n">t</span><span class="p">)</span>
+    <span class="n">traj</span><span class="o">.</span><span class="n">add_phase</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;phase0&#39;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="n">phase</span><span class="p">)</span>
+
+    <span class="n">t_final</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">phase</span><span class="o">.</span><span class="n">set_time_options</span><span class="p">(</span><span class="n">fix_initial</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fix_duration</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">duration_val</span><span class="o">=</span><span class="n">t_final</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">)</span>
+
+    <span class="c1"># set the State time options</span>
+    <span class="n">phase</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;x0&#39;</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fix_final</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">rate_source</span><span class="o">=</span><span class="s1">&#39;x0dot&#39;</span><span class="p">,</span>
+                    <span class="n">units</span><span class="o">=</span><span class="s1">&#39;V/s&#39;</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">defect_ref</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>  <span class="c1"># target required because x0 is an input</span>
+    <span class="n">phase</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;x1&#39;</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fix_final</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">rate_source</span><span class="o">=</span><span class="s1">&#39;x1dot&#39;</span><span class="p">,</span>
+                    <span class="n">units</span><span class="o">=</span><span class="s1">&#39;V&#39;</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">defect_ref</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+    <span class="n">phase</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;J&#39;</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fix_final</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">rate_source</span><span class="o">=</span><span class="s1">&#39;Jdot&#39;</span><span class="p">,</span>
+                    <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+    <span class="c1"># define the control</span>
+    <span class="n">phase</span><span class="o">.</span><span class="n">add_control</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;u&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lower</span><span class="o">=-</span><span class="mf">0.75</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">continuity</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                      <span class="n">rate_continuity</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># define objective to minimize</span>
+    <span class="n">phase</span><span class="o">.</span><span class="n">add_objective</span><span class="p">(</span><span class="s1">&#39;J&#39;</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;final&#39;</span><span class="p">)</span>
+
+    <span class="c1"># setup the problem</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">phase</span><span class="o">.</span><span class="n">set_time_val</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">t_final</span><span class="p">)</span>
+
+    <span class="c1"># add a linearly interpolated initial guess for the state and control curves</span>
+    <span class="n">phase</span><span class="o">.</span><span class="n">set_state_val</span><span class="p">(</span><span class="s1">&#39;x0&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+    <span class="n">phase</span><span class="o">.</span><span class="n">set_state_val</span><span class="p">(</span><span class="s1">&#39;x0&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+    <span class="n">phase</span><span class="o">.</span><span class="n">set_state_val</span><span class="p">(</span><span class="s1">&#39;x0&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="n">phase</span><span class="o">.</span><span class="n">set_control_val</span><span class="p">(</span><span class="s1">&#39;u&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.75</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">p</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="simulating-the-problem-without-control">
+<h2>Simulating the Problem (without control)<a class="headerlink" href="#simulating-the-problem-without-control" title="Link to this heading">#</a></h2>
+<p>The following script creates an instance of the Dymos vanderpol problem and simulates it.</p>
+<p>Since the problem was only simulated and not solved, the solution lines in the plots show only
+the initial guesses for <span class="math notranslate nohighlight">\(x_0\)</span>, <span class="math notranslate nohighlight">\(x_1\)</span>, and <span class="math notranslate nohighlight">\(u\)</span>. The simulation lines shown in the plots are the
+system response with the control variable <span class="math notranslate nohighlight">\(u\)</span> held constant.</p>
+<div class="cell tag_output_scroll docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create the Dymos problem instance</span>
+<span class="n">p</span> <span class="o">=</span> <span class="n">vanderpol</span><span class="p">(</span><span class="n">transcription</span><span class="o">=</span><span class="s1">&#39;gauss-lobatto&#39;</span><span class="p">,</span> <span class="n">use_pyoptsparse</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="s1">&#39;IPOPT&#39;</span><span class="p">,</span> <span class="n">num_segments</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+
+<span class="c1"># Run the problem (simulate only)</span>
+<span class="n">dm</span><span class="o">.</span><span class="n">run_problem</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">run_driver</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">simulate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000307 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000024 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000151 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000058 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000002 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.001110 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000031 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000003 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Simulating trajectory traj
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Done simulating trajectory traj
+</pre></div>
+</div>
+</div>
+</div>
+<p>The first two plots shows the variables <span class="math notranslate nohighlight">\(x_0\)</span> and <span class="math notranslate nohighlight">\(x_1\)</span> vs time. The third plots shows <span class="math notranslate nohighlight">\(x_0\)</span> vs. <span class="math notranslate nohighlight">\(x_1\)</span>
+(which will be mostly circular in the case of undamped oscillation). The final plot is the (fixed)
+control variable <span class="math notranslate nohighlight">\(u\)</span> vs time.</p>
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">dymos.examples.plotting</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_results</span>
+
+<span class="c1"># Display the results</span>
+
+<span class="n">sol</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">CaseReader</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">get_outputs_dir</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;dymos_solution.db&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get_case</span><span class="p">(</span><span class="s1">&#39;final&#39;</span><span class="p">)</span>
+<span class="n">sim_prob</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">traj</span><span class="o">.</span><span class="n">sim_prob</span>
+<span class="n">sim</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">CaseReader</span><span class="p">(</span><span class="n">sim_prob</span><span class="o">.</span><span class="n">get_outputs_dir</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;dymos_simulation.db&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get_case</span><span class="p">(</span><span class="s1">&#39;final&#39;</span><span class="p">)</span>
+
+<span class="n">plot_results</span><span class="p">([(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;traj.phase0.timeseries.x1&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;time (s)&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;$x_1$ (V)&#39;</span><span class="p">),</span>
+              <span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;traj.phase0.timeseries.x0&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;time (s)&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;$x_0$ (V/s)&#39;</span><span class="p">),</span>
+              <span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;traj.phase0.timeseries.J&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;time (s)&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;J&#39;</span><span class="p">),</span>
+              <span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.x0&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;traj.phase0.timeseries.x1&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;$x_0$ (V/s)&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;$x_1$ (V)&#39;</span><span class="p">),</span>
+              <span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;traj.phase0.timeseries.u&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;time (s)&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;control u&#39;</span><span class="p">),</span>
+              <span class="p">],</span>
+              <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Van Der Pol Simulation&#39;</span><span class="p">,</span>
+              <span class="n">p_sol</span><span class="o">=</span><span class="n">sol</span><span class="p">,</span> <span class="n">p_sim</span><span class="o">=</span><span class="n">sim</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1000x800 with 5 Axes&gt;,
+ array([&lt;Axes: xlabel=&#39;time (s)&#39;, ylabel=&#39;$x_1$ (V)&#39;&gt;,
+        &lt;Axes: xlabel=&#39;time (s)&#39;, ylabel=&#39;$x_0$ (V/s)&#39;&gt;,
+        &lt;Axes: xlabel=&#39;time (s)&#39;, ylabel=&#39;J&#39;&gt;,
+        &lt;Axes: xlabel=&#39;$x_0$ (V/s)&#39;, ylabel=&#39;$x_1$ (V)&#39;&gt;,
+        &lt;Axes: xlabel=&#39;time (s)&#39;, ylabel=&#39;control u&#39;&gt;], dtype=object))
+</pre></div>
+</div>
+<img alt="../../_images/eb97febc0294f0b25ce409b845c6609e32ea530e06df7b0a19a8c8b404a1545e.png" src="../../_images/eb97febc0294f0b25ce409b845c6609e32ea530e06df7b0a19a8c8b404a1545e.png" />
+</div>
+</div>
+</section>
+<section id="solving-the-optimal-control-problem">
+<h2>Solving the Optimal Control Problem<a class="headerlink" href="#solving-the-optimal-control-problem" title="Link to this heading">#</a></h2>
+<p>The next example shows optimization followed by simulation.</p>
+<p>With a successful optimization, the resulting plots show a good match between the simulated (with varying control)
+and optimized results. The state variables <span class="math notranslate nohighlight">\(x_0\)</span> and <span class="math notranslate nohighlight">\(x_1\)</span> as well as the control variable <span class="math notranslate nohighlight">\(u\)</span> are all driven to zero.</p>
+<p>However one can notice that the distribution of segments/nodes in the phase results in a bit of error.
+If we take the simulation results as the truth, there is a bit of divergence in the state values of the solution and simulation towards the end.</p>
+<div class="cell tag_output_scroll docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">dymos</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dm</span>
+
+<span class="c1"># Create the Dymos problem instance</span>
+<span class="n">p</span> <span class="o">=</span> <span class="n">vanderpol</span><span class="p">(</span><span class="n">transcription</span><span class="o">=</span><span class="s1">&#39;gauss-lobatto&#39;</span><span class="p">,</span> <span class="n">num_segments</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
+              <span class="n">transcription_order</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">compressed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_pyoptsparse</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="s1">&#39;IPOPT&#39;</span><span class="p">)</span>
+
+<span class="c1"># Find optimal control solution to stop oscillation</span>
+<span class="n">dm</span><span class="o">.</span><span class="n">run_problem</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">simulate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000310 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000022 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000215 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000092 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000002 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.001381 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000040 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000003 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (60, 130)  (5.15% nonzero)
+FWD solves: 0   REV solves: 5
+Total colors vs. total size: 5 vs 60  (91.67% improvement)
+
+Sparsity computed using tolerance: 1e-25.
+Dense total jacobian for Problem &#39;problem4&#39; was computed 3 times.
+Time to compute sparsity:   0.0780 sec
+Time to compute coloring:   0.0520 sec
+Memory to compute coloring:   0.2500 MB
+Coloring created on: 2025-12-22 16:16:44
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>List of user-set options:
+
+                                    Name   Value                used
+                        file_print_level = 5                     yes
+                   hessian_approximation = limited-memory        yes
+                           linear_solver = mumps                 yes
+                      nlp_scaling_method = user-scaling          yes
+                             output_file = /home/runner/work/dymos/dymos/docs/dymos_book/examples/vanderpol/problem4_out/IPOPT.out  yes
+                             print_level = 4                     yes
+                      print_user_options = yes                   yes
+                                      sb = yes                   yes
+Total number of variables............................:      130
+                     variables with only lower bounds:        0
+                variables with lower and upper bounds:       45
+                     variables with only upper bounds:        0
+Total number of equality constraints.................:      115
+Total number of inequality constraints...............:        0
+        inequality constraints with only lower bounds:        0
+   inequality constraints with lower and upper bounds:        0
+        inequality constraints with only upper bounds:        0
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Number of Iterations....: 31
+
+                                   (scaled)                 (unscaled)
+Objective...............:   5.3660057662482838e+00    5.3660057662482838e+00
+Dual infeasibility......:   5.6624188671878106e-09    5.6624188671878106e-09
+Constraint violation....:   2.2204460492503131e-15    2.2204460492503131e-15
+Variable bound violation:   9.8138401849467982e-09    9.8138401849467982e-09
+Complementarity.........:   1.0000001534862624e-11    1.0000001534862624e-11
+Overall NLP error.......:   5.6624188671878106e-09    5.6624188671878106e-09
+
+
+Number of objective function evaluations             = 33
+Number of objective gradient evaluations             = 32
+Number of equality constraint evaluations            = 33
+Number of inequality constraint evaluations          = 0
+Number of equality constraint Jacobian evaluations   = 32
+Number of inequality constraint Jacobian evaluations = 0
+Number of Lagrangian Hessian evaluations             = 0
+Total seconds in IPOPT                               = 0.728
+
+EXIT: Optimal Solution Found.
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/home/runner/work/dymos/dymos/.openmdao-pixi/.pixi/envs/dev/lib/python3.13/site-packages/openmdao/visualization/opt_report/opt_report.py:611: UserWarning: Attempting to set identical low and high ylims makes transformation singular; automatically expanding.
+  ax.set_ylim([ymin_plot, ymax_plot])
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Simulating trajectory traj
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Done simulating trajectory traj
+</pre></div>
+</div>
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Problem: problem4
+Driver:  pyOptSparseDriver
+  success     : True
+  iterations  : 35
+  runtime     : 8.9331E-01 s
+  model_evals : 36
+  model_time  : 2.4869E-02 s
+  deriv_evals : 33
+  deriv_time  : 1.5655E-01 s
+  exit_status : SUCCESS
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sol</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">CaseReader</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">get_outputs_dir</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;dymos_solution.db&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get_case</span><span class="p">(</span><span class="s1">&#39;final&#39;</span><span class="p">)</span>
+<span class="n">sim_prob</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">traj</span><span class="o">.</span><span class="n">sim_prob</span>
+<span class="n">sim</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">CaseReader</span><span class="p">(</span><span class="n">sim_prob</span><span class="o">.</span><span class="n">get_outputs_dir</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;dymos_simulation.db&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get_case</span><span class="p">(</span><span class="s1">&#39;final&#39;</span><span class="p">)</span>
+
+<span class="n">plot_results</span><span class="p">([(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;traj.phase0.timeseries.x1&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;time (s)&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;$x_1$ (V)&#39;</span><span class="p">),</span>
+              <span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;traj.phase0.timeseries.x0&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;time (s)&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;$x_0$ (V/s)&#39;</span><span class="p">),</span>
+              <span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;traj.phase0.timeseries.J&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;time (s)&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;J&#39;</span><span class="p">),</span>
+              <span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.x0&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;traj.phase0.timeseries.x1&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;$x_0$ (V/s)&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;$x_1$ (V)&#39;</span><span class="p">),</span>
+              <span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;traj.phase0.timeseries.u&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;time (s)&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;control u&#39;</span><span class="p">),</span>
+              <span class="p">],</span>
+              <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Van Der Pol Simulation&#39;</span><span class="p">,</span>
+              <span class="n">p_sol</span><span class="o">=</span><span class="n">sol</span><span class="p">,</span> <span class="n">p_sim</span><span class="o">=</span><span class="n">sim</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1000x800 with 5 Axes&gt;,
+ array([&lt;Axes: xlabel=&#39;time (s)&#39;, ylabel=&#39;$x_1$ (V)&#39;&gt;,
+        &lt;Axes: xlabel=&#39;time (s)&#39;, ylabel=&#39;$x_0$ (V/s)&#39;&gt;,
+        &lt;Axes: xlabel=&#39;time (s)&#39;, ylabel=&#39;J&#39;&gt;,
+        &lt;Axes: xlabel=&#39;$x_0$ (V/s)&#39;, ylabel=&#39;$x_1$ (V)&#39;&gt;,
+        &lt;Axes: xlabel=&#39;time (s)&#39;, ylabel=&#39;control u&#39;&gt;], dtype=object))
+</pre></div>
+</div>
+<img alt="../../_images/d0debd09a22947146fe3d1f7e81f38a91658fc340899ad254fc1a29103c41d03.png" src="../../_images/d0debd09a22947146fe3d1f7e81f38a91658fc340899ad254fc1a29103c41d03.png" />
+</div>
+</div>
+</section>
+<section id="solving-the-optimal-control-problem-with-grid-refinement">
+<h2>Solving the Optimal Control Problem with Grid Refinement<a class="headerlink" href="#solving-the-optimal-control-problem-with-grid-refinement" title="Link to this heading">#</a></h2>
+<p>Repeating the optimization with grid refinement enabled requires changing only two lines in the code. For the sake
+of grid refinement demonstration, the initial number of segments is also reduced by a factor of 5.</p>
+<p>Optimization with grid refinement gets results similar to the example without grid refinement, but runs faster
+and does not require supplying a good guess for the number segments.</p>
+<div class="cell tag_output_scroll docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create the Dymos problem instance</span>
+<span class="n">p</span> <span class="o">=</span> <span class="n">vanderpol</span><span class="p">(</span><span class="n">transcription</span><span class="o">=</span><span class="s1">&#39;gauss-lobatto&#39;</span><span class="p">,</span> <span class="n">num_segments</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
+              <span class="n">transcription_order</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">compressed</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="s1">&#39;SLSQP&#39;</span><span class="p">)</span>
+
+<span class="c1"># Enable grid refinement and find optimal control solution to stop oscillation</span>
+<span class="n">p</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">traj</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">phase0</span><span class="o">.</span><span class="n">set_refine_options</span><span class="p">(</span><span class="n">refine</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1.0E-6</span><span class="p">)</span>
+
+<span class="n">dm</span><span class="o">.</span><span class="n">run_problem</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">simulate</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">refine_iteration_limit</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">refine_method</span><span class="o">=</span><span class="s1">&#39;hp&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000284 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000284 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000016 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000016 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000153 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000153 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000070 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000070 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000002 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000002 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.001115 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.001115 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000026 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000026 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000003 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000003 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (60, 74)  (8.74% nonzero)
+FWD solves: 9   REV solves: 0
+Total colors vs. total size: 9 vs 74  (87.84% improvement)
+
+Sparsity computed using tolerance: 1e-25.
+Dense total jacobian for Problem &#39;problem7&#39; was computed 3 times.
+Time to compute sparsity:   0.0764 sec
+Time to compute coloring:   0.0531 sec
+Memory to compute coloring:   0.0000 MB
+Coloring created on: 2025-12-22 16:16:46
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully    (Exit mode 0)
+            Current function value: 5.366010814959441
+            Iterations: 43
+            Function evaluations: 45
+            Gradient evaluations: 43
+Optimization Complete
+-----------------------------------
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>==================================================
+          Grid Refinement - Iteration 1           
+--------------------------------------------------
+    Phase: traj.phases.phase0
+        Refinement Options:
+            Allow Refinement = True
+            Tolerance = 1e-06
+            Min Order = 3
+            Max Order = 14
+        Original Grid:
+            Number of Segments = 15
+            Segment Ends = [-1.0, -0.8667, -0.7333, -0.6, -0.4667, -0.3333, -0.2, -0.0667, 0.0667, 0.2, 0.3333, 0.4667, 0.6, 0.7333, 0.8667, 1.0]
+            Segment Order = [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
+            Error = [ 0.02474,  0.01233,  0.00217, 0.004157, 0.002431, 0.001684, 0.001182, 0.0006564, 0.0008722, 0.001531, 0.002867, 0.004009, 0.006365,  0.01045,  0.03593]
+    Phase: traj.phases.phase0
+        New Grid:
+            Number of Segments = 15
+            Segment Ends = [-1.0, -0.8667, -0.7333, -0.6, -0.4667, -0.3333, -0.2, -0.0667, 0.0667, 0.2, 0.3333, 0.4667, 0.6, 0.7333, 0.8667, 1.0]
+            Segment Order = [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5]
+        Refined: True
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/home/runner/work/dymos/dymos/.openmdao-pixi/.pixi/envs/dev/lib/python3.13/site-packages/openmdao/core/system.py:4656: OpenMDAOWarning:Calling `list_inputs` before `final_setup` will only display the default values of variables and will not show the result of any `set_val` calls.
+/home/runner/work/dymos/dymos/.openmdao-pixi/.pixi/envs/dev/lib/python3.13/site-packages/dymos/phase/phase.py:3051: OpenMDAOWarning:phase0.states:x0 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
+/home/runner/work/dymos/dymos/.openmdao-pixi/.pixi/envs/dev/lib/python3.13/site-packages/dymos/phase/phase.py:3051: OpenMDAOWarning:phase0.states:x1 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (105, 149)  (6.78% nonzero)
+FWD solves: 14   REV solves: 0
+Total colors vs. total size: 14 vs 149  (90.60% improvement)
+
+Sparsity computed using tolerance: 1e-25.
+Dense total jacobian for Problem &#39;problem7&#39; was computed 3 times.
+Time to compute sparsity:   0.1439 sec
+Time to compute coloring:   0.0991 sec
+Memory to compute coloring:   0.1250 MB
+Coloring created on: 2025-12-22 16:16:47
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully    (Exit mode 0)
+            Current function value: 5.358596871051768
+            Iterations: 20
+            Function evaluations: 21
+            Gradient evaluations: 20
+Optimization Complete
+-----------------------------------
+
+
+==================================================
+          Grid Refinement - Iteration 2           
+--------------------------------------------------
+    Phase: traj.phases.phase0
+        Refinement Options:
+            Allow Refinement = True
+            Tolerance = 1e-06
+            Min Order = 3
+            Max Order = 14
+        Original Grid:
+            Number of Segments = 15
+            Segment Ends = [-1.0, -0.8667, -0.7333, -0.6, -0.4667, -0.3333, -0.2, -0.0667, 0.0667, 0.2, 0.3333, 0.4667, 0.6, 0.7333, 0.8667, 1.0]
+            Segment Order = [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5]
+            Error = [0.0003551, 0.001424,  0.00034, 2.618e-05, 3.937e-05, 4.898e-05, 5.822e-06, 7.636e-06, 2.675e-06, 5.192e-06, 9.963e-06, 7.221e-06, 5.45e-05, 0.0002363,  0.00118]
+    Phase: traj.phases.phase0
+        New Grid:
+            Number of Segments = 33
+            Segment Ends = [-1.0, -0.9333, -0.8667, -0.8222, -0.7778, -0.7333, -0.6889, -0.6444, -0.6, -0.5333, -0.4667, -0.4, -0.3333, -0.2667, -0.2, -0.1333, -0.0667, 0.0, 0.0667, 0.1333, 0.2, 0.2667, 0.3333, 0.4, 0.4667, 0.5333, 0.6, 0.6667, 0.7333, 0.8, 0.8667, 0.9111, 0.9556, 1.0]
+            Segment Order = [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5]
+        Refined: True
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/home/runner/work/dymos/dymos/.openmdao-pixi/.pixi/envs/dev/lib/python3.13/site-packages/openmdao/core/system.py:4656: OpenMDAOWarning:Calling `list_inputs` before `final_setup` will only display the default values of variables and will not show the result of any `set_val` calls.
+/home/runner/work/dymos/dymos/.openmdao-pixi/.pixi/envs/dev/lib/python3.13/site-packages/dymos/phase/phase.py:3051: OpenMDAOWarning:phase0.states:x0 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
+/home/runner/work/dymos/dymos/.openmdao-pixi/.pixi/envs/dev/lib/python3.13/site-packages/dymos/phase/phase.py:3051: OpenMDAOWarning:phase0.states:x1 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
+/home/runner/work/dymos/dymos/.openmdao-pixi/.pixi/envs/dev/lib/python3.13/site-packages/openmdao/core/driver.py:700: DriverWarning:The following design variable initial conditions are out of their specified bounds:
+  traj.phase0.controls:u
+    val: [-0.41617723 -0.28112219 -0.04338289  0.17394989  0.28859841  0.37721951
+  0.54521354  0.68986226  0.75513804  0.79103952  0.85909594  0.90302672
+  0.92545988  0.94789304  0.99041832  0.99361221  0.99529707  0.99698193
+  1.          1.          1.          0.99903555  0.99720729  0.97461374
+  0.96205691  0.94950008  0.92569679  0.89049665  0.87192769  0.85335872
+  0.81796879  0.77932114  0.75893353  0.72676097  0.66567059  0.60446556
+  0.57217836  0.54146544  0.48324468  0.42691874  0.39810063  0.37100767
+  0.32212336  0.27600164  0.25167127  0.23090073  0.19152718  0.15523944
+  0.13755472  0.12184059  0.09426875  0.06917172  0.0559324   0.04594257
+  0.02700542  0.01000242  0.00194675 -0.00497971 -0.01659773 -0.0265275
+ -0.0317657  -0.03524717 -0.04184679 -0.04735861 -0.04975226 -0.05146338
+ -0.0539965  -0.0557363  -0.05665409 -0.05685798 -0.05724449 -0.05722883
+ -0.05703056 -0.05661726 -0.05564332 -0.05445671 -0.05383075 -0.05298344
+ -0.05137724 -0.04961481 -0.04861126 -0.04749294 -0.0452096  -0.04274383
+ -0.04144307 -0.03981084 -0.03671672 -0.03324111 -0.0312274  -0.02892447
+ -0.02410408 -0.0187758  -0.01596501 -0.01224427 -0.00519109  0.00265378
+  0.0071662   0.01232616  0.02308365  0.03493089  0.0411806   0.04901174
+  0.06385679  0.0801312   0.08939171  0.0996846   0.12050857  0.14279777
+  0.15455589  0.16802606  0.19356071  0.2198732   0.23412122  0.24890598
+  0.27783212  0.30776254  0.3235516   0.33957317  0.36994438  0.3992238
+  0.41415359  0.42334855  0.44077892  0.45321558  0.45962276  0.46602995
+  0.47817568  0.47687502  0.47618889  0.47550275  0.47344362  0.45836529
+  0.4504111 ]
+    lower: [-0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75
+ -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75
+ -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75
+ -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75
+ -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75
+ -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75
+ -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75
+ -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75
+ -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75
+ -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75
+ -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75
+ -0.75]
+    upper: [1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.]
+Set the initial value of the design variable to a valid value or set the driver option[&#39;invalid_desvar_behavior&#39;] to &#39;ignore&#39;.
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (231, 329)  (3.13% nonzero)
+FWD solves: 14   REV solves: 0
+Total colors vs. total size: 14 vs 329  (95.74% improvement)
+
+Sparsity computed using tolerance: 1e-25.
+Dense total jacobian for Problem &#39;problem7&#39; was computed 3 times.
+Time to compute sparsity:   0.3410 sec
+Time to compute coloring:   0.2167 sec
+Memory to compute coloring:   0.0000 MB
+Coloring created on: 2025-12-22 16:16:48
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully    (Exit mode 0)
+            Current function value: 5.3586062099107235
+            Iterations: 12
+            Function evaluations: 13
+            Gradient evaluations: 12
+Optimization Complete
+-----------------------------------
+
+
+==================================================
+          Grid Refinement - Iteration 3           
+--------------------------------------------------
+    Phase: traj.phases.phase0
+        Refinement Options:
+            Allow Refinement = True
+            Tolerance = 1e-06
+            Min Order = 3
+            Max Order = 14
+        Original Grid:
+            Number of Segments = 33
+            Segment Ends = [-1.0, -0.9333, -0.8667, -0.8222, -0.7778, -0.7333, -0.6889, -0.6444, -0.6, -0.5333, -0.4667, -0.4, -0.3333, -0.2667, -0.2, -0.1333, -0.0667, 0.0, 0.0667, 0.1333, 0.2, 0.2667, 0.3333, 0.4, 0.4667, 0.5333, 0.6, 0.6667, 0.7333, 0.8, 0.8667, 0.9111, 0.9556, 1.0]
+            Segment Order = [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5]
+            Error = [6.072e-05, 5.85e-05, 1.282e-05, 6.101e-05, 8.486e-06, 7.452e-05, 1.691e-05, 4.747e-06, 7.463e-06, 1.189e-06, 5.144e-06, 8.896e-07, 3.813e-06, 6.997e-06, 1.754e-06, 5.023e-06, 2.452e-06, 1.816e-06, 1.209e-06, 8.82e-07, 6.724e-07, 2.307e-06, 1.898e-06, 5.16e-06, 3.68e-06, 9.54e-06, 4.639e-07, 1.991e-05, 1.826e-05, 4.453e-06, 8.512e-06, 1.08e-05, 4.376e-05]
+    Phase: traj.phases.phase0
+        New Grid:
+            Number of Segments = 63
+            Segment Ends = [-1.0, -0.9778, -0.9556, -0.9333, -0.9111, -0.8889, -0.8667, -0.8444, -0.8222, -0.8074, -0.7926, -0.7778, -0.7333, -0.7185, -0.7037, -0.6889, -0.6667, -0.6444, -0.6222, -0.6, -0.5667, -0.5333, -0.4667, -0.4333, -0.4, -0.3333, -0.3, -0.2667, -0.2333, -0.2, -0.1667, -0.1333, -0.1, -0.0667, -0.0333, 0.0, 0.0333, 0.0667, 0.1333, 0.2, 0.2667, 0.3, 0.3333, 0.3667, 0.4, 0.4333, 0.4667, 0.5, 0.5333, 0.5667, 0.6, 0.6667, 0.7, 0.7333, 0.7667, 0.8, 0.8667, 0.8889, 0.9111, 0.9333, 0.9556, 0.9704, 0.9852, 1.0]
+            Segment Order = [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 15, 5, 5, 5, 5, 5, 5, 5, 5, 5, 7, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 9, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 9, 5, 5, 5, 5, 5, 5, 5]
+        Refined: True
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/home/runner/work/dymos/dymos/.openmdao-pixi/.pixi/envs/dev/lib/python3.13/site-packages/openmdao/core/system.py:4656: OpenMDAOWarning:Calling `list_inputs` before `final_setup` will only display the default values of variables and will not show the result of any `set_val` calls.
+/home/runner/work/dymos/dymos/.openmdao-pixi/.pixi/envs/dev/lib/python3.13/site-packages/dymos/phase/phase.py:3051: OpenMDAOWarning:phase0.states:x0 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
+/home/runner/work/dymos/dymos/.openmdao-pixi/.pixi/envs/dev/lib/python3.13/site-packages/dymos/phase/phase.py:3051: OpenMDAOWarning:phase0.states:x1 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
+/home/runner/work/dymos/dymos/.openmdao-pixi/.pixi/envs/dev/lib/python3.13/site-packages/openmdao/core/driver.py:700: DriverWarning:The following design variable initial conditions are out of their specified bounds:
+  traj.phase0.controls:u
+    val: [-4.12229172e-01 -3.66856033e-01 -2.80844717e-01 -1.99433900e-01
+ -1.56629025e-01 -1.13824149e-01 -3.26813460e-02  3.99594324e-02
+  7.82792758e-02  1.16599119e-01  1.88859752e-01  2.54595136e-01
+  2.89272209e-01  3.22019211e-01  3.84095867e-01  4.40429629e-01
+  4.69970618e-01  4.99511606e-01  5.55510801e-01  6.01754139e-01
+  6.26148667e-01  6.50543194e-01  6.96432909e-01  7.36252629e-01
+  7.57258536e-01  7.76764323e-01  8.11593333e-01  8.44025167e-01
+  8.61133778e-01  8.74786177e-01  9.00666263e-01  9.24332967e-01
+  9.35771984e-01  9.43015357e-01  9.56746213e-01  9.67412856e-01
+  9.72945608e-01  9.78478361e-01  9.88966490e-01  9.92544685e-01
+  9.94432273e-01  9.96319861e-01  9.99711473e-01  9.99900358e-01
+  1.00000000e+00  1.00000000e+00  1.00000000e+00  1.00000000e+00
+  1.00000000e+00  1.00000000e+00  1.00000000e+00  1.00000000e+00
+  1.00000000e+00  1.00000000e+00  1.00000000e+00  9.99740247e-01
+  9.99450200e-01  9.99258930e-01  9.99176007e-01  9.99450671e-01
+  9.99971337e-01  1.00000000e+00  1.00000000e+00  1.00000000e+00
+  1.00000000e+00  9.94376352e-01  9.91409736e-01  9.88443120e-01
+  9.82634033e-01  9.73641857e-01  9.68898257e-01  9.61759824e-01
+  9.47868541e-01  9.33576031e-01  9.26036372e-01  9.17337810e-01
+  9.00848434e-01  8.83799004e-01  8.74540387e-01  8.65184313e-01
+  8.47077667e-01  8.28556952e-01  8.18786808e-01  8.08504624e-01
+  7.89013265e-01  7.69363561e-01  7.58923032e-01  7.43086617e-01
+  7.12795052e-01  6.82200510e-01  6.66061117e-01  6.49990808e-01
+  6.19527224e-01  5.89229486e-01  5.73325023e-01  5.57826517e-01
+  5.25226053e-01  4.83406684e-01  4.43294061e-01  4.13000503e-01
+  3.99078709e-01  3.85309120e-01  3.59732043e-01  3.34741315e-01
+  3.21558076e-01  3.09334330e-01  2.86162461e-01  2.63727435e-01
+  2.52240532e-01  2.30177275e-01  1.90980516e-01  1.55461203e-01
+  1.38245992e-01  1.30083184e-01  1.15162478e-01  1.00859286e-01
+  9.33139920e-02  8.66697400e-02  7.40746042e-02  6.21456861e-02
+  5.61676520e-02  5.05398132e-02  4.03412789e-02  3.06673327e-02
+  2.55640820e-02  2.12307448e-02  1.30162806e-02  5.29562823e-03
+  1.45610297e-03 -2.09307222e-03 -8.42703629e-03 -1.43210841e-02
+ -1.74303431e-02 -2.00137259e-02 -2.49108999e-02 -2.94053695e-02
+ -3.15860480e-02 -3.35550262e-02 -3.70454543e-02 -4.02656261e-02
+ -4.19643480e-02 -4.32572588e-02 -4.57081573e-02 -4.79219719e-02
+ -4.89777987e-02 -4.98945653e-02 -5.14441801e-02 -5.27836126e-02
+ -5.34901971e-02 -5.39821367e-02 -5.49146790e-02 -5.56740064e-02
+ -5.59927312e-02 -5.62163692e-02 -5.65527461e-02 -5.67913596e-02
+ -5.69172343e-02 -5.68963869e-02 -5.68568678e-02 -5.67317258e-02
+ -5.66252557e-02 -5.65340427e-02 -5.63315186e-02 -5.59258451e-02
+ -5.54461032e-02 -5.48282626e-02 -5.42864600e-02 -5.38344855e-02
+ -5.36309249e-02 -5.28657446e-02 -5.12836339e-02 -4.94748737e-02
+ -4.84485105e-02 -4.73832375e-02 -4.51796327e-02 -4.26966098e-02
+ -4.12894661e-02 -4.05585788e-02 -3.91000148e-02 -3.75598763e-02
+ -3.67474143e-02 -3.58012305e-02 -3.40076029e-02 -3.21440968e-02
+ -3.11280345e-02 -3.00611704e-02 -2.79053054e-02 -2.56004184e-02
+ -2.43845324e-02 -2.29623385e-02 -2.02663652e-02 -1.74457388e-02
+ -1.58988917e-02 -1.42704430e-02 -1.09826719e-02 -7.47069093e-03
+ -5.61803235e-03 -3.44135783e-03  6.84841995e-04  4.96599618e-03
+  7.29762507e-03  9.74935709e-03  1.46947968e-02  1.99727670e-02
+  2.27570294e-02  2.59487224e-02  3.19990359e-02  3.82615604e-02
+  4.16654645e-02  4.52108540e-02  5.22886756e-02  5.97651216e-02
+  6.37091356e-02  6.81692843e-02  7.66241381e-02  8.52583902e-02
+  8.98979372e-02  9.95291574e-02  1.19641680e-01  1.41581022e-01
+  1.53659193e-01  1.59820193e-01  1.71884153e-01  1.84377854e-01
+  1.90968597e-01  1.98131831e-01  2.11710772e-01  2.25219752e-01
+  2.32313024e-01  2.39659658e-01  2.54104885e-01  2.69129167e-01
+  2.77054854e-01  2.84920635e-01  2.99831353e-01  3.14893179e-01
+  3.22910066e-01  3.27717615e-01  3.38392026e-01  3.53279298e-01
+  3.70475877e-01  3.87061542e-01  4.01393104e-01  4.11423237e-01
+  4.15940615e-01  4.20767171e-01  4.29474812e-01  4.37689190e-01
+  4.42022481e-01  4.46340195e-01  4.54525044e-01  4.62547165e-01
+  4.66702151e-01  4.70092519e-01  4.75198877e-01  4.78830797e-01
+  4.80746726e-01  4.81492112e-01  4.82905098e-01  4.84366768e-01
+  4.85160839e-01  4.85352192e-01  4.85714929e-01  4.82748050e-01
+  4.81080619e-01  4.79413188e-01  4.76252333e-01  4.70641314e-01
+  4.67681360e-01  4.64721406e-01  4.59280678e-01  4.56763018e-01
+  4.55434889e-01]
+    lower: [-0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75
+ -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75
+ -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75
+ -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75
+ -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75
+ -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75
+ -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75
+ -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75
+ -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75
+ -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75
+ -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75
+ -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75
+ -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75
+ -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75
+ -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75
+ -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75
+ -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75
+ -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75
+ -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75
+ -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75
+ -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75
+ -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75
+ -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75 -0.75]
+    upper: [1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+ 1. 1. 1. 1. 1. 1. 1. 1. 1.]
+Set the initial value of the design variable to a valid value or set the driver option[&#39;invalid_desvar_behavior&#39;] to &#39;ignore&#39;.
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (471, 679)  (1.71% nonzero)
+FWD solves: 0   REV solves: 30
+Total colors vs. total size: 30 vs 471  (93.63% improvement)
+
+Sparsity computed using tolerance: 1e-25.
+Dense total jacobian for Problem &#39;problem7&#39; was computed 3 times.
+Time to compute sparsity:   0.8233 sec
+Time to compute coloring:   0.4123 sec
+Memory to compute coloring:   0.0000 MB
+Coloring created on: 2025-12-22 16:16:50
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully    (Exit mode 0)
+            Current function value: 5.358605984579544
+            Iterations: 6
+            Function evaluations: 7
+            Gradient evaluations: 6
+Optimization Complete
+-----------------------------------
+
+
+==================================================
+          Grid Refinement - Iteration 4           
+--------------------------------------------------
+    Phase: traj.phases.phase0
+        Refinement Options:
+            Allow Refinement = True
+            Tolerance = 1e-06
+            Min Order = 3
+            Max Order = 14
+        Original Grid:
+            Number of Segments = 63
+            Segment Ends = [-1.0, -0.9778, -0.9556, -0.9333, -0.9111, -0.8889, -0.8667, -0.8444, -0.8222, -0.8074, -0.7926, -0.7778, -0.7333, -0.7185, -0.7037, -0.6889, -0.6667, -0.6444, -0.6222, -0.6, -0.5667, -0.5333, -0.4667, -0.4333, -0.4, -0.3333, -0.3, -0.2667, -0.2333, -0.2, -0.1667, -0.1333, -0.1, -0.0667, -0.0333, 0.0, 0.0333, 0.0667, 0.1333, 0.2, 0.2667, 0.3, 0.3333, 0.3667, 0.4, 0.4333, 0.4667, 0.5, 0.5333, 0.5667, 0.6, 0.6667, 0.7, 0.7333, 0.7667, 0.8, 0.8667, 0.8889, 0.9111, 0.9333, 0.9556, 0.9704, 0.9852, 1.0]
+            Segment Order = [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 15, 5, 5, 5, 5, 5, 5, 5, 5, 5, 7, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 9, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 9, 5, 5, 5, 5, 5, 5, 5]
+            Error = [2.179e-05, 2.883e-06, 1.042e-05, 6.685e-06, 8.599e-06, 3.775e-06, 1.973e-06, 2.41e-06, 5.523e-07, 9.496e-07, 2.771e-06, 4.771e-08, 3.831e-07, 1.737e-06, 2.068e-06, 1.083e-06, 7.398e-07, 1.493e-08, 5.301e-07, 1.057e-06, 1.763e-06, 7.983e-06, 1.548e-06, 7.063e-06, 4.941e-07, 9.777e-07, 3.163e-06, 2.058e-06, 1.758e-06, 1.355e-06, 1.224e-06, 1.022e-06, 8.756e-07, 4.328e-07, 3.327e-07, 7.988e-08, 7.822e-07, 1.135e-06, 2.668e-06, 5.735e-07, 1.71e-06, 5.578e-07, 4.13e-07, 1.016e-06, 3.438e-07, 1.646e-06, 7.023e-07, 2.311e-06, 4.131e-06, 1.239e-05, 8.632e-06, 1.359e-05, 2.747e-06, 4.816e-06, 4.901e-06, 2.423e-06, 1.195e-06, 6.17e-08, 5.007e-06, 2.973e-06, 4.797e-07, 1.75e-06, 5.909e-06]
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/home/runner/work/dymos/dymos/.openmdao-pixi/.pixi/envs/dev/lib/python3.13/site-packages/dymos/grid_refinement/hp_adaptive/hp_adaptive.py:379: RuntimeWarning: divide by zero encountered in divide
+  q_smooth = (np.log(self.error[phase_path][smooth_need_refine_idxs] /
+/home/runner/work/dymos/dymos/.openmdao-pixi/.pixi/envs/dev/lib/python3.13/site-packages/dymos/grid_refinement/hp_adaptive/hp_adaptive.py:411: RuntimeWarning: divide by zero encountered in divide
+  q_split = np.log((self.error[phase_path][split_seg_idxs] /
+/home/runner/work/dymos/dymos/.openmdao-pixi/.pixi/envs/dev/lib/python3.13/site-packages/openmdao/core/system.py:4656: OpenMDAOWarning:Calling `list_inputs` before `final_setup` will only display the default values of variables and will not show the result of any `set_val` calls.
+/home/runner/work/dymos/dymos/.openmdao-pixi/.pixi/envs/dev/lib/python3.13/site-packages/dymos/phase/phase.py:3051: OpenMDAOWarning:phase0.states:x0 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
+/home/runner/work/dymos/dymos/.openmdao-pixi/.pixi/envs/dev/lib/python3.13/site-packages/dymos/phase/phase.py:3051: OpenMDAOWarning:phase0.states:x1 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>    Phase: traj.phases.phase0
+        New Grid:
+            Number of Segments = 93
+            Segment Ends = [-1.0, -0.9889, -0.9778, -0.9667, -0.9556, -0.9444, -0.9333, -0.9222, -0.9111, -0.9, -0.8889, -0.8778, -0.8667, -0.8556, -0.8444, -0.8333, -0.8222, -0.8074, -0.7926, -0.7852, -0.7778, -0.7556, -0.7333, -0.7185, -0.7037, -0.6889, -0.6667, -0.6444, -0.6222, -0.6, -0.5667, -0.55, -0.5333, -0.4667, -0.4333, -0.4167, -0.4, -0.3333, -0.3, -0.2833, -0.2667, -0.25, -0.2333, -0.2167, -0.2, -0.1667, -0.1333, -0.1, -0.0667, -0.0333, 0.0, 0.0333, 0.0667, 0.1333, 0.1667, 0.2, 0.2667, 0.2833, 0.3, 0.3333, 0.3667, 0.4, 0.4333, 0.4667, 0.5, 0.5167, 0.5333, 0.55, 0.5667, 0.5833, 0.6, 0.6333, 0.6667, 0.6833, 0.7, 0.7167, 0.7333, 0.75, 0.7667, 0.7833, 0.8, 0.8333, 0.8667, 0.8889, 0.9111, 0.9222, 0.9333, 0.9444, 0.9556, 0.9704, 0.9778, 0.9852, 0.9926, 1.0]
+            Segment Order = [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 15, 15, 5, 11, 15, 7, 5, 5, 5, 7, 5, 5, 13, 13, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 11, 9, 7, 5, 5, 5, 5, 5, 13, 5, 5, 5, 5, 5, 5, 5, 7, 5, 15, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 9, 9, 9, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5]
+        Refined: True
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (801, 1179)  (1.21% nonzero)
+FWD solves: 39   REV solves: 0
+Total colors vs. total size: 39 vs 1179  (96.69% improvement)
+
+Sparsity computed using tolerance: 1e-25.
+Dense total jacobian for Problem &#39;problem7&#39; was computed 3 times.
+Time to compute sparsity:   1.7582 sec
+Time to compute coloring:   0.8431 sec
+Memory to compute coloring: -31.9336 MB
+Coloring created on: 2025-12-22 16:16:54
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully    (Exit mode 0)
+            Current function value: 5.35860781193795
+            Iterations: 2
+            Function evaluations: 3
+            Gradient evaluations: 2
+Optimization Complete
+-----------------------------------
+
+
+==================================================
+          Grid Refinement - Iteration 5           
+--------------------------------------------------
+    Phase: traj.phases.phase0
+        Refinement Options:
+            Allow Refinement = True
+            Tolerance = 1e-06
+            Min Order = 3
+            Max Order = 14
+        Original Grid:
+            Number of Segments = 93
+            Segment Ends = [-1.0, -0.9889, -0.9778, -0.9667, -0.9556, -0.9444, -0.9333, -0.9222, -0.9111, -0.9, -0.8889, -0.8778, -0.8667, -0.8556, -0.8444, -0.8333, -0.8222, -0.8074, -0.7926, -0.7852, -0.7778, -0.7556, -0.7333, -0.7185, -0.7037, -0.6889, -0.6667, -0.6444, -0.6222, -0.6, -0.5667, -0.55, -0.5333, -0.4667, -0.4333, -0.4167, -0.4, -0.3333, -0.3, -0.2833, -0.2667, -0.25, -0.2333, -0.2167, -0.2, -0.1667, -0.1333, -0.1, -0.0667, -0.0333, 0.0, 0.0333, 0.0667, 0.1333, 0.1667, 0.2, 0.2667, 0.2833, 0.3, 0.3333, 0.3667, 0.4, 0.4333, 0.4667, 0.5, 0.5167, 0.5333, 0.55, 0.5667, 0.5833, 0.6, 0.6333, 0.6667, 0.6833, 0.7, 0.7167, 0.7333, 0.75, 0.7667, 0.7833, 0.8, 0.8333, 0.8667, 0.8889, 0.9111, 0.9222, 0.9333, 0.9444, 0.9556, 0.9704, 0.9778, 0.9852, 0.9926, 1.0]
+            Segment Order = [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 15, 15, 5, 11, 15, 7, 5, 5, 5, 7, 5, 5, 13, 13, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 11, 9, 7, 5, 5, 5, 5, 5, 13, 5, 5, 5, 5, 5, 5, 5, 7, 5, 15, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 9, 9, 9, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5]
+            Error = [1.877e-06, 5.981e-07, 4.368e-07, 4.098e-07, 5.77e-07, 1.505e-06, 9.251e-07, 7.015e-07, 1.745e-07, 3.864e-08, 8.728e-07, 7.71e-07, 9.694e-08, 5.498e-07, 4.723e-07, 6.638e-07, 6.397e-07, 1.092e-06, 2.544e-07, 3.533e-12, 4.481e-14, 4.37e-14, 3.908e-10, 7.251e-07, 7.463e-08, 7.411e-07, 5.303e-07, 2.007e-07, 3.889e-07, 2.355e-07, 1.183e-07, 1.037e-07, 3.647e-06, 3.346e-07, 8.659e-07, 5.231e-07, 3.081e-07, 3.495e-07, 6.587e-08, 1.488e-07, 2.53e-07, 1.507e-07, 1.974e-07, 2.519e-07, 7.71e-07, 1.239e-06, 1.281e-06, 6.485e-07, 3.454e-07, 3.157e-07, 2.118e-08, 6.712e-07, 5.424e-08, 1.816e-07, 2.991e-07, 3.297e-07, 1.019e-07, 1.794e-07, 7.232e-07, 5.058e-08, 3.155e-07, 1.146e-06, 9.937e-08, 4.574e-07, 7.22e-07, 4.197e-07, 1.411e-07, 1.138e-06, 2.465e-07, 2.504e-06, 3.022e-06, 2.204e-06, 2.857e-06, 5.713e-07, 1.012e-06, 7.521e-07, 5.568e-07, 4.664e-07, 3.859e-07, 2.595e-07, 9.897e-07, 2.148e-08, 2.368e-07, 7.178e-07, 3.576e-07, 3.45e-07, 3.164e-07, 8.848e-07, 1.45e-06, 2.359e-07, 2.949e-07, 9.72e-07, 3.496e-07]
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>    Phase: traj.phases.phase0
+        New Grid:
+            Number of Segments = 102
+            Segment Ends = [-1.0, -0.9889, -0.9778, -0.9667, -0.9556, -0.9444, -0.9333, -0.9222, -0.9111, -0.9, -0.8889, -0.8778, -0.8667, -0.8556, -0.8444, -0.8333, -0.8222, -0.8074, -0.7926, -0.7852, -0.7778, -0.7667, -0.7556, -0.7444, -0.7333, -0.7185, -0.7037, -0.6963, -0.6889, -0.6667, -0.6444, -0.6222, -0.6, -0.5667, -0.55, -0.5333, -0.5, -0.4667, -0.4333, -0.4167, -0.4, -0.3333, -0.3, -0.2833, -0.2667, -0.25, -0.2333, -0.2167, -0.2, -0.1667, -0.1333, -0.1, -0.0667, -0.0333, 0.0, 0.0333, 0.0667, 0.1333, 0.1667, 0.2, 0.2667, 0.2833, 0.3, 0.3333, 0.3667, 0.4, 0.4333, 0.45, 0.4667, 0.5, 0.5167, 0.5333, 0.55, 0.5667, 0.5833, 0.5917, 0.6, 0.6167, 0.6333, 0.65, 0.6667, 0.675, 0.6833, 0.7, 0.7167, 0.7333, 0.75, 0.7667, 0.7833, 0.8, 0.8333, 0.8667, 0.8889, 0.9111, 0.9222, 0.9333, 0.9444, 0.9556, 0.9704, 0.9778, 0.9852, 0.9926, 1.0]
+            Segment Order = [11, 5, 5, 5, 5, 13, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 7, 5, 5, 15, 15, 15, 15, 5, 11, 15, 15, 7, 5, 5, 5, 7, 5, 5, 13, 13, 13, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 11, 15, 13, 5, 5, 5, 5, 5, 13, 5, 5, 5, 5, 5, 5, 5, 7, 9, 15, 15, 5, 5, 5, 5, 9, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 7, 5, 5, 5, 5, 5, 9, 9, 9, 5, 5, 5, 5, 5, 13, 5, 5, 5, 5]
+        Refined: True
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/home/runner/work/dymos/dymos/.openmdao-pixi/.pixi/envs/dev/lib/python3.13/site-packages/openmdao/core/system.py:4656: OpenMDAOWarning:Calling `list_inputs` before `final_setup` will only display the default values of variables and will not show the result of any `set_val` calls.
+/home/runner/work/dymos/dymos/.openmdao-pixi/.pixi/envs/dev/lib/python3.13/site-packages/dymos/phase/phase.py:3051: OpenMDAOWarning:phase0.states:x0 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
+/home/runner/work/dymos/dymos/.openmdao-pixi/.pixi/envs/dev/lib/python3.13/site-packages/dymos/phase/phase.py:3051: OpenMDAOWarning:phase0.states:x1 specifies &#39;fix_final=True&#39;. If the given restart file has a different final value this will overwrite the user-specified value
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (1005, 1504)  (1.11% nonzero)
+FWD solves: 39   REV solves: 0
+Total colors vs. total size: 39 vs 1504  (97.41% improvement)
+
+Sparsity computed using tolerance: 1e-25.
+Dense total jacobian for Problem &#39;problem7&#39; was computed 3 times.
+Time to compute sparsity:   2.4324 sec
+Time to compute coloring:   1.1369 sec
+Memory to compute coloring: -27.3438 MB
+Coloring created on: 2025-12-22 16:17:00
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization terminated successfully    (Exit mode 0)
+            Current function value: 5.358607995346612
+            Iterations: 1
+            Function evaluations: 2
+            Gradient evaluations: 1
+Optimization Complete
+-----------------------------------
+Successfully completed grid refinement.
+==================================================
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Simulating trajectory traj
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Done simulating trajectory traj
+</pre></div>
+</div>
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Problem: problem7
+Driver:  ScipyOptimizeDriver
+  success     : True
+  iterations  : 3
+  runtime     : 5.5560E+00 s
+  model_evals : 4
+  model_time  : 3.1325E-03 s
+  deriv_evals : 1
+  deriv_time  : 3.8512E-02 s
+  exit_status : SUCCESS
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sol</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">CaseReader</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">get_outputs_dir</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;dymos_solution.db&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get_case</span><span class="p">(</span><span class="s1">&#39;final&#39;</span><span class="p">)</span>
+<span class="n">sim_prob</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">traj</span><span class="o">.</span><span class="n">sim_prob</span>
+<span class="n">sim</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">CaseReader</span><span class="p">(</span><span class="n">sim_prob</span><span class="o">.</span><span class="n">get_outputs_dir</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;dymos_simulation.db&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get_case</span><span class="p">(</span><span class="s1">&#39;final&#39;</span><span class="p">)</span>
+
+<span class="n">plot_results</span><span class="p">([(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;traj.phase0.timeseries.x1&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;time (s)&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;$x_1$ (V)&#39;</span><span class="p">),</span>
+              <span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;traj.phase0.timeseries.x0&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;time (s)&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;$x_0$ (V/s)&#39;</span><span class="p">),</span>
+              <span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;traj.phase0.timeseries.J&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;time (s)&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;J&#39;</span><span class="p">),</span>
+              <span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.x0&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;traj.phase0.timeseries.x1&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;$x_0$ (V/s)&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;$x_1$ (V)&#39;</span><span class="p">),</span>
+              <span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;traj.phase0.timeseries.u&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;time (s)&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;control u&#39;</span><span class="p">),</span>
+              <span class="p">],</span>
+              <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Van Der Pol Simulation&#39;</span><span class="p">,</span>
+              <span class="n">p_sol</span><span class="o">=</span><span class="n">sol</span><span class="p">,</span> <span class="n">p_sim</span><span class="o">=</span><span class="n">sim</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</details>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1000x800 with 5 Axes&gt;,
+ array([&lt;Axes: xlabel=&#39;time (s)&#39;, ylabel=&#39;$x_1$ (V)&#39;&gt;,
+        &lt;Axes: xlabel=&#39;time (s)&#39;, ylabel=&#39;$x_0$ (V/s)&#39;&gt;,
+        &lt;Axes: xlabel=&#39;time (s)&#39;, ylabel=&#39;J&#39;&gt;,
+        &lt;Axes: xlabel=&#39;$x_0$ (V/s)&#39;, ylabel=&#39;$x_1$ (V)&#39;&gt;,
+        &lt;Axes: xlabel=&#39;time (s)&#39;, ylabel=&#39;control u&#39;&gt;], dtype=object))
+</pre></div>
+</div>
+<img alt="../../_images/de857ae72df3addccb04ed79e117f5d0d497ef0c9c901297d746df1cb4ac03f0.png" src="../../_images/de857ae72df3addccb04ed79e117f5d0d497ef0c9c901297d746df1cb4ac03f0.png" />
+</div>
+</div>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
+<div class="docutils container" id="id2">
+<div role="list" class="citation-list">
+<div class="citation" id="id23" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">Wikipediacontributors20</a><span class="fn-bracket">]</span></span>
+<p>Wikipedia contributors. Van der pol oscillator — Wikipedia, the free encyclopedia. 2020. [Online; accessed 12-June-2020]. URL: <a class="reference external" href="https://en.wikipedia.org/w/index.php?title=Van_der_Pol_oscillator&amp;oldid=953857769">https://en.wikipedia.org/w/index.php?title=Van_der_Pol_oscillator&amp;oldid=953857769</a>.</p>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./examples/vanderpol"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../brachistochrone/brachistochrone_upstream_init_duration_states.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">The Brachistochrone with externally-sourced initial state values</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../balanced_field/balanced_field.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Aircraft Balanced Field Length Calculation</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#state-variables">State Variables</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#system-dynamics">System Dynamics</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#control-variables">Control Variables</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-initial-and-final-conditions">The initial and final conditions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#defining-the-ode-as-an-openmdao-system">Defining the ODE as an OpenMDAO System</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#defining-the-dymos-problem">Defining the Dymos Problem</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simulating-the-problem-without-control">Simulating the Problem (without control)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#solving-the-optimal-control-problem">Solving the Optimal Control Problem</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#solving-the-optimal-control-problem-with-grid-refinement">Solving the Optimal Control Problem with Grid Refinement</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By The Dymos Development Team
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

@@ -1,0 +1,751 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Constraints &#8212; Dymos</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../_static/myfile.css?v=9678755d" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'features/phases/constraints';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Objective" href="objective.html" />
+    <link rel="prev" title="Variables" href="variables.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/dymos_logo.png" class="logo__image only-light" alt="Dymos - Home"/>
+    <script>document.write(`<img src="../../_static/dymos_logo.png" class="logo__image only-dark" alt="Dymos - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../../index.html">
+                    Multidisciplinary Optimal Control Library
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Installation</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installing Dymos</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/optimal_control.html">Optimal Control</a></li>
+
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/transcriptions.html">Optimal Control Transcriptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/defining_odes.html">Defining ODEs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/collocation.html">What is collocation?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/intro_to_dymos/intro_ivp.html">Modeling Dynamic Systems with Dymos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/intro_to_dymos/intro_segments.html">Segments of Phases</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples and Tutorials</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../examples/examples.html">Dymos by Example</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/brachistochrone/brachistochrone.html">The Brachistochrone</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/brachistochrone/brachistochrone_upstream_init_duration_states.html">The Brachistochrone with externally-sourced initial state values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/vanderpol/vanderpol.html">The Van der Pol Oscillator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/balanced_field/balanced_field.html">Aircraft Balanced Field Length Calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/balanced_field/balanced_field_funccomp.html">Balanced Field Length using OpenMDAO’s Function Wrapping Components.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/bryson_denham/bryson_denham.html">The Bryson-Denham Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/commercial_aircraft/commercial_aircraft.html">Commercial Aircraft Range Maximization by Differential Inclusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/double_integrator/double_integrator.html">Double Integrator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/hull/hull_problem.html">The Hull Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/hypersensitive/hypersensitive.html">Hyper-Sensitive Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/finite_burn_orbit_raise/finite_burn_orbit_raise.html">Two-Burn Orbit Raise</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/length_constrained_brachistochrone/length_constrained_brachistochrone.html">The Length-Constrained Brachistochrone</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/min_time_climb/min_time_climb.html">Supersonic Interceptor Minimum Time Climb</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/mountain_car/mountain_car.html">The Mountain Car Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/moon_landing/moon_landing.html">Moon Landing Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/multi_phase_cannonball/multi_phase_cannonball.html">Multi-Phase Cannonball</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/multibranch_trajectory/multibranch_trajectory.html">Multibranch Trajectory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/racecar/racecar.html">Race car Lap Simulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/reentry/reentry.html">Single-Phase Space Shuttle Reentry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/ssto_earth/ssto_earth.html">SSTO Earth Launch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/ssto_moon_linear_tangent/ssto_moon_linear_tangent.html">SSTO Lunar Ascent with Linear Tangent Guidance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/ssto_moon_polynomial_controls/ssto_moon_polynomial_controls.html">SSTO Lunar Ascent with Polynomial Controls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/robertson_problem/robertson_problem.html">The Robertson Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/water_rocket/water_rocket.html">Water Rocket</a></li>
+
+<li class="toctree-l2"><a class="reference internal" href="../../examples/cart_pole/cart_pole.html">Cart-Pole Optimal Control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/brachistochrone/brachistochrone_tandem_phases.html">Brachistochrone with tandem phases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/implicit_duration/brachistochrone_implicit_duration.html">Boundary Balance</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Feature Reference</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="phases_list.html">Phases</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="phases.html">Phases of a Trajectory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="analytic_phases.html">Analytic Phases in Dymos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="segments.html">Segments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="variables.html">Variables</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="objective.html">Objective</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timeseries.html">Timeseries Outputs</a></li>
+
+<li class="toctree-l2"><a class="reference internal" href="calc_expressions.html">Calculation Expressions</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../trajectories/trajectories.html">Organizing Phases into Trajectories</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../exploiting_sparsity.html">Exploiting Sparsity for Faster Derivative Calculation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plotting.html">Plotting Timeseries</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Frequently Asked Questions</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../faq/faq.html">Frequently Asked Questions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/add_ode_output_to_timeseries.html">How do I add an ODE output to the timeseries outputs?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/connect_scalar_parameters_to_ode.html">How do I connect a scalar input to the ODE?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/upstream_analysis.html">How do I connect the outputs of an upstream analysis as inputs to Dymos?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/downstream_analysis.html">How do I connect the outputs of Dymos to a downstream analysis?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/tandem_phases.html">How do I run two phases parallel-in-time?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/use_partial_coloring.html">How can I more efficiently use finite-differenced components in the ODE?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/debugging.html">How can I debug models when things go wrong?</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Dymos API Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../api/api.html">Dymos Reference API</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../api/run_problem_function.html">The run_problem function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/phase_api.html">Phase Options</a></li>
+
+<li class="toctree-l2"><a class="reference internal" href="../../api/transcriptions_api.html">The Transcriptions API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/trajectory_api.html">The Trajectory API</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../contributing/contributing.html">Contributing to Dymos</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-launch-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Launch interactive content">
+    <i class="fas fa-rocket"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://colab.research.google.com/github/OpenMDAO/dymos/blob/master/docs/dymos_book/features/phases/constraints.ipynb" target="_blank"
+   class="btn btn-sm dropdown-item"
+   title="Launch on Colab"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  
+    <img alt="Colab logo" src="../../_static/images/logo_colab.png">
+  </span>
+<span class="btn__text-container">Colab</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/OpenMDAO/dymos" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/OpenMDAO/dymos/issues/new?title=Issue%20on%20page%20%2Ffeatures/phases/constraints.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../../_sources/features/phases/constraints.ipynb" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.ipynb</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Constraints</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#boundary-constraints">Boundary Constraints</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#path-constraints">Path Constraints</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#constraining-expressions">Constraining Expressions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implementation-detail-constraint-aliasing">Implementation Detail - Constraint Aliasing</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#constraint-linearity">Constraint Linearity</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="constraints">
+<h1>Constraints<a class="headerlink" href="#constraints" title="Link to this heading">#</a></h1>
+<p>Now that we’ve shown how to add degrees of freedom to a system with variables in the form of
+time, states, and controls, we need to look at how to constrain the system.  In optimal control,
+constraints typically come in two flavors:  boundary constraints and path constraints.</p>
+<p>As OpenMDAO components, outputs of Dymos Phases can be constrained using OpenMDAO’s <code class="docutils literal notranslate"><span class="pre">add_constraint</span></code> method, but Dymos Phases provide their own methods to make defining these constraints somewhat simpler.</p>
+<section id="boundary-constraints">
+<h2>Boundary Constraints<a class="headerlink" href="#boundary-constraints" title="Link to this heading">#</a></h2>
+<p>Boundary constraints are constraints on a variable value at the start or end of a phase.  There
+are a few different ways to impose these in Dymos, each with slightly different behavior.</p>
+<p>Let’s consider that we want to solve for the elevation angle that results in the maximum possible
+range flown by a cannonball.  In this situation we have some set of initial conditions that are
+fixed.</p>
+<div class="amsmath math notranslate nohighlight" id="equation-dba7d25e-f3a4-435f-847d-7961551606ac">
+<span class="eqno">(105)<a class="headerlink" href="#equation-dba7d25e-f3a4-435f-847d-7961551606ac" title="Permalink to this equation">#</a></span>\[\begin{align}
+    t_0 &amp;= 0 \, \mathrm{s} \\
+    x_0 &amp;= 0 \, \mathrm{m} \\
+    y_0 &amp;= 0 \, \mathrm{m} \\
+    v_0 &amp;= 100 \, \frac{\mathrm{m}}{\mathrm{s}}
+\end{align}\]</div>
+<p>The first, most obvious way to constrain fixed values is to remove them from the optimization problem altogether.</p>
+<p>For time, this is done using the <code class="docutils literal notranslate"><span class="pre">fix_initial</span></code> or <code class="docutils literal notranslate"><span class="pre">fix_duration</span></code> arguments to <code class="docutils literal notranslate"><span class="pre">set_time_options</span></code>.
+This also allows <code class="docutils literal notranslate"><span class="pre">t_initial</span></code> and <code class="docutils literal notranslate"><span class="pre">t_duration</span></code> to be provided from an external source via connection, if so desired.</p>
+<p>For states and controls, the situation is slightly different.
+Rather than providing initial and final values, similar to the way time is handled, the implicit simulation techniques must
+be provided state values at the state discretization nodes and control values at <em>all</em> nodes.
+Instead, for states and controls, the user specifies <code class="docutils literal notranslate"><span class="pre">fix_initial=True</span></code> or <code class="docutils literal notranslate"><span class="pre">fix_final=True</span></code>.</p>
+<p>Removing constrained values from the optimization has the following pros and cons.
+On the pro side, we’re making the optimization problem smaller by omitting them.
+On the con side, the optimizer has absolutely no freedom to move these values around even a little.
+This can sometimes lead to failure modes that aren’t necessarily obvious, especially to new users.</p>
+<p>The following example solves the brachistochrone problem by omitting the initial time and initial state, as well as the final position state from the optimization.</p>
+<p>The second method for bounding initial/final time, states, or controls is to leave them in the
+optimization problem but to constrain only their initial or final values.  For time, this is
+accomplished with the options <code class="docutils literal notranslate"><span class="pre">initial_bounds</span></code> and <code class="docutils literal notranslate"><span class="pre">duration_bounds</span></code>.  Each of these takes a tuple
+of <code class="docutils literal notranslate"><span class="pre">(lower,</span> <span class="pre">upper)</span></code> values that the optimizer must obey when providing new variable values.  Note
+that since states and controls may be vector valued, lower and upper may themselves be iterable.
+To <em>pin</em> the value of a state, time, or control to a value just set lower and upper to the same
+value.</p>
+<p>As for the pros and cons of this technique, its largely similar to that for the first technique,
+but it’s somewhat optimizer dependent.  Some optimizers <em>may</em> allow bounds on design variables to
+be violated slightly (to some small tolerance).  In theory this could alleviate some of the issues
+with omitting a design variable altogether, but in practice that’s unlikely.</p>
+<p>The first two options work by imposing bounds (or by not providing a variable to the optimizer
+altogether).  The third option is to pose bound constraints as actual constraints on the NLP.
+This is accomplished with the <code class="docutils literal notranslate"><span class="pre">add_boundary_constraint</span></code> method on Phases.</p>
+<p>The downside of this technique is that it makes the NLP problem larger, though not by much.  On
+the plus side, this method allows the user to constrain any output within the ODE.  If the user
+needs to constrain an auxiliary output, this is the only option.  It may also behave somewhat better
+in certain circumstances.  Depending on scaling, the NLP may ensure that collocation defects are
+satisfied before forcing an infeasible boundary constraint to be satisfied, for instance.</p>
+<p>In conclusion, while using <code class="docutils literal notranslate"><span class="pre">fix_initial=True</span></code> for problems with fixed initial conditions is not a bad solution, the generality of <code class="docutils literal notranslate"><span class="pre">add_boundary_constraint</span></code>, especially for terminal constraints that risk being over-constrained, makes it a good first-choice in those situations.
+In forward-shooting phases (<code class="docutils literal notranslate"><span class="pre">solve_segments='forward'</span></code>) only the initial values of the states are design variables for the optimizer.
+As such, simple bounds on final state values are not possible in those situations, and <code class="docutils literal notranslate"><span class="pre">add_boundary_constraint</span></code> must be used instead.</p>
+</section>
+<section id="path-constraints">
+<h2>Path Constraints<a class="headerlink" href="#path-constraints" title="Link to this heading">#</a></h2>
+<p>The second class of constraints supported by Dymos are <em>path</em> constraints, so called because they are imposed throughout the entire phase.
+Like bound constraints, path constraints can be imposed on design variables using simple bounds.
+This is accomplished using the <code class="docutils literal notranslate"><span class="pre">lower</span></code> and <code class="docutils literal notranslate"><span class="pre">upper</span></code> arguments to <code class="docutils literal notranslate"><span class="pre">add_state</span></code>, <code class="docutils literal notranslate"><span class="pre">add_control</span></code>, and <code class="docutils literal notranslate"><span class="pre">add_parameter</span></code>.
+(Since time is monotonically increasing or decreasing the notion of a path constraint is irrelevant for it).</p>
+<p>For vector-valued states and controls, lower/upper should be dimensioned the same as state or control.
+If given as a scalar, it will be applied to all values in the state or control.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Bounds on states in Gauss-Lobatto Phases are <strong>not</strong> equivalent to path constraints.
+The values of states in Gauss-Lobatto phases are provided at only the state-transcription nodes and then interpolated to the collocation nodes.
+Therefore, the bounds will have no impact on these interpolated values which therefore may not satisfy the bounds, as one might expect.</p>
+</div>
+<p>Phases also support the <code class="docutils literal notranslate"><span class="pre">add_path_constraint</span></code> method, which imposes path constraints as constraints in the NLP problem.
+As with <code class="docutils literal notranslate"><span class="pre">add_boundary_constraint</span></code>, the <code class="docutils literal notranslate"><span class="pre">add_path_constraint</span></code> method is the only option for path constraining an output of the ODE.</p>
+<p>The downside of path constraints is that they add a considerable number of constraints to the NLP problem and thus may negatively impact performance, although this is generally minor for many problems.</p>
+</section>
+<section id="constraining-expressions">
+<h2>Constraining Expressions<a class="headerlink" href="#constraining-expressions" title="Link to this heading">#</a></h2>
+<p>Constraints may be defined using mathematical expressions of the form <code class="docutils literal notranslate"><span class="pre">y=f(x)</span></code> to be evaluated. Here <code class="docutils literal notranslate"><span class="pre">x</span></code> may be vector combination of time, states, controls, parameters, or any outputs of the ODE. The variable <code class="docutils literal notranslate"><span class="pre">y</span></code> is added to the timeseries outputs of the phase and the desired constraint is applied to it.</p>
+<p>Consider, again, the example of maximizing the range flown by a cannonball. But now, rather than a constraint on the initial velocity, we wish to apply a constraint to the initial normalized kinetic energy.</p>
+<div class="amsmath math notranslate nohighlight" id="equation-2eb5f888-5dc2-4179-8610-e1c6099840a5">
+<span class="eqno">(106)<a class="headerlink" href="#equation-2eb5f888-5dc2-4179-8610-e1c6099840a5" title="Permalink to this equation">#</a></span>\[\begin{align}
+    ke &amp;= 0.5 * v^2 \\
+    ke_0 &amp;= 5000 \, \frac{\mathrm{m^2}}{\mathrm{s^2}}
+\end{align}\]</div>
+<p>The first way to achieve this is to add kinetic energy as a state in the model. This state may then be constrained either using <code class="docutils literal notranslate"><span class="pre">fix_initial=True</span></code> or <code class="docutils literal notranslate"><span class="pre">add_boundary_constraint(‘ke’,</span> <span class="pre">loc=’initial’</span> <span class="pre">,</span> <span class="pre">equals=5000)</span></code>.</p>
+<p>The second method to add this constraint is to add the constraint using an expression. This may be done as <code class="docutils literal notranslate"><span class="pre">add_boundary_constraint(‘ke=0.5*v**2,</span> <span class="pre">loc=’initial’,</span> <span class="pre">equals=5000)</span></code>.</p>
+<p>The advantage to the latter method is that no changes are required to the previous model, simply modifying the <code class="docutils literal notranslate"><span class="pre">add_boundary_constraint</span></code> statement is sufficient. The disadvantage is that the derivatives of the constraints are evaluated using complex step rather than analytical expressions. This may negatively impact performance, but the effect should be minor for most problems.</p>
+</section>
+<section id="implementation-detail-constraint-aliasing">
+<h2>Implementation Detail - Constraint Aliasing<a class="headerlink" href="#implementation-detail-constraint-aliasing" title="Link to this heading">#</a></h2>
+<p>As of OpenMDAO Version 3.17.0, multiple constraints are allowed to exist on the same output as long as they use different indices and are provided different aliases.
+In Dymos, this allows us to always apply multiple constraints (initial, final, or path constraints) to the timeseries outputs of the phase.
+To allow boundary and path constraints to potentially be applied to the same timeseries outputs, they are provided the following aliases:</p>
+<p>An initial boundary constraint on the name <code class="docutils literal notranslate"><span class="pre">'alpha'</span></code> will be given the alias <code class="docutils literal notranslate"><span class="pre">f'{path_to_phase}.initial_boundary_constraints-&gt;alpha</span></code>.</p>
+<p>A final boundary constraint on the name <code class="docutils literal notranslate"><span class="pre">'alpha'</span></code> will be given the alias <code class="docutils literal notranslate"><span class="pre">f'{path_to_phase}.final_boundary_constraints-&gt;alpha</span></code>.</p>
+<p>A path constraint on the name <code class="docutils literal notranslate"><span class="pre">'alpha'</span></code> will be given the alias <code class="docutils literal notranslate"><span class="pre">f'{path_to_phase}.path_constraints-&gt;alpha</span></code>.</p>
+<p>The use of the <code class="docutils literal notranslate"><span class="pre">-&gt;</span></code> in this case is intended to remind the user that this is not the actual path to the variable being constrained.</p>
+</section>
+<section id="constraint-linearity">
+<h2>Constraint Linearity<a class="headerlink" href="#constraint-linearity" title="Link to this heading">#</a></h2>
+<p>OpenMDAO will treat all boundary and path consraints as nonlinear unless the user provides the argument <code class="docutils literal notranslate"><span class="pre">linear=True</span></code> to <code class="docutils literal notranslate"><span class="pre">add_boundary_constraint</span></code> or <code class="docutils literal notranslate"><span class="pre">add_path_constraint</span></code>.
+Note that it is the responsibility of the user to understand the inner workings of Dymos and their model well enough to know if the constraint may be treated as linear.
+Specifying an output that is actually a nonlinear function of the design variables as a linear constraint will almost certainly result of the failure of the optimization due to incorrect derivatives.
+The derivatives of linear constraints are computed once and cached by OpenMDAO for the remainder of the optimization.</p>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./features/phases"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="variables.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Variables</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="objective.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Objective</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#boundary-constraints">Boundary Constraints</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#path-constraints">Path Constraints</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#constraining-expressions">Constraining Expressions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implementation-detail-constraint-aliasing">Implementation Detail - Constraint Aliasing</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#constraint-linearity">Constraint Linearity</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By The Dymos Development Team
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

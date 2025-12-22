@@ -1,0 +1,1617 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Supersonic Interceptor Minimum Time Climb &#8212; Dymos</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../_static/myfile.css?v=9678755d" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'examples/min_time_climb/min_time_climb';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="The Mountain Car Problem" href="../mountain_car/mountain_car.html" />
+    <link rel="prev" title="The Length-Constrained Brachistochrone" href="../length_constrained_brachistochrone/length_constrained_brachistochrone.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/dymos_logo.png" class="logo__image only-light" alt="Dymos - Home"/>
+    <script>document.write(`<img src="../../_static/dymos_logo.png" class="logo__image only-dark" alt="Dymos - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../../index.html">
+                    Multidisciplinary Optimal Control Library
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Installation</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installing Dymos</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/optimal_control.html">Optimal Control</a></li>
+
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/transcriptions.html">Optimal Control Transcriptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/defining_odes.html">Defining ODEs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/collocation.html">What is collocation?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/intro_to_dymos/intro_ivp.html">Modeling Dynamic Systems with Dymos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/intro_to_dymos/intro_segments.html">Segments of Phases</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples and Tutorials</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../examples.html">Dymos by Example</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../brachistochrone/brachistochrone.html">The Brachistochrone</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../brachistochrone/brachistochrone_upstream_init_duration_states.html">The Brachistochrone with externally-sourced initial state values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../vanderpol/vanderpol.html">The Van der Pol Oscillator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../balanced_field/balanced_field.html">Aircraft Balanced Field Length Calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../balanced_field/balanced_field_funccomp.html">Balanced Field Length using OpenMDAO’s Function Wrapping Components.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bryson_denham/bryson_denham.html">The Bryson-Denham Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../commercial_aircraft/commercial_aircraft.html">Commercial Aircraft Range Maximization by Differential Inclusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../double_integrator/double_integrator.html">Double Integrator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hull/hull_problem.html">The Hull Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hypersensitive/hypersensitive.html">Hyper-Sensitive Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../finite_burn_orbit_raise/finite_burn_orbit_raise.html">Two-Burn Orbit Raise</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../length_constrained_brachistochrone/length_constrained_brachistochrone.html">The Length-Constrained Brachistochrone</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Supersonic Interceptor Minimum Time Climb</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../mountain_car/mountain_car.html">The Mountain Car Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../moon_landing/moon_landing.html">Moon Landing Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../multi_phase_cannonball/multi_phase_cannonball.html">Multi-Phase Cannonball</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../multibranch_trajectory/multibranch_trajectory.html">Multibranch Trajectory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../racecar/racecar.html">Race car Lap Simulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reentry/reentry.html">Single-Phase Space Shuttle Reentry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ssto_earth/ssto_earth.html">SSTO Earth Launch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ssto_moon_linear_tangent/ssto_moon_linear_tangent.html">SSTO Lunar Ascent with Linear Tangent Guidance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ssto_moon_polynomial_controls/ssto_moon_polynomial_controls.html">SSTO Lunar Ascent with Polynomial Controls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../robertson_problem/robertson_problem.html">The Robertson Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../water_rocket/water_rocket.html">Water Rocket</a></li>
+
+<li class="toctree-l2"><a class="reference internal" href="../cart_pole/cart_pole.html">Cart-Pole Optimal Control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../brachistochrone/brachistochrone_tandem_phases.html">Brachistochrone with tandem phases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../implicit_duration/brachistochrone_implicit_duration.html">Boundary Balance</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Feature Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../features/phases/phases_list.html">Phases</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/phases.html">Phases of a Trajectory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/analytic_phases.html">Analytic Phases in Dymos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/segments.html">Segments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/variables.html">Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/constraints.html">Constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/objective.html">Objective</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/timeseries.html">Timeseries Outputs</a></li>
+
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/calc_expressions.html">Calculation Expressions</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../features/trajectories/trajectories.html">Organizing Phases into Trajectories</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../features/exploiting_sparsity.html">Exploiting Sparsity for Faster Derivative Calculation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../features/plotting.html">Plotting Timeseries</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Frequently Asked Questions</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../faq/faq.html">Frequently Asked Questions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/add_ode_output_to_timeseries.html">How do I add an ODE output to the timeseries outputs?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/connect_scalar_parameters_to_ode.html">How do I connect a scalar input to the ODE?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/upstream_analysis.html">How do I connect the outputs of an upstream analysis as inputs to Dymos?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/downstream_analysis.html">How do I connect the outputs of Dymos to a downstream analysis?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/tandem_phases.html">How do I run two phases parallel-in-time?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/use_partial_coloring.html">How can I more efficiently use finite-differenced components in the ODE?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/debugging.html">How can I debug models when things go wrong?</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Dymos API Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../api/api.html">Dymos Reference API</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../api/run_problem_function.html">The run_problem function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/phase_api.html">Phase Options</a></li>
+
+<li class="toctree-l2"><a class="reference internal" href="../../api/transcriptions_api.html">The Transcriptions API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/trajectory_api.html">The Trajectory API</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../contributing/contributing.html">Contributing to Dymos</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-launch-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Launch interactive content">
+    <i class="fas fa-rocket"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://colab.research.google.com/github/OpenMDAO/dymos/blob/master/docs/dymos_book/examples/min_time_climb/min_time_climb.ipynb" target="_blank"
+   class="btn btn-sm dropdown-item"
+   title="Launch on Colab"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  
+    <img alt="Colab logo" src="../../_static/images/logo_colab.png">
+  </span>
+<span class="btn__text-container">Colab</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/OpenMDAO/dymos" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/OpenMDAO/dymos/issues/new?title=Issue%20on%20page%20%2Fexamples/min_time_climb/min_time_climb.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../../_sources/examples/min_time_climb/min_time_climb.ipynb" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.ipynb</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Supersonic Interceptor Minimum Time Climb</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-ode-system-min-time-climb-ode-py">The ODE System: min_time_climb_ode.py</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#building-and-running-the-problem">Building and running the problem</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="supersonic-interceptor-minimum-time-climb">
+<span id="examples-minimum-time-climb"></span><h1>Supersonic Interceptor Minimum Time Climb<a class="headerlink" href="#supersonic-interceptor-minimum-time-climb" title="Link to this heading">#</a></h1>
+<p>This example is based on the <em>A/C Min Time to Climb</em> example given in
+chapter 4 of Bryson <span id="id1">[<a class="reference internal" href="#id17" title="Arthur Earl Bryson. Dynamic optimization. Addison Wesley Longman Menlo Park, CA, 1999.">Bry99</a>]</span>. It finds the
+angle-of-attack history required to accelerate a supersonic interceptor
+from near ground level, Mach 0.4 to an altitude of 20 km and Mach 1.0.</p>
+<p><img alt="The free-body-diagram of the min-time-climb problem." src="../../_images/min_time_climb_fbd.png" /></p>
+<p>The vehicle dynamics are given by</p>
+<div class="amsmath math notranslate nohighlight" id="equation-5cfac128-07e8-4be5-a029-895d55c79042">
+<span class="eqno">(62)<a class="headerlink" href="#equation-5cfac128-07e8-4be5-a029-895d55c79042" title="Permalink to this equation">#</a></span>\[\begin{align}
+  \frac{dv}{dt} &amp;= \frac{T}{m} \cos \alpha - \frac{D}{m} - g \sin \gamma \\
+  \frac{d\gamma}{dt} &amp;= \frac{T}{m v} \sin \alpha + \frac{L}{m v} - \frac{g \cos \gamma}{v} \\
+  \frac{dh}{dt} &amp;= v \sin \gamma \\
+  \frac{dr}{dt} &amp;= v \cos \gamma \\
+  \frac{dm}{dt} &amp;= - \frac{T}{g I_{sp}}
+\end{align}\]</div>
+<p>The initial conditions are</p>
+<div class="amsmath math notranslate nohighlight" id="equation-9efe66a8-1316-4c46-9c68-13c66c00a5e9">
+<span class="eqno">(63)<a class="headerlink" href="#equation-9efe66a8-1316-4c46-9c68-13c66c00a5e9" title="Permalink to this equation">#</a></span>\[\begin{align}
+  r_0 &amp;= 0 \rm{\,m} \\
+  h_0 &amp;= 100 \rm{\,m} \\
+  v_0 &amp;= 135.964 \rm{\,m/s} \\
+  \gamma_0 &amp;= 0 \rm{\,deg} \\
+  m_0 &amp;= 19030.468 \rm{\,kg}
+\end{align}\]</div>
+<p>and the final conditions are</p>
+<div class="amsmath math notranslate nohighlight" id="equation-2d8943f5-b424-4b9f-8a58-32598e794cb7">
+<span class="eqno">(64)<a class="headerlink" href="#equation-2d8943f5-b424-4b9f-8a58-32598e794cb7" title="Permalink to this equation">#</a></span>\[\begin{align}
+  h_f &amp;= 20000 \rm{\,m} \\
+  M_f &amp;= 1.0 \\
+  \gamma_0 &amp;= 0 \rm{\,deg}
+\end{align}\]</div>
+<section id="the-ode-system-min-time-climb-ode-py">
+<h2>The ODE System: min_time_climb_ode.py<a class="headerlink" href="#the-ode-system-min-time-climb-ode-py" title="Link to this heading">#</a></h2>
+<p>The top level ODE definition is a <em>Group</em> that connects several subsystems.</p>
+<div class="cell tag_hide-output tag_remove-input docutils container">
+<details class="admonition hide above-output">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell outputs</p>
+<p class="expanded admonition-title">Hide code cell outputs</p>
+</summary>
+<div class="cell_output docutils container">
+<div class="output text_html"><style>pre { line-height: 125%; }
+td.linenos .normal { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.output_html .hll { background-color: #ffffcc }
+.output_html { background: #f8f8f8; }
+.output_html .c { color: #3D7B7B; font-style: italic } /* Comment */
+.output_html .err { border: 1px solid #F00 } /* Error */
+.output_html .k { color: #008000; font-weight: bold } /* Keyword */
+.output_html .o { color: #666 } /* Operator */
+.output_html .ch { color: #3D7B7B; font-style: italic } /* Comment.Hashbang */
+.output_html .cm { color: #3D7B7B; font-style: italic } /* Comment.Multiline */
+.output_html .cp { color: #9C6500 } /* Comment.Preproc */
+.output_html .cpf { color: #3D7B7B; font-style: italic } /* Comment.PreprocFile */
+.output_html .c1 { color: #3D7B7B; font-style: italic } /* Comment.Single */
+.output_html .cs { color: #3D7B7B; font-style: italic } /* Comment.Special */
+.output_html .gd { color: #A00000 } /* Generic.Deleted */
+.output_html .ge { font-style: italic } /* Generic.Emph */
+.output_html .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.output_html .gr { color: #E40000 } /* Generic.Error */
+.output_html .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.output_html .gi { color: #008400 } /* Generic.Inserted */
+.output_html .go { color: #717171 } /* Generic.Output */
+.output_html .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
+.output_html .gs { font-weight: bold } /* Generic.Strong */
+.output_html .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.output_html .gt { color: #04D } /* Generic.Traceback */
+.output_html .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
+.output_html .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
+.output_html .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
+.output_html .kp { color: #008000 } /* Keyword.Pseudo */
+.output_html .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
+.output_html .kt { color: #B00040 } /* Keyword.Type */
+.output_html .m { color: #666 } /* Literal.Number */
+.output_html .s { color: #BA2121 } /* Literal.String */
+.output_html .na { color: #687822 } /* Name.Attribute */
+.output_html .nb { color: #008000 } /* Name.Builtin */
+.output_html .nc { color: #00F; font-weight: bold } /* Name.Class */
+.output_html .no { color: #800 } /* Name.Constant */
+.output_html .nd { color: #A2F } /* Name.Decorator */
+.output_html .ni { color: #717171; font-weight: bold } /* Name.Entity */
+.output_html .ne { color: #CB3F38; font-weight: bold } /* Name.Exception */
+.output_html .nf { color: #00F } /* Name.Function */
+.output_html .nl { color: #767600 } /* Name.Label */
+.output_html .nn { color: #00F; font-weight: bold } /* Name.Namespace */
+.output_html .nt { color: #008000; font-weight: bold } /* Name.Tag */
+.output_html .nv { color: #19177C } /* Name.Variable */
+.output_html .ow { color: #A2F; font-weight: bold } /* Operator.Word */
+.output_html .w { color: #BBB } /* Text.Whitespace */
+.output_html .mb { color: #666 } /* Literal.Number.Bin */
+.output_html .mf { color: #666 } /* Literal.Number.Float */
+.output_html .mh { color: #666 } /* Literal.Number.Hex */
+.output_html .mi { color: #666 } /* Literal.Number.Integer */
+.output_html .mo { color: #666 } /* Literal.Number.Oct */
+.output_html .sa { color: #BA2121 } /* Literal.String.Affix */
+.output_html .sb { color: #BA2121 } /* Literal.String.Backtick */
+.output_html .sc { color: #BA2121 } /* Literal.String.Char */
+.output_html .dl { color: #BA2121 } /* Literal.String.Delimiter */
+.output_html .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
+.output_html .s2 { color: #BA2121 } /* Literal.String.Double */
+.output_html .se { color: #AA5D1F; font-weight: bold } /* Literal.String.Escape */
+.output_html .sh { color: #BA2121 } /* Literal.String.Heredoc */
+.output_html .si { color: #A45A77; font-weight: bold } /* Literal.String.Interpol */
+.output_html .sx { color: #008000 } /* Literal.String.Other */
+.output_html .sr { color: #A45A77 } /* Literal.String.Regex */
+.output_html .s1 { color: #BA2121 } /* Literal.String.Single */
+.output_html .ss { color: #19177C } /* Literal.String.Symbol */
+.output_html .bp { color: #008000 } /* Name.Builtin.Pseudo */
+.output_html .fm { color: #00F } /* Name.Function.Magic */
+.output_html .vc { color: #19177C } /* Name.Variable.Class */
+.output_html .vg { color: #19177C } /* Name.Variable.Global */
+.output_html .vi { color: #19177C } /* Name.Variable.Instance */
+.output_html .vm { color: #19177C } /* Name.Variable.Magic */
+.output_html .il { color: #666 } /* Literal.Number.Integer.Long */</style><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">openmdao.api</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">om</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.dynamic_pressure_comp_partial_coloring</span><span class="w"> </span><span class="kn">import</span> <span class="n">DynamicPressureCompFD</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..aero.dynamic_pressure_comp</span><span class="w"> </span><span class="kn">import</span> <span class="n">DynamicPressureComp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..aero.lift_drag_force_comp</span><span class="w"> </span><span class="kn">import</span> <span class="n">LiftDragForceComp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..aero.cd0_comp</span><span class="w"> </span><span class="kn">import</span> <span class="n">CD0Comp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..aero.kappa_comp</span><span class="w"> </span><span class="kn">import</span> <span class="n">KappaComp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..aero.cla_comp</span><span class="w"> </span><span class="kn">import</span> <span class="n">CLaComp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..aero.cl_comp</span><span class="w"> </span><span class="kn">import</span> <span class="n">CLComp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..aero.cd_comp</span><span class="w"> </span><span class="kn">import</span> <span class="n">CDComp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..aero.mach_comp</span><span class="w"> </span><span class="kn">import</span> <span class="n">MachComp</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">AeroGroup</span><span class="p">(</span><span class="n">om</span><span class="o">.</span><span class="n">Group</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The purpose of the AeroGroup is to compute the aerodynamic forces on the</span>
+<span class="sd">    aircraft in the body frame.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    v : float</span>
+<span class="sd">        air-relative velocity (m/s)</span>
+<span class="sd">    sos : float</span>
+<span class="sd">        local speed of sound (m/s)</span>
+<span class="sd">    rho : float</span>
+<span class="sd">        atmospheric density (kg/m**3)</span>
+<span class="sd">    alpha : float</span>
+<span class="sd">        angle of attack (rad)</span>
+<span class="sd">    S : float</span>
+<span class="sd">        aerodynamic reference area (m**2)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">declare</span><span class="p">(</span><span class="s1">&#39;num_nodes&#39;</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                             <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Number of nodes to be evaluated in the RHS&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">declare</span><span class="p">(</span><span class="s1">&#39;fd&#39;</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="nb">bool</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;If True, use fd for partials for dynamic pressure&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">declare</span><span class="p">(</span><span class="s1">&#39;partial_coloring&#39;</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="nb">bool</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                             <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;If True and fd is True, color the approximated partials of dynamic pressure&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">nn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;num_nodes&#39;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;fd&#39;</span><span class="p">]:</span>
+            <span class="n">q_comp</span> <span class="o">=</span> <span class="n">DynamicPressureCompFD</span><span class="p">(</span><span class="n">num_nodes</span><span class="o">=</span><span class="n">nn</span><span class="p">,</span> <span class="n">partial_coloring</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;partial_coloring&#39;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">q_comp</span> <span class="o">=</span> <span class="n">DynamicPressureComp</span><span class="p">(</span><span class="n">num_nodes</span><span class="o">=</span><span class="n">nn</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_subsystem</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;mach_comp&#39;</span><span class="p">,</span>
+                           <span class="n">subsys</span><span class="o">=</span><span class="n">MachComp</span><span class="p">(</span><span class="n">num_nodes</span><span class="o">=</span><span class="n">nn</span><span class="p">),</span>
+                           <span class="n">promotes_inputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="s1">&#39;sos&#39;</span><span class="p">],</span>
+                           <span class="n">promotes_outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;mach&#39;</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_subsystem</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;cd0_comp&#39;</span><span class="p">,</span>
+                           <span class="n">subsys</span><span class="o">=</span><span class="n">CD0Comp</span><span class="p">(</span><span class="n">num_nodes</span><span class="o">=</span><span class="n">nn</span><span class="p">),</span>
+                           <span class="n">promotes_inputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;mach&#39;</span><span class="p">],</span>
+                           <span class="n">promotes_outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;CD0&#39;</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_subsystem</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;kappa_comp&#39;</span><span class="p">,</span>
+                           <span class="n">subsys</span><span class="o">=</span><span class="n">KappaComp</span><span class="p">(</span><span class="n">num_nodes</span><span class="o">=</span><span class="n">nn</span><span class="p">),</span>
+                           <span class="n">promotes_inputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;mach&#39;</span><span class="p">],</span>
+                           <span class="n">promotes_outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;kappa&#39;</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_subsystem</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;cla_comp&#39;</span><span class="p">,</span>
+                           <span class="n">subsys</span><span class="o">=</span><span class="n">CLaComp</span><span class="p">(</span><span class="n">num_nodes</span><span class="o">=</span><span class="n">nn</span><span class="p">),</span>
+                           <span class="n">promotes_inputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;mach&#39;</span><span class="p">],</span>
+                           <span class="n">promotes_outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;CLa&#39;</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_subsystem</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;CL_comp&#39;</span><span class="p">,</span>
+                           <span class="n">subsys</span><span class="o">=</span><span class="n">CLComp</span><span class="p">(</span><span class="n">num_nodes</span><span class="o">=</span><span class="n">nn</span><span class="p">),</span>
+                           <span class="n">promotes_inputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="s1">&#39;CLa&#39;</span><span class="p">],</span>
+                           <span class="n">promotes_outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;CL&#39;</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_subsystem</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;CD_comp&#39;</span><span class="p">,</span>
+                           <span class="n">subsys</span><span class="o">=</span><span class="n">CDComp</span><span class="p">(</span><span class="n">num_nodes</span><span class="o">=</span><span class="n">nn</span><span class="p">),</span>
+                           <span class="n">promotes_inputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;CD0&#39;</span><span class="p">,</span> <span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="s1">&#39;CLa&#39;</span><span class="p">,</span> <span class="s1">&#39;kappa&#39;</span><span class="p">],</span>
+                           <span class="n">promotes_outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;CD&#39;</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_subsystem</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;q_comp&#39;</span><span class="p">,</span>
+                           <span class="n">subsys</span><span class="o">=</span><span class="n">q_comp</span><span class="p">,</span>
+                           <span class="n">promotes_inputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;rho&#39;</span><span class="p">,</span> <span class="s1">&#39;v&#39;</span><span class="p">],</span>
+                           <span class="n">promotes_outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;q&#39;</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_subsystem</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;lift_drag_force_comp&#39;</span><span class="p">,</span>
+                           <span class="n">subsys</span><span class="o">=</span><span class="n">LiftDragForceComp</span><span class="p">(</span><span class="n">num_nodes</span><span class="o">=</span><span class="n">nn</span><span class="p">),</span>
+                           <span class="n">promotes_inputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;CL&#39;</span><span class="p">,</span> <span class="s1">&#39;CD&#39;</span><span class="p">,</span> <span class="s1">&#39;q&#39;</span><span class="p">,</span> <span class="s1">&#39;S&#39;</span><span class="p">],</span>
+                           <span class="n">promotes_outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;f_lift&#39;</span><span class="p">,</span> <span class="s1">&#39;f_drag&#39;</span><span class="p">])</span>
+</pre></div>
+</div></div>
+</details>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">openmdao.api</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">om</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dymos.models.eom</span><span class="w"> </span><span class="kn">import</span> <span class="n">FlightPathEOM2D</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dymos.examples.min_time_climb.prop</span><span class="w"> </span><span class="kn">import</span> <span class="n">PropGroup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dymos.models.atmosphere</span><span class="w"> </span><span class="kn">import</span> <span class="n">USatm1976Comp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dymos.examples.min_time_climb.doc.aero_partial_coloring</span><span class="w"> </span><span class="kn">import</span> <span class="n">AeroGroup</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MinTimeClimbODE</span><span class="p">(</span><span class="n">om</span><span class="o">.</span><span class="n">Group</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">declare</span><span class="p">(</span><span class="s1">&#39;num_nodes&#39;</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">declare</span><span class="p">(</span><span class="s1">&#39;fd&#39;</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="nb">bool</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;If True, use fd for partials&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">declare</span><span class="p">(</span><span class="s1">&#39;partial_coloring&#39;</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="nb">bool</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                             <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;If True and fd is True, color the approximated partials&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">nn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;num_nodes&#39;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_subsystem</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;atmos&#39;</span><span class="p">,</span>
+                           <span class="n">subsys</span><span class="o">=</span><span class="n">USatm1976Comp</span><span class="p">(</span><span class="n">num_nodes</span><span class="o">=</span><span class="n">nn</span><span class="p">,</span> <span class="n">h_def</span><span class="o">=</span><span class="s1">&#39;geodetic&#39;</span><span class="p">),</span>
+                           <span class="n">promotes_inputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;h&#39;</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_subsystem</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;aero&#39;</span><span class="p">,</span>
+                           <span class="n">subsys</span><span class="o">=</span><span class="n">AeroGroup</span><span class="p">(</span><span class="n">num_nodes</span><span class="o">=</span><span class="n">nn</span><span class="p">,</span>
+                                            <span class="n">fd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;fd&#39;</span><span class="p">],</span>
+                                            <span class="n">partial_coloring</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;partial_coloring&#39;</span><span class="p">]),</span>
+                           <span class="n">promotes_inputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="s1">&#39;S&#39;</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;atmos.sos&#39;</span><span class="p">,</span> <span class="s1">&#39;aero.sos&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;atmos.rho&#39;</span><span class="p">,</span> <span class="s1">&#39;aero.rho&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_subsystem</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;prop&#39;</span><span class="p">,</span>
+                           <span class="n">subsys</span><span class="o">=</span><span class="n">PropGroup</span><span class="p">(</span><span class="n">num_nodes</span><span class="o">=</span><span class="n">nn</span><span class="p">),</span>
+                           <span class="n">promotes_inputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="s1">&#39;Isp&#39;</span><span class="p">,</span> <span class="s1">&#39;throttle&#39;</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;aero.mach&#39;</span><span class="p">,</span> <span class="s1">&#39;prop.mach&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_subsystem</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;flight_dynamics&#39;</span><span class="p">,</span>
+                           <span class="n">subsys</span><span class="o">=</span><span class="n">FlightPathEOM2D</span><span class="p">(</span><span class="n">num_nodes</span><span class="o">=</span><span class="n">nn</span><span class="p">),</span>
+                           <span class="n">promotes_inputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="s1">&#39;gam&#39;</span><span class="p">,</span> <span class="s1">&#39;alpha&#39;</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;aero.f_drag&#39;</span><span class="p">,</span> <span class="s1">&#39;flight_dynamics.D&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;aero.f_lift&#39;</span><span class="p">,</span> <span class="s1">&#39;flight_dynamics.L&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s1">&#39;prop.thrust&#39;</span><span class="p">,</span> <span class="s1">&#39;flight_dynamics.T&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="building-and-running-the-problem">
+<h2>Building and running the problem<a class="headerlink" href="#building-and-running-the-problem" title="Link to this heading">#</a></h2>
+<p>In the following code we follow the following process to solve the
+problem:</p>
+<div class="cell tag_output_scroll docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">openmdao.api</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">om</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">dymos</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dm</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dymos.examples.plotting</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_results</span>
+
+<span class="c1">#</span>
+<span class="c1"># Instantiate the problem and configure the optimization driver</span>
+<span class="c1">#</span>
+<span class="n">p</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">om</span><span class="o">.</span><span class="n">Group</span><span class="p">())</span>
+
+<span class="n">p</span><span class="o">.</span><span class="n">driver</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">pyOptSparseDriver</span><span class="p">()</span>
+<span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;optimizer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;SLSQP&#39;</span>
+<span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">declare_coloring</span><span class="p">()</span>
+
+<span class="c1">#</span>
+<span class="c1"># Instantiate the trajectory and phase</span>
+<span class="c1">#</span>
+<span class="n">traj</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">Trajectory</span><span class="p">()</span>
+
+<span class="n">phase</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">Phase</span><span class="p">(</span><span class="n">ode_class</span><span class="o">=</span><span class="n">MinTimeClimbODE</span><span class="p">,</span>
+                 <span class="n">transcription</span><span class="o">=</span><span class="n">dm</span><span class="o">.</span><span class="n">GaussLobatto</span><span class="p">(</span><span class="n">num_segments</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">compressed</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+
+<span class="n">traj</span><span class="o">.</span><span class="n">add_phase</span><span class="p">(</span><span class="s1">&#39;phase0&#39;</span><span class="p">,</span> <span class="n">phase</span><span class="p">)</span>
+
+<span class="n">p</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">add_subsystem</span><span class="p">(</span><span class="s1">&#39;traj&#39;</span><span class="p">,</span> <span class="n">traj</span><span class="p">)</span>
+
+<span class="c1">#</span>
+<span class="c1"># Set the options on the optimization variables</span>
+<span class="c1"># Note the use of explicit state units here since much of the ODE uses imperial units</span>
+<span class="c1"># and we prefer to solve this problem using metric units.</span>
+<span class="c1">#</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">set_time_options</span><span class="p">(</span><span class="n">fix_initial</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">duration_bounds</span><span class="o">=</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">400</span><span class="p">),</span>
+                       <span class="n">duration_ref</span><span class="o">=</span><span class="mf">100.0</span><span class="p">)</span>
+
+<span class="n">phase</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">1.0E6</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">,</span>
+                <span class="n">ref</span><span class="o">=</span><span class="mf">1.0E3</span><span class="p">,</span> <span class="n">defect_ref</span><span class="o">=</span><span class="mf">1.0E3</span><span class="p">,</span>
+                <span class="n">rate_source</span><span class="o">=</span><span class="s1">&#39;flight_dynamics.r_dot&#39;</span><span class="p">)</span>
+
+<span class="n">phase</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">20000.0</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">,</span>
+                <span class="n">ref</span><span class="o">=</span><span class="mf">1.0E2</span><span class="p">,</span> <span class="n">defect_ref</span><span class="o">=</span><span class="mf">1.0E2</span><span class="p">,</span>
+                <span class="n">rate_source</span><span class="o">=</span><span class="s1">&#39;flight_dynamics.h_dot&#39;</span><span class="p">)</span>
+
+<span class="n">phase</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m/s&#39;</span><span class="p">,</span>
+                <span class="n">ref</span><span class="o">=</span><span class="mf">1.0E2</span><span class="p">,</span> <span class="n">defect_ref</span><span class="o">=</span><span class="mf">1.0E2</span><span class="p">,</span>
+                <span class="n">rate_source</span><span class="o">=</span><span class="s1">&#39;flight_dynamics.v_dot&#39;</span><span class="p">)</span>
+
+<span class="n">phase</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;gam&#39;</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">lower</span><span class="o">=-</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;rad&#39;</span><span class="p">,</span>
+                <span class="n">ref</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">defect_ref</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                <span class="n">rate_source</span><span class="o">=</span><span class="s1">&#39;flight_dynamics.gam_dot&#39;</span><span class="p">)</span>
+
+<span class="n">phase</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">1.0E5</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg&#39;</span><span class="p">,</span>
+                <span class="n">ref</span><span class="o">=</span><span class="mf">1.0E3</span><span class="p">,</span> <span class="n">defect_ref</span><span class="o">=</span><span class="mf">1.0E3</span><span class="p">,</span>
+                <span class="n">rate_source</span><span class="o">=</span><span class="s1">&#39;prop.m_dot&#39;</span><span class="p">)</span>
+
+<span class="n">phase</span><span class="o">.</span><span class="n">add_control</span><span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;deg&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=-</span><span class="mf">8.0</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">8.0</span><span class="p">,</span> <span class="n">scaler</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                  <span class="n">rate_continuity</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">rate_continuity_scaler</span><span class="o">=</span><span class="mf">100.0</span><span class="p">,</span>
+                  <span class="n">rate2_continuity</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">phase</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;S&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">49.2386</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m**2&#39;</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;S&#39;</span><span class="p">])</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;Isp&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">1600.0</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Isp&#39;</span><span class="p">])</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;throttle&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;throttle&#39;</span><span class="p">])</span>
+
+<span class="c1">#</span>
+<span class="c1"># Setup the boundary and path constraints</span>
+<span class="c1">#</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_boundary_constraint</span><span class="p">(</span><span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;final&#39;</span><span class="p">,</span> <span class="n">equals</span><span class="o">=</span><span class="mi">20000</span><span class="p">,</span> <span class="n">scaler</span><span class="o">=</span><span class="mf">1.0E-3</span><span class="p">)</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_boundary_constraint</span><span class="p">(</span><span class="s1">&#39;aero.mach&#39;</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;final&#39;</span><span class="p">,</span> <span class="n">equals</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_boundary_constraint</span><span class="p">(</span><span class="s1">&#39;gam&#39;</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;final&#39;</span><span class="p">,</span> <span class="n">equals</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+
+<span class="n">phase</span><span class="o">.</span><span class="n">add_path_constraint</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">100.0</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">20000</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="mi">20000</span><span class="p">)</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_path_constraint</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;aero.mach&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">1.8</span><span class="p">)</span>
+
+<span class="c1"># Minimize time at the end of the phase</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_objective</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;final&#39;</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+
+<span class="n">p</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">linear_solver</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">DirectSolver</span><span class="p">()</span>
+
+<span class="c1">#</span>
+<span class="c1"># Setup the problem and set the initial guess</span>
+<span class="c1">#</span>
+<span class="n">p</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">phase</span><span class="o">.</span><span class="n">set_time_val</span><span class="p">(</span><span class="n">initial</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mi">350</span><span class="p">)</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">set_state_val</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">50000.0</span><span class="p">])</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">set_state_val</span><span class="p">(</span><span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">20000.0</span><span class="p">])</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">set_state_val</span><span class="p">(</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mf">135.964</span><span class="p">,</span> <span class="mf">283.159</span><span class="p">])</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">set_state_val</span><span class="p">(</span><span class="s1">&#39;gam&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">set_state_val</span><span class="p">(</span><span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mf">19030.468</span><span class="p">,</span> <span class="mf">10000.</span><span class="p">])</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">set_control_val</span><span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+
+<span class="c1">#</span>
+<span class="c1"># Solve for the optimal trajectory</span>
+<span class="c1">#</span>
+<span class="n">dm</span><span class="o">.</span><span class="n">run_problem</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">simulate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000775 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000032 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000345 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000117 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000002 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.001612 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000077 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000003 sec).
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/home/runner/work/dymos/dymos/.openmdao-pixi/.pixi/envs/dev/lib/python3.13/site-packages/openmdao/utils/relevance.py:1234: OpenMDAOWarning:The top level group has a nonlinear solver that computes gradients, so the entire model will be included in the optimization iteration.
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (181, 191)  (5.33% nonzero)
+FWD solves: 14   REV solves: 0
+Total colors vs. total size: 14 vs 191  (92.67% improvement)
+
+Sparsity computed using tolerance: 1e-25.
+Dense total jacobian for Problem &#39;problem&#39; was computed 3 times.
+Time to compute sparsity:   0.0778 sec
+Time to compute coloring:   0.1864 sec
+Memory to compute coloring:   0.6250 MB
+Coloring created on: 2025-12-22 16:12:36
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/home/runner/work/dymos/dymos/.openmdao-pixi/.pixi/envs/dev/lib/python3.13/site-packages/openmdao/core/total_jac.py:1670: DerivativesWarning:The following constraints or objectives cannot be impacted by the design variables of the problem at the current design point:
+  traj.phase0.h[path], inds=[(0, 0)]
+  traj.phase0.mach[path], inds=[(0, 0)]
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization Problem -- Optimization using pyOpt_sparse
+================================================================================
+    Objective Function: _objfunc
+
+    Solution: 
+--------------------------------------------------------------------------------
+    Total Time:                    5.1964
+       User Objective Time :       0.9283
+       User Sensitivity Time :     1.0717
+       Interface Time :            1.0043
+       Opt Solver Time:            2.1920
+    Calls to Objective Function :      94
+    Calls to Sens Function :           84
+
+
+   Objectives
+      Index  Name                     Value
+          0  traj.phase0.t     3.252582E+02
+
+   Variables (c - continuous, i - integer, d - discrete)
+      Index  Name                            Type      Lower Bound            Value      Upper Bound     Status
+          0  traj.phase0.t_duration_0           c     5.000000E-01     3.252582E+00     4.000000E+00           
+          1  traj.phase0.states:r_0             c     0.000000E+00     4.337684E+00     1.000000E+03           
+          2  traj.phase0.states:r_1             c     0.000000E+00     4.337684E+00     1.000000E+03           
+          3  traj.phase0.states:r_2             c     0.000000E+00     1.031224E+01     1.000000E+03           
+          4  traj.phase0.states:r_3             c     0.000000E+00     1.031224E+01     1.000000E+03           
+          5  traj.phase0.states:r_4             c     0.000000E+00     1.587328E+01     1.000000E+03           
+          6  traj.phase0.states:r_5             c     0.000000E+00     1.587328E+01     1.000000E+03           
+          7  traj.phase0.states:r_6             c     0.000000E+00     2.161338E+01     1.000000E+03           
+          8  traj.phase0.states:r_7             c     0.000000E+00     2.161338E+01     1.000000E+03           
+          9  traj.phase0.states:r_8             c     0.000000E+00     2.800856E+01     1.000000E+03           
+         10  traj.phase0.states:r_9             c     0.000000E+00     2.800856E+01     1.000000E+03           
+         11  traj.phase0.states:r_10            c     0.000000E+00     3.569422E+01     1.000000E+03           
+         12  traj.phase0.states:r_11            c     0.000000E+00     3.569422E+01     1.000000E+03           
+         13  traj.phase0.states:r_12            c     0.000000E+00     4.461446E+01     1.000000E+03           
+         14  traj.phase0.states:r_13            c     0.000000E+00     4.461446E+01     1.000000E+03           
+         15  traj.phase0.states:r_14            c     0.000000E+00     5.396327E+01     1.000000E+03           
+         16  traj.phase0.states:r_15            c     0.000000E+00     5.396327E+01     1.000000E+03           
+         17  traj.phase0.states:r_16            c     0.000000E+00     6.365774E+01     1.000000E+03           
+         18  traj.phase0.states:r_17            c     0.000000E+00     6.365774E+01     1.000000E+03           
+         19  traj.phase0.states:r_18            c     0.000000E+00     7.372154E+01     1.000000E+03           
+         20  traj.phase0.states:r_19            c     0.000000E+00     7.372154E+01     1.000000E+03           
+         21  traj.phase0.states:r_20            c     0.000000E+00     8.422498E+01     1.000000E+03           
+         22  traj.phase0.states:r_21            c     0.000000E+00     8.422498E+01     1.000000E+03           
+         23  traj.phase0.states:r_22            c     0.000000E+00     9.527686E+01     1.000000E+03           
+         24  traj.phase0.states:r_23            c     0.000000E+00     9.527686E+01     1.000000E+03           
+         25  traj.phase0.states:r_24            c     0.000000E+00     1.058975E+02     1.000000E+03           
+         26  traj.phase0.states:r_25            c     0.000000E+00     1.058975E+02     1.000000E+03           
+         27  traj.phase0.states:r_26            c     0.000000E+00     1.136078E+02     1.000000E+03           
+         28  traj.phase0.states:r_27            c     0.000000E+00     1.136078E+02     1.000000E+03           
+         29  traj.phase0.states:r_28            c     0.000000E+00     1.199388E+02     1.000000E+03           
+         30  traj.phase0.states:h_0             c     0.000000E+00     2.446866E+00     2.000000E+02           
+         31  traj.phase0.states:h_1             c     0.000000E+00     2.446866E+00     2.000000E+02           
+         32  traj.phase0.states:h_2             c     0.000000E+00     2.523407E+01     2.000000E+02           
+         33  traj.phase0.states:h_3             c     0.000000E+00     2.523407E+01     2.000000E+02           
+         34  traj.phase0.states:h_4             c     0.000000E+00     5.978922E+01     2.000000E+02           
+         35  traj.phase0.states:h_5             c     0.000000E+00     5.978922E+01     2.000000E+02           
+         36  traj.phase0.states:h_6             c     0.000000E+00     8.469027E+01     2.000000E+02           
+         37  traj.phase0.states:h_7             c     0.000000E+00     8.469027E+01     2.000000E+02           
+         38  traj.phase0.states:h_8             c     0.000000E+00     8.840255E+01     2.000000E+02           
+         39  traj.phase0.states:h_9             c     0.000000E+00     8.840255E+01     2.000000E+02           
+         40  traj.phase0.states:h_10            c     0.000000E+00     7.333966E+01     2.000000E+02           
+         41  traj.phase0.states:h_11            c     0.000000E+00     7.333966E+01     2.000000E+02           
+         42  traj.phase0.states:h_12            c     0.000000E+00     7.148178E+01     2.000000E+02           
+         43  traj.phase0.states:h_13            c     0.000000E+00     7.148178E+01     2.000000E+02           
+         44  traj.phase0.states:h_14            c     0.000000E+00     7.715897E+01     2.000000E+02           
+         45  traj.phase0.states:h_15            c     0.000000E+00     7.715897E+01     2.000000E+02           
+         46  traj.phase0.states:h_16            c     0.000000E+00     8.260668E+01     2.000000E+02           
+         47  traj.phase0.states:h_17            c     0.000000E+00     8.260668E+01     2.000000E+02           
+         48  traj.phase0.states:h_18            c     0.000000E+00     8.814595E+01     2.000000E+02           
+         49  traj.phase0.states:h_19            c     0.000000E+00     8.814595E+01     2.000000E+02           
+         50  traj.phase0.states:h_20            c     0.000000E+00     9.139679E+01     2.000000E+02           
+         51  traj.phase0.states:h_21            c     0.000000E+00     9.139679E+01     2.000000E+02           
+         52  traj.phase0.states:h_22            c     0.000000E+00     9.362346E+01     2.000000E+02           
+         53  traj.phase0.states:h_23            c     0.000000E+00     9.362346E+01     2.000000E+02           
+         54  traj.phase0.states:h_24            c     0.000000E+00     1.207568E+02     2.000000E+02           
+         55  traj.phase0.states:h_25            c     0.000000E+00     1.207568E+02     2.000000E+02           
+         56  traj.phase0.states:h_26            c     0.000000E+00     1.726229E+02     2.000000E+02           
+         57  traj.phase0.states:h_27            c     0.000000E+00     1.726229E+02     2.000000E+02           
+         58  traj.phase0.states:h_28            c     0.000000E+00     2.000000E+02     2.000000E+02          u
+         59  traj.phase0.states:v_0             c     1.000000E-01     2.633841E+00     1.000000E+19           
+         60  traj.phase0.states:v_1             c     1.000000E-01     2.633841E+00     1.000000E+19           
+         61  traj.phase0.states:v_2             c     1.000000E-01     3.104856E+00     1.000000E+19           
+         62  traj.phase0.states:v_3             c     1.000000E-01     3.104856E+00     1.000000E+19           
+         63  traj.phase0.states:v_4             c     1.000000E-01     2.949332E+00     1.000000E+19           
+         64  traj.phase0.states:v_5             c     1.000000E-01     2.949332E+00     1.000000E+19           
+         65  traj.phase0.states:v_6             c     1.000000E-01     2.842792E+00     1.000000E+19           
+         66  traj.phase0.states:v_7             c     1.000000E-01     2.842792E+00     1.000000E+19           
+         67  traj.phase0.states:v_8             c     1.000000E-01     3.248967E+00     1.000000E+19           
+         68  traj.phase0.states:v_9             c     1.000000E-01     3.248967E+00     1.000000E+19           
+         69  traj.phase0.states:v_10            c     1.000000E-01     3.941234E+00     1.000000E+19           
+         70  traj.phase0.states:v_11            c     1.000000E-01     3.941234E+00     1.000000E+19           
+         71  traj.phase0.states:v_12            c     1.000000E-01     4.242818E+00     1.000000E+19           
+         72  traj.phase0.states:v_13            c     1.000000E-01     4.242818E+00     1.000000E+19           
+         73  traj.phase0.states:v_14            c     1.000000E-01     4.394690E+00     1.000000E+19           
+         74  traj.phase0.states:v_15            c     1.000000E-01     4.394690E+00     1.000000E+19           
+         75  traj.phase0.states:v_16            c     1.000000E-01     4.562641E+00     1.000000E+19           
+         76  traj.phase0.states:v_17            c     1.000000E-01     4.562641E+00     1.000000E+19           
+         77  traj.phase0.states:v_18            c     1.000000E-01     4.737210E+00     1.000000E+19           
+         78  traj.phase0.states:v_19            c     1.000000E-01     4.737210E+00     1.000000E+19           
+         79  traj.phase0.states:v_20            c     1.000000E-01     4.969476E+00     1.000000E+19           
+         80  traj.phase0.states:v_21            c     1.000000E-01     4.969476E+00     1.000000E+19           
+         81  traj.phase0.states:v_22            c     1.000000E-01     5.193949E+00     1.000000E+19           
+         82  traj.phase0.states:v_23            c     1.000000E-01     5.193949E+00     1.000000E+19           
+         83  traj.phase0.states:v_24            c     1.000000E-01     4.826562E+00     1.000000E+19           
+         84  traj.phase0.states:v_25            c     1.000000E-01     4.826562E+00     1.000000E+19           
+         85  traj.phase0.states:v_26            c     1.000000E-01     3.708766E+00     1.000000E+19           
+         86  traj.phase0.states:v_27            c     1.000000E-01     3.708766E+00     1.000000E+19           
+         87  traj.phase0.states:v_28            c     1.000000E-01     2.950719E+00     1.000000E+19           
+         88  traj.phase0.states:gam_0           c    -1.500000E+00     1.015098E-01     1.500000E+00           
+         89  traj.phase0.states:gam_1           c    -1.500000E+00     1.015098E-01     1.500000E+00           
+         90  traj.phase0.states:gam_2           c    -1.500000E+00     5.976915E-01     1.500000E+00           
+         91  traj.phase0.states:gam_3           c    -1.500000E+00     5.976915E-01     1.500000E+00           
+         92  traj.phase0.states:gam_4           c    -1.500000E+00     4.558444E-01     1.500000E+00           
+         93  traj.phase0.states:gam_5           c    -1.500000E+00     4.558444E-01     1.500000E+00           
+         94  traj.phase0.states:gam_6           c    -1.500000E+00     3.190914E-01     1.500000E+00           
+         95  traj.phase0.states:gam_7           c    -1.500000E+00     3.190914E-01     1.500000E+00           
+         96  traj.phase0.states:gam_8           c    -1.500000E+00    -1.775791E-01     1.500000E+00           
+         97  traj.phase0.states:gam_9           c    -1.500000E+00    -1.775791E-01     1.500000E+00           
+         98  traj.phase0.states:gam_10          c    -1.500000E+00    -1.195940E-01     1.500000E+00           
+         99  traj.phase0.states:gam_11          c    -1.500000E+00    -1.195940E-01     1.500000E+00           
+        100  traj.phase0.states:gam_12          c    -1.500000E+00     4.715726E-02     1.500000E+00           
+        101  traj.phase0.states:gam_13          c    -1.500000E+00     4.715726E-02     1.500000E+00           
+        102  traj.phase0.states:gam_14          c    -1.500000E+00     5.949354E-02     1.500000E+00           
+        103  traj.phase0.states:gam_15          c    -1.500000E+00     5.949354E-02     1.500000E+00           
+        104  traj.phase0.states:gam_16          c    -1.500000E+00     5.554536E-02     1.500000E+00           
+        105  traj.phase0.states:gam_17          c    -1.500000E+00     5.554536E-02     1.500000E+00           
+        106  traj.phase0.states:gam_18          c    -1.500000E+00     4.970657E-02     1.500000E+00           
+        107  traj.phase0.states:gam_19          c    -1.500000E+00     4.970657E-02     1.500000E+00           
+        108  traj.phase0.states:gam_20          c    -1.500000E+00     1.061017E-02     1.500000E+00           
+        109  traj.phase0.states:gam_21          c    -1.500000E+00     1.061017E-02     1.500000E+00           
+        110  traj.phase0.states:gam_22          c    -1.500000E+00     7.510144E-02     1.500000E+00           
+        111  traj.phase0.states:gam_23          c    -1.500000E+00     7.510144E-02     1.500000E+00           
+        112  traj.phase0.states:gam_24          c    -1.500000E+00     4.620657E-01     1.500000E+00           
+        113  traj.phase0.states:gam_25          c    -1.500000E+00     4.620657E-01     1.500000E+00           
+        114  traj.phase0.states:gam_26          c    -1.500000E+00     6.283656E-01     1.500000E+00           
+        115  traj.phase0.states:gam_27          c    -1.500000E+00     6.283656E-01     1.500000E+00           
+        116  traj.phase0.states:gam_28          c    -1.500000E+00     0.000000E+00     1.500000E+00           
+        117  traj.phase0.states:m_0             c     1.000000E-02     1.883945E+01     1.000000E+02           
+        118  traj.phase0.states:m_1             c     1.000000E-02     1.883945E+01     1.000000E+02           
+        119  traj.phase0.states:m_2             c     1.000000E-02     1.863480E+01     1.000000E+02           
+        120  traj.phase0.states:m_3             c     1.000000E-02     1.863480E+01     1.000000E+02           
+        121  traj.phase0.states:m_4             c     1.000000E-02     1.847306E+01     1.000000E+02           
+        122  traj.phase0.states:m_5             c     1.000000E-02     1.847306E+01     1.000000E+02           
+        123  traj.phase0.states:m_6             c     1.000000E-02     1.835397E+01     1.000000E+02           
+        124  traj.phase0.states:m_7             c     1.000000E-02     1.835397E+01     1.000000E+02           
+        125  traj.phase0.states:m_8             c     1.000000E-02     1.825097E+01     1.000000E+02           
+        126  traj.phase0.states:m_9             c     1.000000E-02     1.825097E+01     1.000000E+02           
+        127  traj.phase0.states:m_10            c     1.000000E-02     1.811453E+01     1.000000E+02           
+        128  traj.phase0.states:m_11            c     1.000000E-02     1.811453E+01     1.000000E+02           
+        129  traj.phase0.states:m_12            c     1.000000E-02     1.794310E+01     1.000000E+02           
+        130  traj.phase0.states:m_13            c     1.000000E-02     1.794310E+01     1.000000E+02           
+        131  traj.phase0.states:m_14            c     1.000000E-02     1.776704E+01     1.000000E+02           
+        132  traj.phase0.states:m_15            c     1.000000E-02     1.776704E+01     1.000000E+02           
+        133  traj.phase0.states:m_16            c     1.000000E-02     1.759240E+01     1.000000E+02           
+        134  traj.phase0.states:m_17            c     1.000000E-02     1.759240E+01     1.000000E+02           
+        135  traj.phase0.states:m_18            c     1.000000E-02     1.741889E+01     1.000000E+02           
+        136  traj.phase0.states:m_19            c     1.000000E-02     1.741889E+01     1.000000E+02           
+        137  traj.phase0.states:m_20            c     1.000000E-02     1.724487E+01     1.000000E+02           
+        138  traj.phase0.states:m_21            c     1.000000E-02     1.724487E+01     1.000000E+02           
+        139  traj.phase0.states:m_22            c     1.000000E-02     1.706474E+01     1.000000E+02           
+        140  traj.phase0.states:m_23            c     1.000000E-02     1.706474E+01     1.000000E+02           
+        141  traj.phase0.states:m_24            c     1.000000E-02     1.690446E+01     1.000000E+02           
+        142  traj.phase0.states:m_25            c     1.000000E-02     1.690446E+01     1.000000E+02           
+        143  traj.phase0.states:m_26            c     1.000000E-02     1.682855E+01     1.000000E+02           
+        144  traj.phase0.states:m_27            c     1.000000E-02     1.682855E+01     1.000000E+02           
+        145  traj.phase0.states:m_28            c     1.000000E-02     1.680500E+01     1.000000E+02           
+        146  traj.phase0.controls:alpha_0       c    -8.000000E+00     5.399790E+00     8.000000E+00           
+        147  traj.phase0.controls:alpha_1       c    -8.000000E+00     2.646340E+00     8.000000E+00           
+        148  traj.phase0.controls:alpha_2       c    -8.000000E+00     2.027156E+00     8.000000E+00           
+        149  traj.phase0.controls:alpha_3       c    -8.000000E+00     2.027156E+00     8.000000E+00           
+        150  traj.phase0.controls:alpha_4       c    -8.000000E+00     2.079395E+00     8.000000E+00           
+        151  traj.phase0.controls:alpha_5       c    -8.000000E+00     1.340213E+00     8.000000E+00           
+        152  traj.phase0.controls:alpha_6       c    -8.000000E+00     1.340213E+00     8.000000E+00           
+        153  traj.phase0.controls:alpha_7       c    -8.000000E+00     7.780413E-01     8.000000E+00           
+        154  traj.phase0.controls:alpha_8       c    -8.000000E+00     1.361310E+00     8.000000E+00           
+        155  traj.phase0.controls:alpha_9       c    -8.000000E+00     1.361310E+00     8.000000E+00           
+        156  traj.phase0.controls:alpha_10      c    -8.000000E+00     1.891349E+00     8.000000E+00           
+        157  traj.phase0.controls:alpha_11      c    -8.000000E+00     1.169489E+00     8.000000E+00           
+        158  traj.phase0.controls:alpha_12      c    -8.000000E+00     1.169489E+00     8.000000E+00           
+        159  traj.phase0.controls:alpha_13      c    -8.000000E+00     4.831450E-01     8.000000E+00           
+        160  traj.phase0.controls:alpha_14      c    -8.000000E+00     1.119732E+00     8.000000E+00           
+        161  traj.phase0.controls:alpha_15      c    -8.000000E+00     1.119732E+00     8.000000E+00           
+        162  traj.phase0.controls:alpha_16      c    -8.000000E+00     1.996661E+00     8.000000E+00           
+        163  traj.phase0.controls:alpha_17      c    -8.000000E+00     2.031339E+00     8.000000E+00           
+        164  traj.phase0.controls:alpha_18      c    -8.000000E+00     2.031339E+00     8.000000E+00           
+        165  traj.phase0.controls:alpha_19      c    -8.000000E+00     1.682067E+00     8.000000E+00           
+        166  traj.phase0.controls:alpha_20      c    -8.000000E+00     1.407141E+00     8.000000E+00           
+        167  traj.phase0.controls:alpha_21      c    -8.000000E+00     1.407141E+00     8.000000E+00           
+        168  traj.phase0.controls:alpha_22      c    -8.000000E+00     1.238456E+00     8.000000E+00           
+        169  traj.phase0.controls:alpha_23      c    -8.000000E+00     1.207908E+00     8.000000E+00           
+        170  traj.phase0.controls:alpha_24      c    -8.000000E+00     1.207908E+00     8.000000E+00           
+        171  traj.phase0.controls:alpha_25      c    -8.000000E+00     1.241560E+00     8.000000E+00           
+        172  traj.phase0.controls:alpha_26      c    -8.000000E+00     1.265473E+00     8.000000E+00           
+        173  traj.phase0.controls:alpha_27      c    -8.000000E+00     1.265473E+00     8.000000E+00           
+        174  traj.phase0.controls:alpha_28      c    -8.000000E+00     1.260076E+00     8.000000E+00           
+        175  traj.phase0.controls:alpha_29      c    -8.000000E+00     1.205797E+00     8.000000E+00           
+        176  traj.phase0.controls:alpha_30      c    -8.000000E+00     1.205797E+00     8.000000E+00           
+        177  traj.phase0.controls:alpha_31      c    -8.000000E+00     1.151381E+00     8.000000E+00           
+        178  traj.phase0.controls:alpha_32      c    -8.000000E+00     1.145576E+00     8.000000E+00           
+        179  traj.phase0.controls:alpha_33      c    -8.000000E+00     1.145576E+00     8.000000E+00           
+        180  traj.phase0.controls:alpha_34      c    -8.000000E+00     1.350181E+00     8.000000E+00           
+        181  traj.phase0.controls:alpha_35      c    -8.000000E+00     1.926998E+00     8.000000E+00           
+        182  traj.phase0.controls:alpha_36      c    -8.000000E+00     1.926998E+00     8.000000E+00           
+        183  traj.phase0.controls:alpha_37      c    -8.000000E+00     2.730458E+00     8.000000E+00           
+        184  traj.phase0.controls:alpha_38      c    -8.000000E+00     3.614992E+00     8.000000E+00           
+        185  traj.phase0.controls:alpha_39      c    -8.000000E+00     3.614992E+00     8.000000E+00           
+        186  traj.phase0.controls:alpha_40      c    -8.000000E+00     3.938500E+00     8.000000E+00           
+        187  traj.phase0.controls:alpha_41      c    -8.000000E+00     3.058881E+00     8.000000E+00           
+        188  traj.phase0.controls:alpha_42      c    -8.000000E+00     3.058881E+00     8.000000E+00           
+        189  traj.phase0.controls:alpha_43      c    -8.000000E+00    -9.879100E-02     8.000000E+00           
+        190  traj.phase0.controls:alpha_44      c    -8.000000E+00    -6.609440E+00     8.000000E+00           
+
+   Constraints (i - inequality, e - equality)
+      Index  Name                                                        Type          Lower           Value           Upper    Status  Lagrange Multiplier (N/A)
+          0  traj.phase0.h[final]                                           e   2.000000E+01    2.000000E+01    2.000000E+01              9.00000E+100
+          1  traj.phase0.mach[final]                                        e   1.000000E+00    1.000000E+00    1.000000E+00              9.00000E+100
+          2  traj.phase0.gam[final]                                         e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+          3  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    1.259404E-10    0.000000E+00              9.00000E+100
+          4  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    3.910478E-10    0.000000E+00              9.00000E+100
+          5  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    4.898772E-10    0.000000E+00              9.00000E+100
+          6  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    3.993456E-10    0.000000E+00              9.00000E+100
+          7  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    1.550532E-09    0.000000E+00              9.00000E+100
+          8  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    1.598202E-10    0.000000E+00              9.00000E+100
+          9  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    1.413421E-09    0.000000E+00              9.00000E+100
+         10  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    4.826899E-10    0.000000E+00              9.00000E+100
+         11  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    1.469255E-09    0.000000E+00              9.00000E+100
+         12  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    1.034840E-09    0.000000E+00              9.00000E+100
+         13  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    5.839808E-11    0.000000E+00              9.00000E+100
+         14  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    8.450967E-10    0.000000E+00              9.00000E+100
+         15  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    1.112419E-09    0.000000E+00              9.00000E+100
+         16  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    1.392056E-09    0.000000E+00              9.00000E+100
+         17  traj.phase0.collocation_constraint.defects:r                   e   0.000000E+00    3.472645E-10    0.000000E+00              9.00000E+100
+         18  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00    8.375830E-10    0.000000E+00              9.00000E+100
+         19  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00    3.551365E-09    0.000000E+00              9.00000E+100
+         20  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00    2.668302E-09    0.000000E+00              9.00000E+100
+         21  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00    3.114217E-09    0.000000E+00              9.00000E+100
+         22  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00    1.108938E-08    0.000000E+00              9.00000E+100
+         23  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00   -5.413421E-09    0.000000E+00              9.00000E+100
+         24  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00   -1.980761E-09    0.000000E+00              9.00000E+100
+         25  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00    9.748823E-09    0.000000E+00              9.00000E+100
+         26  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00   -6.078231E-09    0.000000E+00              9.00000E+100
+         27  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00    3.217222E-09    0.000000E+00              9.00000E+100
+         28  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00   -1.400657E-09    0.000000E+00              9.00000E+100
+         29  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00    6.908834E-10    0.000000E+00              9.00000E+100
+         30  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00    1.626327E-08    0.000000E+00              9.00000E+100
+         31  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00   -5.249202E-09    0.000000E+00              9.00000E+100
+         32  traj.phase0.collocation_constraint.defects:h                   e   0.000000E+00    6.414902E-10    0.000000E+00              9.00000E+100
+         33  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    3.937294E-11    0.000000E+00              9.00000E+100
+         34  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    3.581020E-10    0.000000E+00              9.00000E+100
+         35  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    3.977645E-10    0.000000E+00              9.00000E+100
+         36  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    4.826535E-10    0.000000E+00              9.00000E+100
+         37  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    9.079799E-11    0.000000E+00              9.00000E+100
+         38  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    2.951168E-10    0.000000E+00              9.00000E+100
+         39  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    8.087248E-11    0.000000E+00              9.00000E+100
+         40  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    2.553887E-10    0.000000E+00              9.00000E+100
+         41  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    5.581068E-10    0.000000E+00              9.00000E+100
+         42  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    3.493948E-10    0.000000E+00              9.00000E+100
+         43  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    1.850367E-10    0.000000E+00              9.00000E+100
+         44  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    2.238183E-10    0.000000E+00              9.00000E+100
+         45  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    3.965257E-10    0.000000E+00              9.00000E+100
+         46  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    1.105698E-10    0.000000E+00              9.00000E+100
+         47  traj.phase0.collocation_constraint.defects:v                   e   0.000000E+00    1.849227E-10    0.000000E+00              9.00000E+100
+         48  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00    3.858047E-12    0.000000E+00              9.00000E+100
+         49  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00   -4.969915E-10    0.000000E+00              9.00000E+100
+         50  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00   -6.522232E-10    0.000000E+00              9.00000E+100
+         51  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00   -7.564190E-10    0.000000E+00              9.00000E+100
+         52  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00   -3.009294E-10    0.000000E+00              9.00000E+100
+         53  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00   -4.425586E-10    0.000000E+00              9.00000E+100
+         54  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00   -5.977132E-11    0.000000E+00              9.00000E+100
+         55  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00   -4.180537E-11    0.000000E+00              9.00000E+100
+         56  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00   -4.949429E-10    0.000000E+00              9.00000E+100
+         57  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00   -3.182751E-10    0.000000E+00              9.00000E+100
+         58  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00    1.096530E-10    0.000000E+00              9.00000E+100
+         59  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00   -1.619039E-10    0.000000E+00              9.00000E+100
+         60  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00   -3.522566E-10    0.000000E+00              9.00000E+100
+         61  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00   -1.089560E-10    0.000000E+00              9.00000E+100
+         62  traj.phase0.collocation_constraint.defects:gam                 e   0.000000E+00    2.356038E-11    0.000000E+00              9.00000E+100
+         63  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00   -9.718556E-13    0.000000E+00              9.00000E+100
+         64  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00   -3.658990E-12    0.000000E+00              9.00000E+100
+         65  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00    7.572604E-13    0.000000E+00              9.00000E+100
+         66  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00    2.912870E-12    0.000000E+00              9.00000E+100
+         67  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00    7.502626E-12    0.000000E+00              9.00000E+100
+         68  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00    2.354068E-11    0.000000E+00              9.00000E+100
+         69  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00   -2.151672E-12    0.000000E+00              9.00000E+100
+         70  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00   -2.427424E-13    0.000000E+00              9.00000E+100
+         71  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00   -5.319841E-12    0.000000E+00              9.00000E+100
+         72  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00   -3.987609E-13    0.000000E+00              9.00000E+100
+         73  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00   -2.999556E-12    0.000000E+00              9.00000E+100
+         74  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00   -2.968202E-12    0.000000E+00              9.00000E+100
+         75  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00    5.682289E-12    0.000000E+00              9.00000E+100
+         76  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00    2.501142E-11    0.000000E+00              9.00000E+100
+         77  traj.phase0.collocation_constraint.defects:m                   e   0.000000E+00    1.204257E-12    0.000000E+00              9.00000E+100
+         78  traj.phase0.continuity_comp.defect_states:r                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+         79  traj.phase0.continuity_comp.defect_states:r                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+         80  traj.phase0.continuity_comp.defect_states:r                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+         81  traj.phase0.continuity_comp.defect_states:r                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+         82  traj.phase0.continuity_comp.defect_states:r                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+         83  traj.phase0.continuity_comp.defect_states:r                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+         84  traj.phase0.continuity_comp.defect_states:r                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+         85  traj.phase0.continuity_comp.defect_states:r                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+         86  traj.phase0.continuity_comp.defect_states:r                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+         87  traj.phase0.continuity_comp.defect_states:r                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+         88  traj.phase0.continuity_comp.defect_states:r                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+         89  traj.phase0.continuity_comp.defect_states:r                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+         90  traj.phase0.continuity_comp.defect_states:r                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+         91  traj.phase0.continuity_comp.defect_states:r                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+         92  traj.phase0.continuity_comp.defect_states:h                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+         93  traj.phase0.continuity_comp.defect_states:h                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+         94  traj.phase0.continuity_comp.defect_states:h                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+         95  traj.phase0.continuity_comp.defect_states:h                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+         96  traj.phase0.continuity_comp.defect_states:h                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+         97  traj.phase0.continuity_comp.defect_states:h                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+         98  traj.phase0.continuity_comp.defect_states:h                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+         99  traj.phase0.continuity_comp.defect_states:h                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        100  traj.phase0.continuity_comp.defect_states:h                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        101  traj.phase0.continuity_comp.defect_states:h                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        102  traj.phase0.continuity_comp.defect_states:h                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        103  traj.phase0.continuity_comp.defect_states:h                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        104  traj.phase0.continuity_comp.defect_states:h                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        105  traj.phase0.continuity_comp.defect_states:h                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        106  traj.phase0.continuity_comp.defect_states:v                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        107  traj.phase0.continuity_comp.defect_states:v                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        108  traj.phase0.continuity_comp.defect_states:v                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        109  traj.phase0.continuity_comp.defect_states:v                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        110  traj.phase0.continuity_comp.defect_states:v                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        111  traj.phase0.continuity_comp.defect_states:v                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        112  traj.phase0.continuity_comp.defect_states:v                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        113  traj.phase0.continuity_comp.defect_states:v                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        114  traj.phase0.continuity_comp.defect_states:v                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        115  traj.phase0.continuity_comp.defect_states:v                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        116  traj.phase0.continuity_comp.defect_states:v                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        117  traj.phase0.continuity_comp.defect_states:v                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        118  traj.phase0.continuity_comp.defect_states:v                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        119  traj.phase0.continuity_comp.defect_states:v                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        120  traj.phase0.continuity_comp.defect_states:gam                  e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        121  traj.phase0.continuity_comp.defect_states:gam                  e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        122  traj.phase0.continuity_comp.defect_states:gam                  e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        123  traj.phase0.continuity_comp.defect_states:gam                  e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        124  traj.phase0.continuity_comp.defect_states:gam                  e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        125  traj.phase0.continuity_comp.defect_states:gam                  e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        126  traj.phase0.continuity_comp.defect_states:gam                  e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        127  traj.phase0.continuity_comp.defect_states:gam                  e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        128  traj.phase0.continuity_comp.defect_states:gam                  e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        129  traj.phase0.continuity_comp.defect_states:gam                  e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        130  traj.phase0.continuity_comp.defect_states:gam                  e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        131  traj.phase0.continuity_comp.defect_states:gam                  e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        132  traj.phase0.continuity_comp.defect_states:gam                  e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        133  traj.phase0.continuity_comp.defect_states:gam                  e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        134  traj.phase0.continuity_comp.defect_states:m                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        135  traj.phase0.continuity_comp.defect_states:m                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        136  traj.phase0.continuity_comp.defect_states:m                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        137  traj.phase0.continuity_comp.defect_states:m                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        138  traj.phase0.continuity_comp.defect_states:m                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        139  traj.phase0.continuity_comp.defect_states:m                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        140  traj.phase0.continuity_comp.defect_states:m                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        141  traj.phase0.continuity_comp.defect_states:m                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        142  traj.phase0.continuity_comp.defect_states:m                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        143  traj.phase0.continuity_comp.defect_states:m                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        144  traj.phase0.continuity_comp.defect_states:m                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        145  traj.phase0.continuity_comp.defect_states:m                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        146  traj.phase0.continuity_comp.defect_states:m                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        147  traj.phase0.continuity_comp.defect_states:m                    e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        148  traj.phase0.continuity_comp.defect_control_rates:alpha_rate    e   0.000000E+00    6.770797E-13    0.000000E+00              9.00000E+100
+        149  traj.phase0.continuity_comp.defect_control_rates:alpha_rate    e   0.000000E+00   -9.027730E-13    0.000000E+00              9.00000E+100
+        150  traj.phase0.continuity_comp.defect_control_rates:alpha_rate    e   0.000000E+00   -1.579853E-12    0.000000E+00              9.00000E+100
+        151  traj.phase0.continuity_comp.defect_control_rates:alpha_rate    e   0.000000E+00    9.027730E-13    0.000000E+00              9.00000E+100
+        152  traj.phase0.continuity_comp.defect_control_rates:alpha_rate    e   0.000000E+00    1.128466E-12    0.000000E+00              9.00000E+100
+        153  traj.phase0.continuity_comp.defect_control_rates:alpha_rate    e   0.000000E+00   -2.256932E-13    0.000000E+00              9.00000E+100
+        154  traj.phase0.continuity_comp.defect_control_rates:alpha_rate    e   0.000000E+00   -3.385399E-13    0.000000E+00              9.00000E+100
+        155  traj.phase0.continuity_comp.defect_control_rates:alpha_rate    e   0.000000E+00    6.629739E-13    0.000000E+00              9.00000E+100
+        156  traj.phase0.continuity_comp.defect_control_rates:alpha_rate    e   0.000000E+00   -1.333001E-12    0.000000E+00              9.00000E+100
+        157  traj.phase0.continuity_comp.defect_control_rates:alpha_rate    e   0.000000E+00   -8.322439E-13    0.000000E+00              9.00000E+100
+        158  traj.phase0.continuity_comp.defect_control_rates:alpha_rate    e   0.000000E+00    4.549130E-13    0.000000E+00              9.00000E+100
+        159  traj.phase0.continuity_comp.defect_control_rates:alpha_rate    e   0.000000E+00    4.513865E-13    0.000000E+00              9.00000E+100
+        160  traj.phase0.continuity_comp.defect_control_rates:alpha_rate    e   0.000000E+00   -2.256932E-12    0.000000E+00              9.00000E+100
+        161  traj.phase0.continuity_comp.defect_control_rates:alpha_rate    e   0.000000E+00    4.513865E-13    0.000000E+00              9.00000E+100
+        162  traj.phase0.continuity_comp.defect_controls:alpha              e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        163  traj.phase0.continuity_comp.defect_controls:alpha              e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        164  traj.phase0.continuity_comp.defect_controls:alpha              e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        165  traj.phase0.continuity_comp.defect_controls:alpha              e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        166  traj.phase0.continuity_comp.defect_controls:alpha              e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        167  traj.phase0.continuity_comp.defect_controls:alpha              e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        168  traj.phase0.continuity_comp.defect_controls:alpha              e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        169  traj.phase0.continuity_comp.defect_controls:alpha              e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        170  traj.phase0.continuity_comp.defect_controls:alpha              e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        171  traj.phase0.continuity_comp.defect_controls:alpha              e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        172  traj.phase0.continuity_comp.defect_controls:alpha              e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        173  traj.phase0.continuity_comp.defect_controls:alpha              e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        174  traj.phase0.continuity_comp.defect_controls:alpha              e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        175  traj.phase0.continuity_comp.defect_controls:alpha              e   0.000000E+00    0.000000E+00    0.000000E+00              9.00000E+100
+        176  traj.phase0.h[path]                                            i   5.000000E-03    5.000000E-03    1.000000E+00         l    9.00000E+100
+        177  traj.phase0.h[path]                                            i   5.000000E-03    5.000000E-03    1.000000E+00         l    9.00000E+100
+        178  traj.phase0.h[path]                                            i   5.000000E-03    1.223433E-02    1.000000E+00              9.00000E+100
+        179  traj.phase0.h[path]                                            i   5.000000E-03    1.223433E-02    1.000000E+00              9.00000E+100
+        180  traj.phase0.h[path]                                            i   5.000000E-03    4.914053E-02    1.000000E+00              9.00000E+100
+        181  traj.phase0.h[path]                                            i   5.000000E-03    1.261703E-01    1.000000E+00              9.00000E+100
+        182  traj.phase0.h[path]                                            i   5.000000E-03    1.261703E-01    1.000000E+00              9.00000E+100
+        183  traj.phase0.h[path]                                            i   5.000000E-03    2.186413E-01    1.000000E+00              9.00000E+100
+        184  traj.phase0.h[path]                                            i   5.000000E-03    2.989461E-01    1.000000E+00              9.00000E+100
+        185  traj.phase0.h[path]                                            i   5.000000E-03    2.989461E-01    1.000000E+00              9.00000E+100
+        186  traj.phase0.h[path]                                            i   5.000000E-03    3.667086E-01    1.000000E+00              9.00000E+100
+        187  traj.phase0.h[path]                                            i   5.000000E-03    4.234513E-01    1.000000E+00              9.00000E+100
+        188  traj.phase0.h[path]                                            i   5.000000E-03    4.234513E-01    1.000000E+00              9.00000E+100
+        189  traj.phase0.h[path]                                            i   5.000000E-03    4.525960E-01    1.000000E+00              9.00000E+100
+        190  traj.phase0.h[path]                                            i   5.000000E-03    4.420127E-01    1.000000E+00              9.00000E+100
+        191  traj.phase0.h[path]                                            i   5.000000E-03    4.420127E-01    1.000000E+00              9.00000E+100
+        192  traj.phase0.h[path]                                            i   5.000000E-03    4.029502E-01    1.000000E+00              9.00000E+100
+        193  traj.phase0.h[path]                                            i   5.000000E-03    3.666983E-01    1.000000E+00              9.00000E+100
+        194  traj.phase0.h[path]                                            i   5.000000E-03    3.666983E-01    1.000000E+00              9.00000E+100
+        195  traj.phase0.h[path]                                            i   5.000000E-03    3.529703E-01    1.000000E+00              9.00000E+100
+        196  traj.phase0.h[path]                                            i   5.000000E-03    3.574089E-01    1.000000E+00              9.00000E+100
+        197  traj.phase0.h[path]                                            i   5.000000E-03    3.574089E-01    1.000000E+00              9.00000E+100
+        198  traj.phase0.h[path]                                            i   5.000000E-03    3.707712E-01    1.000000E+00              9.00000E+100
+        199  traj.phase0.h[path]                                            i   5.000000E-03    3.857948E-01    1.000000E+00              9.00000E+100
+        200  traj.phase0.h[path]                                            i   5.000000E-03    3.857948E-01    1.000000E+00              9.00000E+100
+        201  traj.phase0.h[path]                                            i   5.000000E-03    3.995225E-01    1.000000E+00              9.00000E+100
+        202  traj.phase0.h[path]                                            i   5.000000E-03    4.130334E-01    1.000000E+00              9.00000E+100
+        203  traj.phase0.h[path]                                            i   5.000000E-03    4.130334E-01    1.000000E+00              9.00000E+100
+        204  traj.phase0.h[path]                                            i   5.000000E-03    4.271246E-01    1.000000E+00              9.00000E+100
+        205  traj.phase0.h[path]                                            i   5.000000E-03    4.407297E-01    1.000000E+00              9.00000E+100
+        206  traj.phase0.h[path]                                            i   5.000000E-03    4.407297E-01    1.000000E+00              9.00000E+100
+        207  traj.phase0.h[path]                                            i   5.000000E-03    4.513322E-01    1.000000E+00              9.00000E+100
+        208  traj.phase0.h[path]                                            i   5.000000E-03    4.569840E-01    1.000000E+00              9.00000E+100
+        209  traj.phase0.h[path]                                            i   5.000000E-03    4.569840E-01    1.000000E+00              9.00000E+100
+        210  traj.phase0.h[path]                                            i   5.000000E-03    4.579837E-01    1.000000E+00              9.00000E+100
+        211  traj.phase0.h[path]                                            i   5.000000E-03    4.681173E-01    1.000000E+00              9.00000E+100
+        212  traj.phase0.h[path]                                            i   5.000000E-03    4.681173E-01    1.000000E+00              9.00000E+100
+        213  traj.phase0.h[path]                                            i   5.000000E-03    5.120717E-01    1.000000E+00              9.00000E+100
+        214  traj.phase0.h[path]                                            i   5.000000E-03    6.037840E-01    1.000000E+00              9.00000E+100
+        215  traj.phase0.h[path]                                            i   5.000000E-03    6.037840E-01    1.000000E+00              9.00000E+100
+        216  traj.phase0.h[path]                                            i   5.000000E-03    7.330639E-01    1.000000E+00              9.00000E+100
+        217  traj.phase0.h[path]                                            i   5.000000E-03    8.631143E-01    1.000000E+00              9.00000E+100
+        218  traj.phase0.h[path]                                            i   5.000000E-03    8.631143E-01    1.000000E+00              9.00000E+100
+        219  traj.phase0.h[path]                                            i   5.000000E-03    9.611028E-01    1.000000E+00              9.00000E+100
+        220  traj.phase0.mach[path]                                         i   1.000000E-01    4.000084E-01    1.800000E+00              9.00000E+100
+        221  traj.phase0.mach[path]                                         i   1.000000E-01    5.901464E-01    1.800000E+00              9.00000E+100
+        222  traj.phase0.mach[path]                                         i   1.000000E-01    7.761508E-01    1.800000E+00              9.00000E+100
+        223  traj.phase0.mach[path]                                         i   1.000000E-01    7.761508E-01    1.800000E+00              9.00000E+100
+        224  traj.phase0.mach[path]                                         i   1.000000E-01    9.011558E-01    1.800000E+00              9.00000E+100
+        225  traj.phase0.mach[path]                                         i   1.000000E-01    9.395440E-01    1.800000E+00              9.00000E+100
+        226  traj.phase0.mach[path]                                         i   1.000000E-01    9.395440E-01    1.800000E+00              9.00000E+100
+        227  traj.phase0.mach[path]                                         i   1.000000E-01    9.348077E-01    1.800000E+00              9.00000E+100
+        228  traj.phase0.mach[path]                                         i   1.000000E-01    9.317645E-01    1.800000E+00              9.00000E+100
+        229  traj.phase0.mach[path]                                         i   1.000000E-01    9.317645E-01    1.800000E+00              9.00000E+100
+        230  traj.phase0.mach[path]                                         i   1.000000E-01    9.276589E-01    1.800000E+00              9.00000E+100
+        231  traj.phase0.mach[path]                                         i   1.000000E-01    9.286850E-01    1.800000E+00              9.00000E+100
+        232  traj.phase0.mach[path]                                         i   1.000000E-01    9.286850E-01    1.800000E+00              9.00000E+100
+        233  traj.phase0.mach[path]                                         i   1.000000E-01    9.732434E-01    1.800000E+00              9.00000E+100
+        234  traj.phase0.mach[path]                                         i   1.000000E-01    1.066895E+00    1.800000E+00              9.00000E+100
+        235  traj.phase0.mach[path]                                         i   1.000000E-01    1.066895E+00    1.800000E+00              9.00000E+100
+        236  traj.phase0.mach[path]                                         i   1.000000E-01    1.177205E+00    1.800000E+00              9.00000E+100
+        237  traj.phase0.mach[path]                                         i   1.000000E-01    1.267675E+00    1.800000E+00              9.00000E+100
+        238  traj.phase0.mach[path]                                         i   1.000000E-01    1.267675E+00    1.800000E+00              9.00000E+100
+        239  traj.phase0.mach[path]                                         i   1.000000E-01    1.324559E+00    1.800000E+00              9.00000E+100
+        240  traj.phase0.mach[path]                                         i   1.000000E-01    1.361273E+00    1.800000E+00              9.00000E+100
+        241  traj.phase0.mach[path]                                         i   1.000000E-01    1.361273E+00    1.800000E+00              9.00000E+100
+        242  traj.phase0.mach[path]                                         i   1.000000E-01    1.390960E+00    1.800000E+00              9.00000E+100
+        243  traj.phase0.mach[path]                                         i   1.000000E-01    1.420860E+00    1.800000E+00              9.00000E+100
+        244  traj.phase0.mach[path]                                         i   1.000000E-01    1.420860E+00    1.800000E+00              9.00000E+100
+        245  traj.phase0.mach[path]                                         i   1.000000E-01    1.453071E+00    1.800000E+00              9.00000E+100
+        246  traj.phase0.mach[path]                                         i   1.000000E-01    1.486228E+00    1.800000E+00              9.00000E+100
+        247  traj.phase0.mach[path]                                         i   1.000000E-01    1.486228E+00    1.800000E+00              9.00000E+100
+        248  traj.phase0.mach[path]                                         i   1.000000E-01    1.519739E+00    1.800000E+00              9.00000E+100
+        249  traj.phase0.mach[path]                                         i   1.000000E-01    1.555044E+00    1.800000E+00              9.00000E+100
+        250  traj.phase0.mach[path]                                         i   1.000000E-01    1.555044E+00    1.800000E+00              9.00000E+100
+        251  traj.phase0.mach[path]                                         i   1.000000E-01    1.594558E+00    1.800000E+00              9.00000E+100
+        252  traj.phase0.mach[path]                                         i   1.000000E-01    1.638781E+00    1.800000E+00              9.00000E+100
+        253  traj.phase0.mach[path]                                         i   1.000000E-01    1.638781E+00    1.800000E+00              9.00000E+100
+        254  traj.phase0.mach[path]                                         i   1.000000E-01    1.685034E+00    1.800000E+00              9.00000E+100
+        255  traj.phase0.mach[path]                                         i   1.000000E-01    1.718231E+00    1.800000E+00              9.00000E+100
+        256  traj.phase0.mach[path]                                         i   1.000000E-01    1.718231E+00    1.800000E+00              9.00000E+100
+        257  traj.phase0.mach[path]                                         i   1.000000E-01    1.716946E+00    1.800000E+00              9.00000E+100
+        258  traj.phase0.mach[path]                                         i   1.000000E-01    1.635772E+00    1.800000E+00              9.00000E+100
+        259  traj.phase0.mach[path]                                         i   1.000000E-01    1.635772E+00    1.800000E+00              9.00000E+100
+        260  traj.phase0.mach[path]                                         i   1.000000E-01    1.459644E+00    1.800000E+00              9.00000E+100
+        261  traj.phase0.mach[path]                                         i   1.000000E-01    1.256939E+00    1.800000E+00              9.00000E+100
+        262  traj.phase0.mach[path]                                         i   1.000000E-01    1.256939E+00    1.800000E+00              9.00000E+100
+        263  traj.phase0.mach[path]                                         i   1.000000E-01    1.081421E+00    1.800000E+00              9.00000E+100
+
+
+   Exit Status
+      Inform  Description
+           0  Optimization terminated successfully.
+--------------------------------------------------------------------------------
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/home/runner/work/dymos/dymos/.openmdao-pixi/.pixi/envs/dev/lib/python3.13/site-packages/openmdao/visualization/opt_report/opt_report.py:611: UserWarning: Attempting to set identical low and high ylims makes transformation singular; automatically expanding.
+  ax.set_ylim([ymin_plot, ymax_plot])
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Simulating trajectory traj
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Done simulating trajectory traj
+</pre></div>
+</div>
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Problem: problem
+Driver:  pyOptSparseDriver
+  success     : True
+  iterations  : 96
+  runtime     : 5.5350E+00 s
+  model_evals : 96
+  model_time  : 9.1693E-01 s
+  deriv_evals : 85
+  deriv_time  : 6.3093E-01 s
+  exit_status : SUCCESS
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sol</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">CaseReader</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">get_outputs_dir</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;dymos_solution.db&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get_case</span><span class="p">(</span><span class="s1">&#39;final&#39;</span><span class="p">)</span>
+<span class="n">sim</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">CaseReader</span><span class="p">(</span><span class="n">traj</span><span class="o">.</span><span class="n">sim_prob</span><span class="o">.</span><span class="n">get_outputs_dir</span><span class="p">()</span> <span class="o">/</span> <span class="s1">&#39;dymos_simulation.db&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get_case</span><span class="p">(</span><span class="s1">&#39;final&#39;</span><span class="p">)</span>
+
+<span class="n">plot_results</span><span class="p">([(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">,</span> <span class="s1">&#39;traj.phase0.timeseries.h&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;time (s)&#39;</span><span class="p">,</span> <span class="s1">&#39;altitude (m)&#39;</span><span class="p">),</span>
+              <span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.time&#39;</span><span class="p">,</span> <span class="s1">&#39;traj.phase0.timeseries.alpha&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;time (s)&#39;</span><span class="p">,</span> <span class="s1">&#39;alpha (deg)&#39;</span><span class="p">)],</span>
+             <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Supersonic Minimum Time-to-Climb Solution&#39;</span><span class="p">,</span>
+             <span class="n">p_sol</span><span class="o">=</span><span class="n">sol</span><span class="p">,</span> <span class="n">p_sim</span><span class="o">=</span><span class="n">sim</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../../_images/26f31f43e6e33944148f945904a5830dca08b14a439b1dc2b792107af505b9e0.png" src="../../_images/26f31f43e6e33944148f945904a5830dca08b14a439b1dc2b792107af505b9e0.png" />
+</div>
+</div>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
+<div class="docutils container" id="id2">
+<div role="list" class="citation-list">
+<div class="citation" id="id17" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">Bry99</a><span class="fn-bracket">]</span></span>
+<p>Arthur Earl Bryson. <em>Dynamic optimization</em>. Addison Wesley Longman Menlo Park, CA, 1999.</p>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./examples/min_time_climb"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../length_constrained_brachistochrone/length_constrained_brachistochrone.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">The Length-Constrained Brachistochrone</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../mountain_car/mountain_car.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">The Mountain Car Problem</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-ode-system-min-time-climb-ode-py">The ODE System: min_time_climb_ode.py</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#building-and-running-the-problem">Building and running the problem</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By The Dymos Development Team
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

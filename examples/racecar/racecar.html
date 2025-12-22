@@ -1,0 +1,1820 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Race car Lap Simulation &#8212; Dymos</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../_static/myfile.css?v=9678755d" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'examples/racecar/racecar';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Single-Phase Space Shuttle Reentry" href="../reentry/reentry.html" />
+    <link rel="prev" title="Multibranch Trajectory" href="../multibranch_trajectory/multibranch_trajectory.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/dymos_logo.png" class="logo__image only-light" alt="Dymos - Home"/>
+    <script>document.write(`<img src="../../_static/dymos_logo.png" class="logo__image only-dark" alt="Dymos - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../../index.html">
+                    Multidisciplinary Optimal Control Library
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Installation</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installing Dymos</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/optimal_control.html">Optimal Control</a></li>
+
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/transcriptions.html">Optimal Control Transcriptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/defining_odes.html">Defining ODEs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/collocation.html">What is collocation?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/intro_to_dymos/intro_ivp.html">Modeling Dynamic Systems with Dymos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/intro_to_dymos/intro_segments.html">Segments of Phases</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples and Tutorials</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../examples.html">Dymos by Example</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../brachistochrone/brachistochrone.html">The Brachistochrone</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../brachistochrone/brachistochrone_upstream_init_duration_states.html">The Brachistochrone with externally-sourced initial state values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../vanderpol/vanderpol.html">The Van der Pol Oscillator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../balanced_field/balanced_field.html">Aircraft Balanced Field Length Calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../balanced_field/balanced_field_funccomp.html">Balanced Field Length using OpenMDAO’s Function Wrapping Components.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../bryson_denham/bryson_denham.html">The Bryson-Denham Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../commercial_aircraft/commercial_aircraft.html">Commercial Aircraft Range Maximization by Differential Inclusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../double_integrator/double_integrator.html">Double Integrator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hull/hull_problem.html">The Hull Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hypersensitive/hypersensitive.html">Hyper-Sensitive Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../finite_burn_orbit_raise/finite_burn_orbit_raise.html">Two-Burn Orbit Raise</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../length_constrained_brachistochrone/length_constrained_brachistochrone.html">The Length-Constrained Brachistochrone</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../min_time_climb/min_time_climb.html">Supersonic Interceptor Minimum Time Climb</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../mountain_car/mountain_car.html">The Mountain Car Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../moon_landing/moon_landing.html">Moon Landing Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../multi_phase_cannonball/multi_phase_cannonball.html">Multi-Phase Cannonball</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../multibranch_trajectory/multibranch_trajectory.html">Multibranch Trajectory</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Race car Lap Simulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reentry/reentry.html">Single-Phase Space Shuttle Reentry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ssto_earth/ssto_earth.html">SSTO Earth Launch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ssto_moon_linear_tangent/ssto_moon_linear_tangent.html">SSTO Lunar Ascent with Linear Tangent Guidance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../ssto_moon_polynomial_controls/ssto_moon_polynomial_controls.html">SSTO Lunar Ascent with Polynomial Controls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../robertson_problem/robertson_problem.html">The Robertson Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../water_rocket/water_rocket.html">Water Rocket</a></li>
+
+<li class="toctree-l2"><a class="reference internal" href="../cart_pole/cart_pole.html">Cart-Pole Optimal Control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../brachistochrone/brachistochrone_tandem_phases.html">Brachistochrone with tandem phases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../implicit_duration/brachistochrone_implicit_duration.html">Boundary Balance</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Feature Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../features/phases/phases_list.html">Phases</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/phases.html">Phases of a Trajectory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/analytic_phases.html">Analytic Phases in Dymos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/segments.html">Segments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/variables.html">Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/constraints.html">Constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/objective.html">Objective</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/timeseries.html">Timeseries Outputs</a></li>
+
+<li class="toctree-l2"><a class="reference internal" href="../../features/phases/calc_expressions.html">Calculation Expressions</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../features/trajectories/trajectories.html">Organizing Phases into Trajectories</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../features/exploiting_sparsity.html">Exploiting Sparsity for Faster Derivative Calculation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../features/plotting.html">Plotting Timeseries</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Frequently Asked Questions</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../faq/faq.html">Frequently Asked Questions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/add_ode_output_to_timeseries.html">How do I add an ODE output to the timeseries outputs?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/connect_scalar_parameters_to_ode.html">How do I connect a scalar input to the ODE?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/upstream_analysis.html">How do I connect the outputs of an upstream analysis as inputs to Dymos?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/downstream_analysis.html">How do I connect the outputs of Dymos to a downstream analysis?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/tandem_phases.html">How do I run two phases parallel-in-time?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/use_partial_coloring.html">How can I more efficiently use finite-differenced components in the ODE?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/debugging.html">How can I debug models when things go wrong?</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Dymos API Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../api/api.html">Dymos Reference API</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../api/run_problem_function.html">The run_problem function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/phase_api.html">Phase Options</a></li>
+
+<li class="toctree-l2"><a class="reference internal" href="../../api/transcriptions_api.html">The Transcriptions API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/trajectory_api.html">The Trajectory API</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../contributing/contributing.html">Contributing to Dymos</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-launch-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Launch interactive content">
+    <i class="fas fa-rocket"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://colab.research.google.com/github/OpenMDAO/dymos/blob/master/docs/dymos_book/examples/racecar/racecar.ipynb" target="_blank"
+   class="btn btn-sm dropdown-item"
+   title="Launch on Colab"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  
+    <img alt="Colab logo" src="../../_static/images/logo_colab.png">
+  </span>
+<span class="btn__text-container">Colab</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/OpenMDAO/dymos" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/OpenMDAO/dymos/issues/new?title=Issue%20on%20page%20%2Fexamples/racecar/racecar.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../../_sources/examples/racecar/racecar.ipynb" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.ipynb</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Race car Lap Simulation</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#background-of-the-problem">Background of the problem</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#optimizing-trajectories-for-cyclic-events">Optimizing trajectories for cyclic events</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#using-an-independent-variable-other-than-time">Using an independent variable other than time</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#definition-of-the-problem">Definition of the problem</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#table-1-optimization-problem-formulation">Table 1. Optimization problem formulation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#table-2-vehicle-parameters">Table 2. Vehicle parameters</a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="race-car-lap-simulation">
+<span id="content-examples-race-car"></span><h1>Race car Lap Simulation<a class="headerlink" href="#race-car-lap-simulation" title="Link to this heading">#</a></h1>
+<div class="admonition-things-you-ll-learn-through-this-example admonition">
+<p class="admonition-title">Things you’ll learn through this example</p>
+<ul class="simple">
+<li><p>Optimizing trajectories for cyclic events (such as race car laps)</p>
+<ul>
+<li><p>Linking a phase with itself so it is ensured that start and end states are identical</p></li>
+</ul>
+</li>
+<li><p>Using an independent variable other than time</p></li>
+</ul>
+</div>
+<div class="admonition-the-race-track-problem admonition">
+<p class="admonition-title">The race track problem</p>
+<p><em>The race track problem is different from other dymos example problems in that it is a cyclic problem.
+The solution must be such that the start and end states are identical. The problem for this example
+is given a race track shape, what is the optimum values for the controls such that the time elapsed to complete
+the track is a minimum.</em></p>
+</div>
+<section id="background-of-the-problem">
+<h2>Background of the problem<a class="headerlink" href="#background-of-the-problem" title="Link to this heading">#</a></h2>
+<p>This example is based on the work of <a class="reference external" href="http://www.formulae.one/contact">Pieter de Buck</a>
+The goal of his problem was to find an optimal trajectory for the race car with active aerodynamic and
+four wheel drive controls.</p>
+<p>Pieter posted an <a class="reference external" href="https://github.com/OpenMDAO/dymos/issues/369">issue</a> to the Dymos repository asking
+how to use dymos for cyclic events such as this. His solution involved using an iterative solution, which worked but
+dymos includes a feature that allows for simple and more efficient solution.
+This example shows how to handle this situation using simple dymos calls without iteration.</p>
+<p>If you are interested, Pieter and Adeline Shin have created an
+<a class="reference external" href="http://www.formulae.one/lapsimulation">interactive visualization</a> using his version of the code.</p>
+<p>While Pieter’s code includes several actual race tracks shapes, for simplicity and speed of solution, this dymos
+example uses an oval track. If you
+are interested in trying other race tracks, they are defined in the
+<a class="reference external" href="https://github.com/OpenMDAO/dymos/tree/master/dymos/examples/racecar/tracks.py">tracks.py</a> file.</p>
+</section>
+<section id="optimizing-trajectories-for-cyclic-events">
+<h2>Optimizing trajectories for cyclic events<a class="headerlink" href="#optimizing-trajectories-for-cyclic-events" title="Link to this heading">#</a></h2>
+<p>For trajectory optimization of cyclic events (such as race car laps), there needs to be
+a way that ensure that the start and end states are identical.</p>
+<p>In this race car example, the states and controls such as velocity, thrust, and steering angle need
+to be the same at the start and finish.</p>
+<p>Linking the controls is not really needed since it generally follows from the linked states.</p>
+<p>There is a simple way to link the states of cyclic events in dymos.
+You can use the <code class="docutils literal notranslate"><span class="pre">Trajectory.link_phases</span></code> functionality to “link” a
+phase with itself. In this example this is accomplished with the following code which links all 7 state
+variables.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">traj</span><span class="o">.</span><span class="n">link_phases</span><span class="p">(</span><span class="n">phases</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;phase0&#39;</span><span class="p">,</span> <span class="s1">&#39;phase0&#39;</span><span class="p">],</span> <span class="nb">vars</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;V&#39;</span><span class="p">,</span><span class="s1">&#39;n&#39;</span><span class="p">,</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span><span class="s1">&#39;omega&#39;</span><span class="p">,</span><span class="s1">&#39;lambda&#39;</span><span class="p">,</span><span class="s1">&#39;ax&#39;</span><span class="p">,</span><span class="s1">&#39;ay&#39;</span><span class="p">],</span> <span class="n">locs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;final&#39;</span><span class="p">,</span> <span class="s1">&#39;initial&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>This code causes the value of <code class="docutils literal notranslate"><span class="pre">V</span></code> at the end of <code class="docutils literal notranslate"><span class="pre">phase0</span></code> (‘final’) to be linked via constraint
+to the value of <code class="docutils literal notranslate"><span class="pre">V</span></code> at the beginning (‘initial’) of <code class="docutils literal notranslate"><span class="pre">phase0</span></code>.
+This call does the same for the other 6 state variables as well.</p>
+<p>See the <a class="reference external" href="https://openmdao.github.io/dymos/api/trajectory_api.html">Trajectory API page</a>
+for more information about the <code class="docutils literal notranslate"><span class="pre">link_phases</span></code> method.</p>
+</section>
+<section id="using-an-independent-variable-other-than-time">
+<h2>Using an independent variable other than time<a class="headerlink" href="#using-an-independent-variable-other-than-time" title="Link to this heading">#</a></h2>
+<p>In all the other dymos examples, time is the independent variable.
+In this race car example, the independent variable is the arc length along the track.
+Integration is done from the start of the track to the end.
+The “typical” equations of motion are computed, so the rate of change of x wrt time (<strong><span class="math notranslate nohighlight">\(\frac{dx}{dt}\)</span></strong>).</p>
+<p>By dividing the rates of change w.r.t. time by (<strong><span class="math notranslate nohighlight">\(\frac{ds}{dt}\)</span></strong>),
+the rates of change of the states w.r.t. track arclength traversed are computed.</p>
+</section>
+<section id="definition-of-the-problem">
+<h2>Definition of the problem<a class="headerlink" href="#definition-of-the-problem" title="Link to this heading">#</a></h2>
+<p>Here are some figures which help define the problem.</p>
+<p>This table describes the controls, states, and constraints. The symbols match up with the
+variable names in the code shown at the bottom of this page.</p>
+<section id="table-1-optimization-problem-formulation">
+<h3>Table 1. Optimization problem formulation<a class="headerlink" href="#table-1-optimization-problem-formulation" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p></p></th>
+<th class="head"><p></p></th>
+<th class="head"><p>Symbol</p></th>
+<th class="head"><p>Lower</p></th>
+<th class="head"><p>Upper</p></th>
+<th class="head"><p>Units</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Minimize</strong></p></td>
+<td><p>Time</p></td>
+<td><p>t</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>s</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>With respect to</strong></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Controls</strong></p></td>
+<td><p>Front left thrust</p></td>
+<td><p><span class="math notranslate nohighlight">\(T_{fl}\)</span></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p></p></td>
+<td><p>Front right thrust</p></td>
+<td><p><span class="math notranslate nohighlight">\(T_{fr}\)</span></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p></p></td>
+<td><p>Rear left thrust</p></td>
+<td><p><span class="math notranslate nohighlight">\(T_{rl}\)</span></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p></p></td>
+<td><p>Rear right thrust</p></td>
+<td><p><span class="math notranslate nohighlight">\(T_{rr}\)</span></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p></p></td>
+<td><p>Rear wing flap angle</p></td>
+<td><p><span class="math notranslate nohighlight">\(\gamma\)</span></p></td>
+<td><p>0</p></td>
+<td><p>50</p></td>
+<td><p>deg</p></td>
+</tr>
+<tr class="row-odd"><td><p></p></td>
+<td><p>Steering angle</p></td>
+<td><p><span class="math notranslate nohighlight">\(\delta\)</span></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>rad</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>States</strong></p></td>
+<td><p>Speed</p></td>
+<td><p>V</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p><span class="math notranslate nohighlight">\(ms^{-1}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p></p></td>
+<td><p>Longitudinal acceleration</p></td>
+<td><p><span class="math notranslate nohighlight">\(a_x\)</span></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p><span class="math notranslate nohighlight">\(ms^{-2}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p></p></td>
+<td><p>Lateral acceleration</p></td>
+<td><p><span class="math notranslate nohighlight">\(a_y\)</span></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p><span class="math notranslate nohighlight">\(ms^{-2}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p></p></td>
+<td><p>Normal distance to centerline</p></td>
+<td><p>n</p></td>
+<td><p>-4</p></td>
+<td><p>4</p></td>
+<td><p>m</p></td>
+</tr>
+<tr class="row-even"><td><p></p></td>
+<td><p>Angle relative to centerline</p></td>
+<td><p><span class="math notranslate nohighlight">\(\alpha\)</span></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>rad</p></td>
+</tr>
+<tr class="row-odd"><td><p></p></td>
+<td><p>Slip angle</p></td>
+<td><p><span class="math notranslate nohighlight">\(\lambda\)</span></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p>rad</p></td>
+</tr>
+<tr class="row-even"><td><p></p></td>
+<td><p>Yaw rate</p></td>
+<td><p><span class="math notranslate nohighlight">\(\Omega\)</span></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p><span class="math notranslate nohighlight">\(rad^{-1}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Subject to</strong></p></td>
+<td><p>Front left adherence</p></td>
+<td><p><span class="math notranslate nohighlight">\(c_{fl}\)</span></p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p></p></td>
+<td><p>Front right adherence</p></td>
+<td><p><span class="math notranslate nohighlight">\(c_{fr}\)</span></p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p></p></td>
+<td><p>Rear left adherence</p></td>
+<td><p><span class="math notranslate nohighlight">\(c_{rl}\)</span></p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p></p></td>
+<td><p>Rear right adherence</p></td>
+<td><p><span class="math notranslate nohighlight">\(c_{rr}\)</span></p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p></p></td>
+<td><p>Front left power</p></td>
+<td><p><span class="math notranslate nohighlight">\(P_{fl}\)</span></p></td>
+<td><p></p></td>
+<td><p>75</p></td>
+<td><p>kW</p></td>
+</tr>
+<tr class="row-even"><td><p></p></td>
+<td><p>Front right power</p></td>
+<td><p><span class="math notranslate nohighlight">\(P_{fr}\)</span></p></td>
+<td><p></p></td>
+<td><p>75</p></td>
+<td><p>kW</p></td>
+</tr>
+<tr class="row-odd"><td><p></p></td>
+<td><p>Rear left power</p></td>
+<td><p><span class="math notranslate nohighlight">\(P_{rl}\)</span></p></td>
+<td><p></p></td>
+<td><p>75</p></td>
+<td><p>kW</p></td>
+</tr>
+<tr class="row-even"><td><p></p></td>
+<td><p>Rear right power</p></td>
+<td><p><span class="math notranslate nohighlight">\(P_{rr}\)</span></p></td>
+<td><p></p></td>
+<td><p>75</p></td>
+<td><p>kW</p></td>
+</tr>
+<tr class="row-odd"><td><p></p></td>
+<td><p>Periodic state constraints</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p></p></td>
+<td><p>System dynamics</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p></p></td>
+<td><p>Track Layout</p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The next figure defines the vehicle parameters. Again, the symbols match up with the
+variable names in the code.</p>
+</section>
+<section id="table-2-vehicle-parameters">
+<h3>Table 2. Vehicle parameters<a class="headerlink" href="#table-2-vehicle-parameters" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Value</p></th>
+<th class="head"><p>Units</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(M\)</span></p></td>
+<td><p>1184</p></td>
+<td><p><span class="math notranslate nohighlight">\(kg\)</span></p></td>
+<td><p>Vehicle mass</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(a\)</span></p></td>
+<td><p>1.404</p></td>
+<td><p><span class="math notranslate nohighlight">\(m\)</span></p></td>
+<td><p>CoG to front axle distance</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(b\)</span></p></td>
+<td><p>1.356</p></td>
+<td><p><span class="math notranslate nohighlight">\(m\)</span></p></td>
+<td><p>CoG to rear axle distance</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(t_w\)</span></p></td>
+<td><p>0.807</p></td>
+<td><p><span class="math notranslate nohighlight">\(m\)</span></p></td>
+<td><p>Half track width</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(h\)</span></p></td>
+<td><p>0.4</p></td>
+<td><p><span class="math notranslate nohighlight">\(m\)</span></p></td>
+<td><p>CoG height</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(I_z\)</span></p></td>
+<td><p>1775</p></td>
+<td><p><span class="math notranslate nohighlight">\(kg\ m^{2}\)</span></p></td>
+<td><p>Yaw inertia</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\beta\)</span></p></td>
+<td><p>0.62</p></td>
+<td><p>-</p></td>
+<td><p>Brake balance</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\chi\)</span></p></td>
+<td><p>0.5</p></td>
+<td><p>-</p></td>
+<td><p>Roll stiffness</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\rho\)</span></p></td>
+<td><p>1.2</p></td>
+<td><p><span class="math notranslate nohighlight">\(kg\ m^{-3}\)</span></p></td>
+<td><p>Air density</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\mu_{0}^{x}\)</span></p></td>
+<td><p>1.68</p></td>
+<td><p>-</p></td>
+<td><p>Longitudinal base friction coefficient</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\mu_{0}^{y}\)</span></p></td>
+<td><p>1.68</p></td>
+<td><p>-</p></td>
+<td><p>Lateral base friction coefficient</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(K_{\mu}\)</span></p></td>
+<td><p>-0.5</p></td>
+<td><p>-</p></td>
+<td><p>Tire load sensitivity</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(K_{\lambda}\)</span></p></td>
+<td><p>44</p></td>
+<td><p>-</p></td>
+<td><p>Tire lateral stiffness</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\tau_{a_{x}}\)</span></p></td>
+<td><p>0.2</p></td>
+<td><p><span class="math notranslate nohighlight">\(s\)</span></p></td>
+<td><p>Longitudinal load transfer time constant</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\tau_{a_{y}}\)</span></p></td>
+<td><p>0.2</p></td>
+<td><p><span class="math notranslate nohighlight">\(s\)</span></p></td>
+<td><p>Lateral load transfer time constant</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(S_{w}\)</span></p></td>
+<td><p>0.8</p></td>
+<td><p><span class="math notranslate nohighlight">\(m^{2}\)</span></p></td>
+<td><p>Wing planform area</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(CoP\)</span></p></td>
+<td><p>1.404</p></td>
+<td><p><span class="math notranslate nohighlight">\(m\)</span></p></td>
+<td><p>Center of pressure to front axle distance</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>There is also a figure which describes the states that govern the vehicle position
+relative to the track.</p>
+<p><img alt="Vehicle Position States" src="../../_images/vehicle_position_states.png" /></p>
+<p>Here is the code to solve this problem:</p>
+<div class="cell tag_remove-input tag_hide-output docutils container">
+<details class="admonition hide above-output">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell outputs</p>
+<p class="expanded admonition-title">Hide code cell outputs</p>
+</summary>
+<div class="cell_output docutils container">
+<div class="output text_html"><style>pre { line-height: 125%; }
+td.linenos .normal { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.output_html .hll { background-color: #ffffcc }
+.output_html { background: #f8f8f8; }
+.output_html .c { color: #3D7B7B; font-style: italic } /* Comment */
+.output_html .err { border: 1px solid #F00 } /* Error */
+.output_html .k { color: #008000; font-weight: bold } /* Keyword */
+.output_html .o { color: #666 } /* Operator */
+.output_html .ch { color: #3D7B7B; font-style: italic } /* Comment.Hashbang */
+.output_html .cm { color: #3D7B7B; font-style: italic } /* Comment.Multiline */
+.output_html .cp { color: #9C6500 } /* Comment.Preproc */
+.output_html .cpf { color: #3D7B7B; font-style: italic } /* Comment.PreprocFile */
+.output_html .c1 { color: #3D7B7B; font-style: italic } /* Comment.Single */
+.output_html .cs { color: #3D7B7B; font-style: italic } /* Comment.Special */
+.output_html .gd { color: #A00000 } /* Generic.Deleted */
+.output_html .ge { font-style: italic } /* Generic.Emph */
+.output_html .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.output_html .gr { color: #E40000 } /* Generic.Error */
+.output_html .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.output_html .gi { color: #008400 } /* Generic.Inserted */
+.output_html .go { color: #717171 } /* Generic.Output */
+.output_html .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
+.output_html .gs { font-weight: bold } /* Generic.Strong */
+.output_html .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.output_html .gt { color: #04D } /* Generic.Traceback */
+.output_html .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
+.output_html .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
+.output_html .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
+.output_html .kp { color: #008000 } /* Keyword.Pseudo */
+.output_html .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
+.output_html .kt { color: #B00040 } /* Keyword.Type */
+.output_html .m { color: #666 } /* Literal.Number */
+.output_html .s { color: #BA2121 } /* Literal.String */
+.output_html .na { color: #687822 } /* Name.Attribute */
+.output_html .nb { color: #008000 } /* Name.Builtin */
+.output_html .nc { color: #00F; font-weight: bold } /* Name.Class */
+.output_html .no { color: #800 } /* Name.Constant */
+.output_html .nd { color: #A2F } /* Name.Decorator */
+.output_html .ni { color: #717171; font-weight: bold } /* Name.Entity */
+.output_html .ne { color: #CB3F38; font-weight: bold } /* Name.Exception */
+.output_html .nf { color: #00F } /* Name.Function */
+.output_html .nl { color: #767600 } /* Name.Label */
+.output_html .nn { color: #00F; font-weight: bold } /* Name.Namespace */
+.output_html .nt { color: #008000; font-weight: bold } /* Name.Tag */
+.output_html .nv { color: #19177C } /* Name.Variable */
+.output_html .ow { color: #A2F; font-weight: bold } /* Operator.Word */
+.output_html .w { color: #BBB } /* Text.Whitespace */
+.output_html .mb { color: #666 } /* Literal.Number.Bin */
+.output_html .mf { color: #666 } /* Literal.Number.Float */
+.output_html .mh { color: #666 } /* Literal.Number.Hex */
+.output_html .mi { color: #666 } /* Literal.Number.Integer */
+.output_html .mo { color: #666 } /* Literal.Number.Oct */
+.output_html .sa { color: #BA2121 } /* Literal.String.Affix */
+.output_html .sb { color: #BA2121 } /* Literal.String.Backtick */
+.output_html .sc { color: #BA2121 } /* Literal.String.Char */
+.output_html .dl { color: #BA2121 } /* Literal.String.Delimiter */
+.output_html .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
+.output_html .s2 { color: #BA2121 } /* Literal.String.Double */
+.output_html .se { color: #AA5D1F; font-weight: bold } /* Literal.String.Escape */
+.output_html .sh { color: #BA2121 } /* Literal.String.Heredoc */
+.output_html .si { color: #A45A77; font-weight: bold } /* Literal.String.Interpol */
+.output_html .sx { color: #008000 } /* Literal.String.Other */
+.output_html .sr { color: #A45A77 } /* Literal.String.Regex */
+.output_html .s1 { color: #BA2121 } /* Literal.String.Single */
+.output_html .ss { color: #19177C } /* Literal.String.Symbol */
+.output_html .bp { color: #008000 } /* Name.Builtin.Pseudo */
+.output_html .fm { color: #00F } /* Name.Function.Magic */
+.output_html .vc { color: #19177C } /* Name.Variable.Class */
+.output_html .vg { color: #19177C } /* Name.Variable.Global */
+.output_html .vi { color: #19177C } /* Name.Variable.Instance */
+.output_html .vm { color: #19177C } /* Name.Variable.Magic */
+.output_html .il { color: #666 } /* Literal.Number.Integer.Long */</style><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">openmdao.api</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">om</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.carODE</span><span class="w"> </span><span class="kn">import</span> <span class="n">CarODE</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.tireODE</span><span class="w"> </span><span class="kn">import</span> <span class="n">TireODE</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.normalForceODE</span><span class="w"> </span><span class="kn">import</span> <span class="n">NormalForceODE</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.accelerationODE</span><span class="w"> </span><span class="kn">import</span> <span class="n">AccelerationODE</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.tireConstraintODE</span><span class="w"> </span><span class="kn">import</span> <span class="n">TireConstraintODE</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.timeODE</span><span class="w"> </span><span class="kn">import</span> <span class="n">TimeODE</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.timeAdder</span><span class="w"> </span><span class="kn">import</span> <span class="n">TimeAdder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.curvature</span><span class="w"> </span><span class="kn">import</span> <span class="n">Curvature</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">CombinedODE</span><span class="p">(</span><span class="n">om</span><span class="o">.</span><span class="n">Group</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">declare</span><span class="p">(</span><span class="s2">&quot;num_nodes&quot;</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                             <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Number of nodes to be evaluated in the RHS&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">nn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s2">&quot;num_nodes&quot;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_subsystem</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">,</span> <span class="n">subsys</span><span class="o">=</span><span class="n">NormalForceODE</span><span class="p">(</span><span class="n">num_nodes</span><span class="o">=</span><span class="n">nn</span><span class="p">),</span>
+                           <span class="n">promotes_inputs</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ax&quot;</span><span class="p">,</span> <span class="s2">&quot;ay&quot;</span><span class="p">,</span> <span class="s2">&quot;V&quot;</span><span class="p">],</span>
+                           <span class="n">promotes_outputs</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;N_fr&quot;</span><span class="p">,</span> <span class="s2">&quot;N_fl&quot;</span><span class="p">,</span> <span class="s2">&quot;N_rr&quot;</span><span class="p">,</span> <span class="s2">&quot;N_rl&quot;</span><span class="p">],</span> <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_subsystem</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;tire&quot;</span><span class="p">,</span> <span class="n">subsys</span><span class="o">=</span><span class="n">TireODE</span><span class="p">(</span><span class="n">num_nodes</span><span class="o">=</span><span class="n">nn</span><span class="p">),</span>
+                           <span class="n">promotes_inputs</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;lambda&quot;</span><span class="p">,</span> <span class="s2">&quot;omega&quot;</span><span class="p">,</span> <span class="s2">&quot;V&quot;</span><span class="p">,</span> <span class="s2">&quot;N_fr&quot;</span><span class="p">,</span> <span class="s2">&quot;N_fl&quot;</span><span class="p">,</span> <span class="s2">&quot;N_rr&quot;</span><span class="p">,</span> <span class="s2">&quot;N_rl&quot;</span><span class="p">,</span>
+                                            <span class="s2">&quot;thrust&quot;</span><span class="p">,</span> <span class="s2">&quot;delta&quot;</span><span class="p">,</span> <span class="p">],</span>
+                           <span class="n">promotes_outputs</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;S_fr&quot;</span><span class="p">,</span> <span class="s2">&quot;S_fl&quot;</span><span class="p">,</span> <span class="s2">&quot;S_rr&quot;</span><span class="p">,</span> <span class="s2">&quot;S_rl&quot;</span><span class="p">,</span> <span class="s2">&quot;F_fr&quot;</span><span class="p">,</span> <span class="s2">&quot;F_fl&quot;</span><span class="p">,</span> <span class="s2">&quot;F_rr&quot;</span><span class="p">,</span>
+                                             <span class="s2">&quot;F_rl&quot;</span><span class="p">,</span> <span class="p">],</span> <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_subsystem</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;curv&quot;</span><span class="p">,</span> <span class="n">subsys</span><span class="o">=</span><span class="n">Curvature</span><span class="p">(</span><span class="n">num_nodes</span><span class="o">=</span><span class="n">nn</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;curv.kappa&quot;</span><span class="p">,</span> <span class="s2">&quot;car.kappa&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_subsystem</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;car&quot;</span><span class="p">,</span> <span class="n">subsys</span><span class="o">=</span><span class="n">CarODE</span><span class="p">(</span><span class="n">num_nodes</span><span class="o">=</span><span class="n">nn</span><span class="p">),</span>
+                           <span class="n">promotes_inputs</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;n&quot;</span><span class="p">,</span> <span class="s2">&quot;alpha&quot;</span><span class="p">,</span> <span class="s2">&quot;V&quot;</span><span class="p">,</span> <span class="s2">&quot;lambda&quot;</span><span class="p">,</span> <span class="s2">&quot;omega&quot;</span><span class="p">,</span> <span class="s2">&quot;S_fr&quot;</span><span class="p">,</span> <span class="s2">&quot;S_fl&quot;</span><span class="p">,</span>
+                                            <span class="s2">&quot;S_rr&quot;</span><span class="p">,</span> <span class="s2">&quot;S_rl&quot;</span><span class="p">,</span> <span class="s2">&quot;F_fr&quot;</span><span class="p">,</span> <span class="s2">&quot;F_fl&quot;</span><span class="p">,</span> <span class="s2">&quot;F_rr&quot;</span><span class="p">,</span> <span class="s2">&quot;F_rl&quot;</span><span class="p">,</span>
+                                            <span class="s2">&quot;delta&quot;</span><span class="p">,</span> <span class="p">],</span>
+                           <span class="n">promotes_outputs</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;sdot&quot;</span><span class="p">,</span> <span class="s2">&quot;ndot&quot;</span><span class="p">,</span> <span class="s2">&quot;alphadot&quot;</span><span class="p">,</span> <span class="s2">&quot;omegadot&quot;</span><span class="p">,</span> <span class="s2">&quot;Vdot&quot;</span><span class="p">,</span>
+                                             <span class="s2">&quot;lambdadot&quot;</span><span class="p">,</span> <span class="s2">&quot;power&quot;</span><span class="p">,</span> <span class="p">],</span> <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_subsystem</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;accel&quot;</span><span class="p">,</span> <span class="n">subsys</span><span class="o">=</span><span class="n">AccelerationODE</span><span class="p">(</span><span class="n">num_nodes</span><span class="o">=</span><span class="n">nn</span><span class="p">),</span>
+                           <span class="n">promotes_inputs</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;V&quot;</span><span class="p">,</span> <span class="s2">&quot;lambda&quot;</span><span class="p">,</span> <span class="s2">&quot;omega&quot;</span><span class="p">,</span> <span class="s2">&quot;Vdot&quot;</span><span class="p">,</span> <span class="s2">&quot;lambdadot&quot;</span><span class="p">,</span> <span class="s2">&quot;ax&quot;</span><span class="p">,</span>
+                                            <span class="s2">&quot;ay&quot;</span><span class="p">],</span> <span class="n">promotes_outputs</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;axdot&quot;</span><span class="p">,</span> <span class="s2">&quot;aydot&quot;</span><span class="p">],</span> <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_subsystem</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;tireconstraint&quot;</span><span class="p">,</span> <span class="n">subsys</span><span class="o">=</span><span class="n">TireConstraintODE</span><span class="p">(</span><span class="n">num_nodes</span><span class="o">=</span><span class="n">nn</span><span class="p">),</span>
+                           <span class="n">promotes_inputs</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;S_fr&quot;</span><span class="p">,</span> <span class="s2">&quot;S_fl&quot;</span><span class="p">,</span> <span class="s2">&quot;S_rr&quot;</span><span class="p">,</span> <span class="s2">&quot;S_rl&quot;</span><span class="p">,</span> <span class="s2">&quot;F_fr&quot;</span><span class="p">,</span> <span class="s2">&quot;F_fl&quot;</span><span class="p">,</span> <span class="s2">&quot;F_rr&quot;</span><span class="p">,</span>
+                                            <span class="s2">&quot;F_rl&quot;</span><span class="p">,</span> <span class="s2">&quot;N_fr&quot;</span><span class="p">,</span> <span class="s2">&quot;N_fl&quot;</span><span class="p">,</span> <span class="s2">&quot;N_rr&quot;</span><span class="p">,</span> <span class="s2">&quot;N_rl&quot;</span><span class="p">,</span> <span class="p">],</span>
+                           <span class="n">promotes_outputs</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;c_rr&quot;</span><span class="p">,</span> <span class="s2">&quot;c_rl&quot;</span><span class="p">,</span> <span class="s2">&quot;c_fr&quot;</span><span class="p">,</span> <span class="s2">&quot;c_fl&quot;</span><span class="p">],</span> <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_subsystem</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="n">subsys</span><span class="o">=</span><span class="n">TimeODE</span><span class="p">(</span><span class="n">num_nodes</span><span class="o">=</span><span class="n">nn</span><span class="p">),</span>
+                           <span class="n">promotes_inputs</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ndot&quot;</span><span class="p">,</span> <span class="s2">&quot;sdot&quot;</span><span class="p">,</span> <span class="s2">&quot;omegadot&quot;</span><span class="p">,</span> <span class="s2">&quot;lambdadot&quot;</span><span class="p">,</span> <span class="s2">&quot;Vdot&quot;</span><span class="p">,</span>
+                                            <span class="s2">&quot;axdot&quot;</span><span class="p">,</span> <span class="s2">&quot;aydot&quot;</span><span class="p">,</span> <span class="s2">&quot;alphadot&quot;</span><span class="p">,</span> <span class="p">],</span>
+                           <span class="n">promotes_outputs</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;dn_ds&quot;</span><span class="p">,</span> <span class="s2">&quot;dV_ds&quot;</span><span class="p">,</span> <span class="s2">&quot;domega_ds&quot;</span><span class="p">,</span> <span class="s2">&quot;dlambda_ds&quot;</span><span class="p">,</span>
+                                             <span class="s2">&quot;dalpha_ds&quot;</span><span class="p">,</span> <span class="s2">&quot;dax_ds&quot;</span><span class="p">,</span> <span class="s2">&quot;day_ds&quot;</span><span class="p">,</span> <span class="p">],</span> <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_subsystem</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;timeAdder&quot;</span><span class="p">,</span> <span class="n">subsys</span><span class="o">=</span><span class="n">TimeAdder</span><span class="p">(</span><span class="n">num_nodes</span><span class="o">=</span><span class="n">nn</span><span class="p">),</span>
+                           <span class="n">promotes_inputs</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;sdot&quot;</span><span class="p">],</span> <span class="n">promotes_outputs</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;dt_ds&quot;</span><span class="p">],</span> <span class="p">)</span>
+</pre></div>
+</div></div>
+</details>
+</div>
+<div class="cell tag_output_scroll docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">openmdao.api</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">om</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">dymos</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dm</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mpl</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">dymos.examples.racecar.combinedODE</span><span class="w"> </span><span class="kn">import</span> <span class="n">CombinedODE</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dymos.examples.racecar.spline</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span><span class="n">get_spline</span><span class="p">,</span> <span class="n">get_track_points</span><span class="p">,</span> <span class="n">get_gate_normals</span><span class="p">,</span>
+                                           <span class="n">reverse_transform_gates</span><span class="p">,</span> <span class="n">set_gate_displacements</span><span class="p">,</span>
+                                           <span class="n">transform_gates</span><span class="p">,</span> <span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dymos.examples.racecar.linewidthhelper</span><span class="w"> </span><span class="kn">import</span> <span class="n">linewidth_from_data_units</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dymos.examples.racecar.tracks</span><span class="w"> </span><span class="kn">import</span> <span class="n">ovaltrack</span>  <span class="c1"># track curvature imports</span>
+
+<span class="c1"># change track here and in curvature.py. Tracks are defined in tracks.py</span>
+<span class="n">track</span> <span class="o">=</span> <span class="n">ovaltrack</span>
+
+<span class="c1"># generate nodes along the centerline for curvature calculation (different</span>
+<span class="c1"># than collocation nodes)</span>
+<span class="n">points</span> <span class="o">=</span> <span class="n">get_track_points</span><span class="p">(</span><span class="n">track</span><span class="p">)</span>
+
+<span class="c1"># fit the centerline spline.</span>
+<span class="n">finespline</span><span class="p">,</span> <span class="n">gates</span><span class="p">,</span> <span class="n">gatesd</span><span class="p">,</span> <span class="n">curv</span><span class="p">,</span> <span class="n">slope</span> <span class="o">=</span> <span class="n">get_spline</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="c1"># by default 10000 points</span>
+<span class="n">s_final</span> <span class="o">=</span> <span class="n">track</span><span class="o">.</span><span class="n">get_total_length</span><span class="p">()</span>
+
+<span class="c1"># Define the OpenMDAO problem</span>
+<span class="n">p</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">om</span><span class="o">.</span><span class="n">Group</span><span class="p">())</span>
+
+<span class="c1"># Define a Trajectory object</span>
+<span class="n">traj</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">Trajectory</span><span class="p">()</span>
+<span class="n">p</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">add_subsystem</span><span class="p">(</span><span class="s1">&#39;traj&#39;</span><span class="p">,</span> <span class="n">subsys</span><span class="o">=</span><span class="n">traj</span><span class="p">)</span>
+
+<span class="c1"># Define a Dymos Phase object with GaussLobatto Transcription</span>
+<span class="n">phase</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">Phase</span><span class="p">(</span><span class="n">ode_class</span><span class="o">=</span><span class="n">CombinedODE</span><span class="p">,</span>
+                 <span class="n">transcription</span><span class="o">=</span><span class="n">dm</span><span class="o">.</span><span class="n">GaussLobatto</span><span class="p">(</span><span class="n">num_segments</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">compressed</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+
+<span class="n">traj</span><span class="o">.</span><span class="n">add_phase</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;phase0&#39;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="n">phase</span><span class="p">)</span>
+
+<span class="c1"># Set the time options, in this problem we perform a change of variables. So &#39;time&#39; is</span>
+<span class="c1"># actually &#39;s&#39; (distance along the track centerline)</span>
+<span class="c1"># This is done to fix the collocation nodes in space, which saves us the calculation of</span>
+<span class="c1"># the rate of change of curvature.</span>
+<span class="c1"># The state equations are written with respect to time, the variable change occurs in</span>
+<span class="c1"># timeODE.py</span>
+<span class="c1"># Here we&#39;re using set_integ_var_options, which is just an alias for set_time_options.</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">set_integ_var_options</span><span class="p">(</span><span class="n">fix_initial</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fix_duration</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">duration_val</span><span class="o">=</span><span class="n">s_final</span><span class="p">,</span>
+                            <span class="n">targets</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;curv.s&#39;</span><span class="p">],</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="n">duration_ref</span><span class="o">=</span><span class="n">s_final</span><span class="p">,</span>
+                            <span class="n">duration_ref0</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">)</span>
+
+<span class="c1"># Define states</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fix_final</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="n">rate_source</span><span class="o">=</span><span class="s1">&#39;dt_ds&#39;</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>  <span class="c1"># time</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fix_final</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> <span class="n">lower</span><span class="o">=-</span><span class="mf">4.0</span><span class="p">,</span>
+                <span class="n">rate_source</span><span class="o">=</span><span class="s1">&#39;dn_ds&#39;</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;n&#39;</span><span class="p">],</span>
+                <span class="n">ref</span><span class="o">=</span><span class="mf">4.0</span><span class="p">)</span>  <span class="c1"># normal distance to centerline. The bounds on n define the</span>
+<span class="c1"># width of the track</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;V&#39;</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fix_final</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m/s&#39;</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">ref0</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                <span class="n">rate_source</span><span class="o">=</span><span class="s1">&#39;dV_ds&#39;</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;V&#39;</span><span class="p">])</span>  <span class="c1"># velocity</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fix_final</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;rad&#39;</span><span class="p">,</span>
+                <span class="n">rate_source</span><span class="o">=</span><span class="s1">&#39;dalpha_ds&#39;</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;alpha&#39;</span><span class="p">],</span>
+                <span class="n">ref</span><span class="o">=</span><span class="mf">0.15</span><span class="p">)</span>  <span class="c1"># vehicle heading angle with respect to centerline</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;lambda&#39;</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fix_final</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;rad&#39;</span><span class="p">,</span>
+                <span class="n">rate_source</span><span class="o">=</span><span class="s1">&#39;dlambda_ds&#39;</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lambda&#39;</span><span class="p">],</span>
+                <span class="n">ref</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>  <span class="c1"># vehicle slip angle, or angle between the axis of the vehicle</span>
+<span class="c1"># and velocity vector (all cars drift a little)</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;omega&#39;</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fix_final</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;rad/s&#39;</span><span class="p">,</span>
+                <span class="n">rate_source</span><span class="o">=</span><span class="s1">&#39;domega_ds&#39;</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;omega&#39;</span><span class="p">],</span> <span class="n">ref</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>  <span class="c1"># yaw rate</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;ax&#39;</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fix_final</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m/s**2&#39;</span><span class="p">,</span>
+                <span class="n">rate_source</span><span class="o">=</span><span class="s1">&#39;dax_ds&#39;</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ax&#39;</span><span class="p">],</span> <span class="n">ref</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>  <span class="c1"># longitudinal acceleration</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="s1">&#39;ay&#39;</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fix_final</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m/s**2&#39;</span><span class="p">,</span>
+                <span class="n">rate_source</span><span class="o">=</span><span class="s1">&#39;day_ds&#39;</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ay&#39;</span><span class="p">],</span> <span class="n">ref</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>  <span class="c1"># lateral acceleration</span>
+
+<span class="c1"># Define Controls</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_control</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;delta&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;rad&#39;</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                  <span class="n">fix_final</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="mf">0.04</span><span class="p">,</span> <span class="n">rate_continuity</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># steering angle</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_control</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;thrust&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fix_final</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rate_continuity</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># the thrust controls the longitudinal force of the rear tires and is positive while accelerating, negative while braking</span>
+
+<span class="c1"># Performance Constraints</span>
+<span class="n">pmax</span> <span class="o">=</span> <span class="mi">960000</span>  <span class="c1"># W</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_path_constraint</span><span class="p">(</span><span class="s1">&#39;power&#39;</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="n">pmax</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="mi">100000</span><span class="p">)</span>  <span class="c1"># engine power limit</span>
+
+<span class="c1"># The following four constraints are the tire friction limits, with &#39;rr&#39; designating the</span>
+<span class="c1"># rear right wheel etc. This limit is computed in tireConstraintODE.py</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_path_constraint</span><span class="p">(</span><span class="s1">&#39;c_rr&#39;</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_path_constraint</span><span class="p">(</span><span class="s1">&#39;c_rl&#39;</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_path_constraint</span><span class="p">(</span><span class="s1">&#39;c_fr&#39;</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_path_constraint</span><span class="p">(</span><span class="s1">&#39;c_fl&#39;</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># Some of the vehicle design parameters are available to set here. Other parameters can</span>
+<span class="c1"># be found in their respective ODE files.</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;M&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">800.0</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg&#39;</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">targets</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;car.M&#39;</span><span class="p">,</span> <span class="s1">&#39;tire.M&#39;</span><span class="p">,</span> <span class="s1">&#39;tireconstraint.M&#39;</span><span class="p">,</span> <span class="s1">&#39;normal.M&#39;</span><span class="p">],</span>
+                    <span class="n">static_target</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># vehicle mass</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;beta&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">0.62</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;tire.beta&#39;</span><span class="p">],</span>
+                    <span class="n">static_target</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># brake bias</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;CoP&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">1.6</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;normal.CoP&#39;</span><span class="p">],</span>
+                    <span class="n">static_target</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># center of pressure location</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;normal.h&#39;</span><span class="p">],</span>
+                    <span class="n">static_target</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># center of gravity height</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;chi&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;normal.chi&#39;</span><span class="p">],</span>
+                    <span class="n">static_target</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># roll stiffness</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;ClA&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m**2&#39;</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;normal.ClA&#39;</span><span class="p">],</span>
+                    <span class="n">static_target</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># downforce coefficient*area</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="s1">&#39;CdA&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m**2&#39;</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;car.CdA&#39;</span><span class="p">],</span>
+                    <span class="n">static_target</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># drag coefficient*area</span>
+
+<span class="c1"># Minimize final time.</span>
+<span class="c1"># note that we use the &#39;state&#39; time instead of Dymos &#39;time&#39;</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_objective</span><span class="p">(</span><span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;final&#39;</span><span class="p">)</span>
+
+<span class="c1"># Add output timeseries</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_timeseries_output</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">)</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">add_timeseries_output</span><span class="p">(</span><span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="n">output_name</span><span class="o">=</span><span class="s1">&#39;time&#39;</span><span class="p">)</span>
+
+<span class="c1"># Link the states at the start and end of the phase in order to ensure a continous lap</span>
+<span class="n">traj</span><span class="o">.</span><span class="n">link_phases</span><span class="p">(</span><span class="n">phases</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;phase0&#39;</span><span class="p">,</span> <span class="s1">&#39;phase0&#39;</span><span class="p">],</span>
+                 <span class="nb">vars</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;V&#39;</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="s1">&#39;omega&#39;</span><span class="p">,</span> <span class="s1">&#39;lambda&#39;</span><span class="p">,</span> <span class="s1">&#39;ax&#39;</span><span class="p">,</span> <span class="s1">&#39;ay&#39;</span><span class="p">],</span>
+                 <span class="n">locs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;final&#39;</span><span class="p">,</span> <span class="s1">&#39;initial&#39;</span><span class="p">))</span>
+
+<span class="c1"># Set the driver. IPOPT or SNOPT are recommended but SLSQP might work.</span>
+<span class="n">p</span><span class="o">.</span><span class="n">driver</span> <span class="o">=</span> <span class="n">om</span><span class="o">.</span><span class="n">pyOptSparseDriver</span><span class="p">(</span><span class="n">optimizer</span><span class="o">=</span><span class="s1">&#39;IPOPT&#39;</span><span class="p">)</span>
+
+<span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">opt_settings</span><span class="p">[</span><span class="s1">&#39;mu_init&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1e-3</span>
+<span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">opt_settings</span><span class="p">[</span><span class="s1">&#39;max_iter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">500</span>
+<span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">opt_settings</span><span class="p">[</span><span class="s1">&#39;acceptable_tol&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1e-3</span>
+<span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">opt_settings</span><span class="p">[</span><span class="s1">&#39;constr_viol_tol&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1e-3</span>
+<span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">opt_settings</span><span class="p">[</span><span class="s1">&#39;compl_inf_tol&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1e-3</span>
+<span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">opt_settings</span><span class="p">[</span><span class="s1">&#39;acceptable_iter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">opt_settings</span><span class="p">[</span><span class="s1">&#39;tol&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1e-3</span>
+<span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">opt_settings</span><span class="p">[</span><span class="s1">&#39;print_level&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">opt_settings</span><span class="p">[</span><span class="s1">&#39;nlp_scaling_method&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;gradient-based&#39;</span>  <span class="c1"># for faster convergence</span>
+<span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">opt_settings</span><span class="p">[</span><span class="s1">&#39;alpha_for_y&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;safer-min-dual-infeas&#39;</span>
+<span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">opt_settings</span><span class="p">[</span><span class="s1">&#39;mu_strategy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;monotone&#39;</span>
+<span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">opt_settings</span><span class="p">[</span><span class="s1">&#39;bound_mult_init_method&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;mu-based&#39;</span>
+<span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;print_results&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="c1"># Allow OpenMDAO to automatically determine our sparsity pattern.</span>
+<span class="c1"># Doing so can significant speed up the execution of Dymos.</span>
+<span class="n">p</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">declare_coloring</span><span class="p">()</span>
+
+<span class="c1"># Setup the problem</span>
+<span class="n">p</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># force_alloc_complex=True</span>
+<span class="c1"># Now that the OpenMDAO problem is setup, we can set the values of the states.</span>
+
+<span class="c1"># States</span>
+<span class="c1"># Nonzero velocity to avoid division by zero errors</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">set_state_val</span><span class="p">(</span><span class="s1">&#39;V&#39;</span><span class="p">,</span> <span class="mf">20.0</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m/s&#39;</span><span class="p">)</span>
+<span class="c1"># All other states start at 0</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">set_state_val</span><span class="p">(</span><span class="s1">&#39;lambda&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;rad&#39;</span><span class="p">)</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">set_state_val</span><span class="p">(</span><span class="s1">&#39;omega&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;rad/s&#39;</span><span class="p">)</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">set_state_val</span><span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;rad&#39;</span><span class="p">)</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">set_state_val</span><span class="p">(</span><span class="s1">&#39;ax&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m/s**2&#39;</span><span class="p">)</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">set_state_val</span><span class="p">(</span><span class="s1">&#39;ay&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m/s**2&#39;</span><span class="p">)</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">set_state_val</span><span class="p">(</span><span class="s1">&#39;n&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">)</span>
+<span class="c1"># initial guess for what the final time should be</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">set_state_val</span><span class="p">(</span><span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">],</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;s&#39;</span><span class="p">)</span>
+
+<span class="c1"># Controls</span>
+<span class="c1"># a small amount of thrust can speed up convergence</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">set_control_val</span><span class="p">(</span><span class="s1">&#39;delta&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;rad&#39;</span><span class="p">)</span>
+<span class="n">phase</span><span class="o">.</span><span class="n">set_control_val</span><span class="p">(</span><span class="s1">&#39;thrust&#39;</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+<span class="n">dm</span><span class="o">.</span><span class="n">run_problem</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">run_driver</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Optimization finished&#39;</span><span class="p">)</span>
+
+<span class="c1"># Get optimized time series</span>
+<span class="n">n</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.n&#39;</span><span class="p">)</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.s&#39;</span><span class="p">)</span>
+<span class="n">V</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.V&#39;</span><span class="p">)</span>
+<span class="n">thrust</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.thrust&#39;</span><span class="p">)</span>
+<span class="n">delta</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.delta&#39;</span><span class="p">)</span>
+<span class="n">power</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.power&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;W&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/home/runner/work/dymos/dymos/.openmdao-pixi/.pixi/envs/dev/lib/python3.13/site-packages/dymos/phase/phase.py:2362: UserWarning: Phase time options have no effect because fix_duration=True or input_duration=True for phase &#39;traj.phases.phase0&#39;: duration_ref, duration_ref0
+  warnings.warn(f&#39;Phase time options have no effect because fix_duration=True &#39;
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.001057 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000029 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000320 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000318 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000002 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.001936 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000081 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000003 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking out_of_order...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     out_of_order check complete (0.000483 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking system...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     system check complete (0.000046 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking solvers...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     solvers check complete (0.000191 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking dup_inputs...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     dup_inputs check complete (0.000571 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking missing_recorders...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     missing_recorders check complete (0.000002 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking unserializable_options...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     unserializable_options check complete (0.002213 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking comp_has_no_outputs...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     comp_has_no_outputs check complete (0.000062 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO: checking auto_ivc_warnings...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:     auto_ivc_warnings check complete (0.000004 sec).
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Jacobian shape: (1256, 609)  (2.08% nonzero)
+FWD solves: 20   REV solves: 0
+Total colors vs. total size: 20 vs 609  (96.72% improvement)
+
+Sparsity computed using tolerance: 1e-25.
+Dense total jacobian for Problem &#39;problem&#39; was computed 3 times.
+Time to compute sparsity:   4.9895 sec
+Time to compute coloring:   1.1751 sec
+Memory to compute coloring:  -5.1602 MB
+Coloring created on: 2025-12-22 16:14:21
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/home/runner/work/dymos/dymos/.openmdao-pixi/.pixi/envs/dev/lib/python3.13/site-packages/openmdao/core/total_jac.py:1670: DerivativesWarning:The following constraints or objectives cannot be impacted by the design variables of the problem at the current design point:
+  traj.phase0.c_fr[path], inds=[(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0), (7, 0), (8, 0), (9, 0), (10, 0), (11, 0), (12, 0), (13, 0), (14, 0), (15, 0), (16, 0), (17, 0), (18, 0), (19, 0), (20, 0), (21, 0), (22, 0), (23, 0), (24, 0), (25, 0), (26, 0), (27, 0), (28, 0), (29, 0), (30, 0), (31, 0), (32, 0), (33, 0), (34, 0), (35, 0), (36, 0), (37, 0), (38, 0), (39, 0), (40, 0), (41, 0), (42, 0), (43, 0), (44, 0), (45, 0), (46, 0), (47, 0), (48, 0), (49, 0), (50, 0), (51, 0), (52, 0), (53, 0), (54, 0), (55, 0), (56, 0), (57, 0), (58, 0), (59, 0), (60, 0), (61, 0), (62, 0), (63, 0), (64, 0), (65, 0), (66, 0), (67, 0), (68, 0), (69, 0), (70, 0), (71, 0), (72, 0), (73, 0), (74, 0), (75, 0), (76, 0), (77, 0), (78, 0), (79, 0), (80, 0), (81, 0), (82, 0), (83, 0), (84, 0), (85, 0), (86, 0), (87, 0), (88, 0), (89, 0), (90, 0), (91, 0), (92, 0), (93, 0), (94, 0), (95, 0), (96, 0), (97, 0), (98, 0), (99, 0), (100, 0), (101, 0), (102, 0), (103, 0), (104, 0), (105, 0), (106, 0), (107, 0), (108, 0), (109, 0), (110, 0), (111, 0), (112, 0), (113, 0), (114, 0), (115, 0), (116, 0), (117, 0), (118, 0), (119, 0), (120, 0), (121, 0), (122, 0), (123, 0), (124, 0), (125, 0), (126, 0), (127, 0), (128, 0), (129, 0), (130, 0), (131, 0), (132, 0), (133, 0), (134, 0), (135, 0), (136, 0), (137, 0), (138, 0), (139, 0), (140, 0), (141, 0), (142, 0), (143, 0), (144, 0), (145, 0), (146, 0), (147, 0), (148, 0), (149, 0)]
+  traj.phase0.c_fl[path], inds=[(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0), (7, 0), (8, 0), (9, 0), (10, 0), (11, 0), (12, 0), (13, 0), (14, 0), (15, 0), (16, 0), (17, 0), (18, 0), (19, 0), (20, 0), (21, 0), (22, 0), (23, 0), (24, 0), (25, 0), (26, 0), (27, 0), (28, 0), (29, 0), (30, 0), (31, 0), (32, 0), (33, 0), (34, 0), (35, 0), (36, 0), (37, 0), (38, 0), (39, 0), (40, 0), (41, 0), (42, 0), (43, 0), (44, 0), (45, 0), (46, 0), (47, 0), (48, 0), (49, 0), (50, 0), (51, 0), (52, 0), (53, 0), (54, 0), (55, 0), (56, 0), (57, 0), (58, 0), (59, 0), (60, 0), (61, 0), (62, 0), (63, 0), (64, 0), (65, 0), (66, 0), (67, 0), (68, 0), (69, 0), (70, 0), (71, 0), (72, 0), (73, 0), (74, 0), (75, 0), (76, 0), (77, 0), (78, 0), (79, 0), (80, 0), (81, 0), (82, 0), (83, 0), (84, 0), (85, 0), (86, 0), (87, 0), (88, 0), (89, 0), (90, 0), (91, 0), (92, 0), (93, 0), (94, 0), (95, 0), (96, 0), (97, 0), (98, 0), (99, 0), (100, 0), (101, 0), (102, 0), (103, 0), (104, 0), (105, 0), (106, 0), (107, 0), (108, 0), (109, 0), (110, 0), (111, 0), (112, 0), (113, 0), (114, 0), (115, 0), (116, 0), (117, 0), (118, 0), (119, 0), (120, 0), (121, 0), (122, 0), (123, 0), (124, 0), (125, 0), (126, 0), (127, 0), (128, 0), (129, 0), (130, 0), (131, 0), (132, 0), (133, 0), (134, 0), (135, 0), (136, 0), (137, 0), (138, 0), (139, 0), (140, 0), (141, 0), (142, 0), (143, 0), (144, 0), (145, 0), (146, 0), (147, 0), (148, 0), (149, 0)]
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Optimization finished
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get optimized time series</span>
+<span class="n">n</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.n&#39;</span><span class="p">)</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.s&#39;</span><span class="p">)</span>
+<span class="n">V</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.V&#39;</span><span class="p">)</span>
+<span class="n">thrust</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.thrust&#39;</span><span class="p">)</span>
+<span class="n">delta</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.delta&#39;</span><span class="p">)</span>
+<span class="n">power</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.power&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;W&#39;</span><span class="p">)</span>
+
+<span class="c1"># We know the optimal distance from the centerline (n). To transform this into the racing</span>
+<span class="c1"># line we fit a spline to the displaced points. This will let us plot the racing line in</span>
+<span class="c1"># x/y coordinates</span>
+<span class="n">normals</span> <span class="o">=</span> <span class="n">get_gate_normals</span><span class="p">(</span><span class="n">finespline</span><span class="p">,</span> <span class="n">slope</span><span class="p">)</span>
+<span class="n">newgates</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">newnormals</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">newn</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">n</span><span class="p">)):</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="p">((</span><span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="n">s_final</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">finespline</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span>
+        <span class="nb">int</span><span class="p">)</span>  <span class="c1"># interpolation to find the appropriate index</span>
+    <span class="k">if</span> <span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">finespline</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">finespline</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">s</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]:</span>
+        <span class="k">continue</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">newgates</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">finespline</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">finespline</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]]])</span>
+        <span class="n">newnormals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">normals</span><span class="p">[</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+        <span class="n">newn</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+
+<span class="n">newgates</span> <span class="o">=</span> <span class="n">reverse_transform_gates</span><span class="p">(</span><span class="n">newgates</span><span class="p">)</span>
+<span class="n">displaced_gates</span> <span class="o">=</span> <span class="n">set_gate_displacements</span><span class="p">(</span><span class="n">newn</span><span class="p">,</span> <span class="n">newgates</span><span class="p">,</span> <span class="n">newnormals</span><span class="p">)</span>
+<span class="n">displaced_gates</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="n">transform_gates</span><span class="p">(</span><span class="n">displaced_gates</span><span class="p">)))</span>
+
+<span class="n">npoints</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="c1"># fit the racing line spline to npoints</span>
+<span class="n">displaced_spline</span><span class="p">,</span> <span class="n">gates</span><span class="p">,</span> <span class="n">gatesd</span><span class="p">,</span> <span class="n">curv</span><span class="p">,</span> <span class="n">slope</span> <span class="o">=</span> <span class="n">get_spline</span><span class="p">(</span><span class="n">displaced_gates</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">npoints</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;font.size&#39;</span><span class="p">:</span> <span class="mi">12</span><span class="p">})</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_track_with_data</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+    <span class="c1"># this function plots the track</span>
+    <span class="n">state</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">state</span><span class="p">)[:,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">s</span><span class="p">)[:,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">s_new</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">s_final</span><span class="p">,</span> <span class="n">npoints</span><span class="p">)</span>
+
+    <span class="c1"># Colormap and norm of the track plot</span>
+    <span class="n">cmap</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">colormaps</span><span class="p">[</span><span class="s1">&#39;viridis&#39;</span><span class="p">]</span>
+    <span class="n">norm</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(</span><span class="n">vmin</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">state</span><span class="p">),</span> <span class="n">vmax</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">state</span><span class="p">))</span>
+
+    <span class="n">_</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+    <span class="c1"># establishes the figure axis limits needed for plotting the track below</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">displaced_spline</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">displaced_spline</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">solid_capstyle</span><span class="o">=</span><span class="s2">&quot;butt&quot;</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+    <span class="c1"># the linewidth is set in order to match the width of the track</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">finespline</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">finespline</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;k&#39;</span><span class="p">,</span>
+             <span class="n">linewidth</span><span class="o">=</span><span class="n">linewidth_from_data_units</span><span class="p">(</span><span class="mf">8.5</span><span class="p">,</span> <span class="n">ax</span><span class="p">),</span>
+             <span class="n">solid_capstyle</span><span class="o">=</span><span class="s2">&quot;butt&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">finespline</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">finespline</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="n">linewidth_from_data_units</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="n">ax</span><span class="p">),</span>
+             <span class="n">solid_capstyle</span><span class="o">=</span><span class="s2">&quot;butt&quot;</span><span class="p">)</span>  <span class="c1"># 8 is the width, and the 8.5 wide line draws &#39;kerbs&#39;</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;x (m)&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;y (m)&#39;</span><span class="p">)</span>
+
+    <span class="c1"># plot spline with color</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">displaced_spline</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+        <span class="n">s_spline</span> <span class="o">=</span> <span class="n">s_new</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">index_greater</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">s</span> <span class="o">&gt;=</span> <span class="n">s_spline</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">index_less</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">s</span> <span class="o">&lt;</span> <span class="n">s_spline</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">x</span> <span class="o">=</span> <span class="n">s_spline</span>
+        <span class="n">xp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">s</span><span class="p">[</span><span class="n">index_less</span><span class="p">],</span> <span class="n">s</span><span class="p">[</span><span class="n">index_greater</span><span class="p">]])</span>
+        <span class="n">fp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">state</span><span class="p">[</span><span class="n">index_less</span><span class="p">],</span> <span class="n">state</span><span class="p">[</span><span class="n">index_greater</span><span class="p">]])</span>
+        <span class="n">interp_state</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">xp</span><span class="p">,</span>
+                                 <span class="n">fp</span><span class="p">)</span>  <span class="c1"># interpolate the given state to calculate the color</span>
+
+        <span class="c1"># calculate the appropriate color</span>
+        <span class="n">state_color</span> <span class="o">=</span> <span class="n">norm</span><span class="p">(</span><span class="n">interp_state</span><span class="p">)</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">cmap</span><span class="p">(</span><span class="n">state_color</span><span class="p">)</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">to_hex</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+
+        <span class="c1"># the track plot consists of thousands of tiny lines:</span>
+        <span class="n">point</span> <span class="o">=</span> <span class="p">[</span><span class="n">displaced_spline</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">i</span><span class="p">],</span> <span class="n">displaced_spline</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">]]</span>
+        <span class="n">prevpoint</span> <span class="o">=</span> <span class="p">[</span><span class="n">displaced_spline</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span> <span class="n">displaced_spline</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]]</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="mi">5</span> <span class="ow">or</span> <span class="n">i</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">displaced_spline</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">point</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">prevpoint</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="p">[</span><span class="n">point</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">prevpoint</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">color</span><span class="p">,</span>
+                     <span class="n">linewidth</span><span class="o">=</span><span class="n">linewidth_from_data_units</span><span class="p">(</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">ax</span><span class="p">),</span> <span class="n">solid_capstyle</span><span class="o">=</span><span class="s2">&quot;butt&quot;</span><span class="p">,</span>
+                     <span class="n">antialiased</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">point</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">prevpoint</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="p">[</span><span class="n">point</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">prevpoint</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">color</span><span class="p">,</span>
+                     <span class="n">linewidth</span><span class="o">=</span><span class="n">linewidth_from_data_units</span><span class="p">(</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">ax</span><span class="p">),</span>
+                     <span class="n">solid_capstyle</span><span class="o">=</span><span class="s2">&quot;projecting&quot;</span><span class="p">,</span> <span class="n">antialiased</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">clb</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">mpl</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">ScalarMappable</span><span class="p">(</span><span class="n">norm</span><span class="o">=</span><span class="n">norm</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">),</span> <span class="n">fraction</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span>
+                       <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mf">0.04</span><span class="p">)</span>  <span class="c1"># add colorbar</span>
+
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">V</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]):</span>
+        <span class="n">clb</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s1">&#39;Velocity (m/s)&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">thrust</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]):</span>
+        <span class="n">clb</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s1">&#39;Thrust&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">delta</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]):</span>
+        <span class="n">clb</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s1">&#39;Delta&#39;</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+
+
+<span class="c1"># Create the plots</span>
+<span class="n">plot_track_with_data</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+<span class="n">plot_track_with_data</span><span class="p">(</span><span class="n">thrust</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+<span class="n">plot_track_with_data</span><span class="p">(</span><span class="n">delta</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+
+<span class="c1"># Plot the main vehicle telemetry</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+
+<span class="c1"># Velocity vs s</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">s</span><span class="p">,</span>
+             <span class="n">p</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.V&#39;</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;solution&#39;</span><span class="p">)</span>
+
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;s (m)&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;V (m/s)&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">s_final</span><span class="p">)</span>
+
+<span class="c1"># n vs s</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">s</span><span class="p">,</span>
+             <span class="n">p</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.n&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;solution&#39;</span><span class="p">)</span>
+
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;s (m)&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;n (m)&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">s_final</span><span class="p">)</span>
+
+<span class="c1"># throttle vs s</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">thrust</span><span class="p">)</span>
+
+<span class="n">axes</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;s (m)&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;thrust&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">s_final</span><span class="p">)</span>
+
+<span class="c1"># delta vs s</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">s</span><span class="p">,</span>
+             <span class="n">p</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.delta&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">),</span>
+             <span class="n">label</span><span class="o">=</span><span class="s1">&#39;solution&#39;</span><span class="p">)</span>
+
+<span class="n">axes</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;s (m)&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;delta&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">s_final</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+
+<span class="c1"># Performance constraint plot. Tire friction and power constraints</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">right</span><span class="o">=</span><span class="mf">0.82</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="mf">0.14</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="mf">0.97</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="mf">0.07</span><span class="p">)</span>
+
+<span class="n">axes</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">s</span><span class="p">,</span>
+          <span class="n">p</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.c_fl&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;c_fl&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">s</span><span class="p">,</span>
+          <span class="n">p</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.c_fr&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;c_fr&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">s</span><span class="p">,</span>
+          <span class="n">p</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.c_rl&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;c_rl&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">s</span><span class="p">,</span>
+          <span class="n">p</span><span class="o">.</span><span class="n">get_val</span><span class="p">(</span><span class="s1">&#39;traj.phase0.timeseries.c_rr&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;c_rr&#39;</span><span class="p">)</span>
+
+<span class="n">axes</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">power</span> <span class="o">/</span> <span class="n">pmax</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Power&#39;</span><span class="p">)</span>
+
+<span class="n">axes</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">1.04</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="n">loc</span><span class="o">=</span><span class="s2">&quot;center left&quot;</span><span class="p">)</span>
+<span class="n">axes</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;s (m)&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Performance constraints&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+<span class="n">axes</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">s_final</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../../_images/b4c3fcce3c825f53b77a81a38111ea7c5634314770d08020dc5866d7e9c58bfa.png" src="../../_images/b4c3fcce3c825f53b77a81a38111ea7c5634314770d08020dc5866d7e9c58bfa.png" />
+<img alt="../../_images/cdf9a2e83f8f17bdc875ae063d03cb1352de055e790c94df90794271f854710d.png" src="../../_images/cdf9a2e83f8f17bdc875ae063d03cb1352de055e790c94df90794271f854710d.png" />
+<img alt="../../_images/c342b73fced66ba9ae82b8181183c9486fe3323d35c627d95abec57e58601ec4.png" src="../../_images/c342b73fced66ba9ae82b8181183c9486fe3323d35c627d95abec57e58601ec4.png" />
+<img alt="../../_images/15c73d4639e9c0d5308073e6aa33c4ea3c69c07015f183e62455268bfaceac40.png" src="../../_images/15c73d4639e9c0d5308073e6aa33c4ea3c69c07015f183e62455268bfaceac40.png" />
+<img alt="../../_images/fc302abdce3ab7788125dd4af3d53d59ad605aad20916e9dbe415cddf29b0158.png" src="../../_images/fc302abdce3ab7788125dd4af3d53d59ad605aad20916e9dbe415cddf29b0158.png" />
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[[   0.        ]
+ [  12.44822972]
+ [  24.89645943]
+ [  24.89645943]
+ [  37.34468915]
+ [  49.79291886]
+ [  49.79291886]
+ [  62.24114858]
+ [  74.68937829]
+ [  74.68937829]
+ [  87.13760801]
+ [  99.58583772]
+ [  99.58583772]
+ [ 112.03406744]
+ [ 124.48229715]
+ [ 124.48229715]
+ [ 136.93052687]
+ [ 149.37875658]
+ [ 149.37875658]
+ [ 161.8269863 ]
+ [ 174.27521601]
+ [ 174.27521601]
+ [ 186.72344573]
+ [ 199.17167544]
+ [ 199.17167544]
+ [ 211.61990516]
+ [ 224.06813487]
+ [ 224.06813487]
+ [ 236.51636459]
+ [ 248.9645943 ]
+ [ 248.9645943 ]
+ [ 261.41282402]
+ [ 273.86105373]
+ [ 273.86105373]
+ [ 286.30928345]
+ [ 298.75751316]
+ [ 298.75751316]
+ [ 311.20574288]
+ [ 323.65397259]
+ [ 323.65397259]
+ [ 336.10220231]
+ [ 348.55043202]
+ [ 348.55043202]
+ [ 360.99866174]
+ [ 373.44689145]
+ [ 373.44689145]
+ [ 385.89512117]
+ [ 398.34335088]
+ [ 398.34335088]
+ [ 410.7915806 ]
+ [ 423.23981031]
+ [ 423.23981031]
+ [ 435.68804003]
+ [ 448.13626974]
+ [ 448.13626974]
+ [ 460.58449946]
+ [ 473.03272917]
+ [ 473.03272917]
+ [ 485.48095889]
+ [ 497.9291886 ]
+ [ 497.9291886 ]
+ [ 510.37741832]
+ [ 522.82564803]
+ [ 522.82564803]
+ [ 535.27387775]
+ [ 547.72210746]
+ [ 547.72210746]
+ [ 560.17033718]
+ [ 572.61856689]
+ [ 572.61856689]
+ [ 585.06679661]
+ [ 597.51502632]
+ [ 597.51502632]
+ [ 609.96325604]
+ [ 622.41148575]
+ [ 622.41148575]
+ [ 634.85971547]
+ [ 647.30794518]
+ [ 647.30794518]
+ [ 659.7561749 ]
+ [ 672.20440461]
+ [ 672.20440461]
+ [ 684.65263433]
+ [ 697.10086404]
+ [ 697.10086404]
+ [ 709.54909376]
+ [ 721.99732347]
+ [ 721.99732347]
+ [ 734.44555319]
+ [ 746.8937829 ]
+ [ 746.8937829 ]
+ [ 759.34201262]
+ [ 771.79024233]
+ [ 771.79024233]
+ [ 784.23847205]
+ [ 796.68670176]
+ [ 796.68670176]
+ [ 809.13493148]
+ [ 821.58316119]
+ [ 821.58316119]
+ [ 834.03139091]
+ [ 846.47962062]
+ [ 846.47962062]
+ [ 858.92785034]
+ [ 871.37608005]
+ [ 871.37608005]
+ [ 883.82430977]
+ [ 896.27253948]
+ [ 896.27253948]
+ [ 908.7207692 ]
+ [ 921.16899891]
+ [ 921.16899891]
+ [ 933.61722863]
+ [ 946.06545834]
+ [ 946.06545834]
+ [ 958.51368806]
+ [ 970.96191777]
+ [ 970.96191777]
+ [ 983.41014749]
+ [ 995.8583772 ]
+ [ 995.8583772 ]
+ [1008.30660692]
+ [1020.75483663]
+ [1020.75483663]
+ [1033.20306635]
+ [1045.65129606]
+ [1045.65129606]
+ [1058.09952578]
+ [1070.54775549]
+ [1070.54775549]
+ [1082.99598521]
+ [1095.44421492]
+ [1095.44421492]
+ [1107.89244464]
+ [1120.34067435]
+ [1120.34067435]
+ [1132.78890407]
+ [1145.23713378]
+ [1145.23713378]
+ [1157.6853635 ]
+ [1170.13359321]
+ [1170.13359321]
+ [1182.58182293]
+ [1195.03005264]
+ [1195.03005264]
+ [1207.47828236]
+ [1219.92651207]
+ [1219.92651207]
+ [1232.37474179]
+ [1244.8229715 ]]
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./examples/racecar"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../multibranch_trajectory/multibranch_trajectory.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Multibranch Trajectory</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../reentry/reentry.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Single-Phase Space Shuttle Reentry</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#background-of-the-problem">Background of the problem</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#optimizing-trajectories-for-cyclic-events">Optimizing trajectories for cyclic events</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#using-an-independent-variable-other-than-time">Using an independent variable other than time</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#definition-of-the-problem">Definition of the problem</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#table-1-optimization-problem-formulation">Table 1. Optimization problem formulation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#table-2-vehicle-parameters">Table 2. Vehicle parameters</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By The Dymos Development Team
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

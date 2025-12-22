@@ -1,0 +1,960 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Organizing Phases into Trajectories &#8212; Dymos</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../_static/myfile.css?v=9678755d" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'features/trajectories/trajectories';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Exploiting Sparsity for Faster Derivative Calculation" href="../exploiting_sparsity.html" />
+    <link rel="prev" title="Calculation Expressions" href="../phases/calc_expressions.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/dymos_logo.png" class="logo__image only-light" alt="Dymos - Home"/>
+    <script>document.write(`<img src="../../_static/dymos_logo.png" class="logo__image only-dark" alt="Dymos - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../../index.html">
+                    Multidisciplinary Optimal Control Library
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Installation</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installing Dymos</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/optimal_control.html">Optimal Control</a></li>
+
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/transcriptions.html">Optimal Control Transcriptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/defining_odes.html">Defining ODEs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/collocation.html">What is collocation?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/intro_to_dymos/intro_ivp.html">Modeling Dynamic Systems with Dymos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/intro_to_dymos/intro_segments.html">Segments of Phases</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples and Tutorials</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../examples/examples.html">Dymos by Example</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/brachistochrone/brachistochrone.html">The Brachistochrone</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/brachistochrone/brachistochrone_upstream_init_duration_states.html">The Brachistochrone with externally-sourced initial state values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/vanderpol/vanderpol.html">The Van der Pol Oscillator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/balanced_field/balanced_field.html">Aircraft Balanced Field Length Calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/balanced_field/balanced_field_funccomp.html">Balanced Field Length using OpenMDAO’s Function Wrapping Components.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/bryson_denham/bryson_denham.html">The Bryson-Denham Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/commercial_aircraft/commercial_aircraft.html">Commercial Aircraft Range Maximization by Differential Inclusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/double_integrator/double_integrator.html">Double Integrator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/hull/hull_problem.html">The Hull Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/hypersensitive/hypersensitive.html">Hyper-Sensitive Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/finite_burn_orbit_raise/finite_burn_orbit_raise.html">Two-Burn Orbit Raise</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/length_constrained_brachistochrone/length_constrained_brachistochrone.html">The Length-Constrained Brachistochrone</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/min_time_climb/min_time_climb.html">Supersonic Interceptor Minimum Time Climb</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/mountain_car/mountain_car.html">The Mountain Car Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/moon_landing/moon_landing.html">Moon Landing Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/multi_phase_cannonball/multi_phase_cannonball.html">Multi-Phase Cannonball</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/multibranch_trajectory/multibranch_trajectory.html">Multibranch Trajectory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/racecar/racecar.html">Race car Lap Simulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/reentry/reentry.html">Single-Phase Space Shuttle Reentry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/ssto_earth/ssto_earth.html">SSTO Earth Launch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/ssto_moon_linear_tangent/ssto_moon_linear_tangent.html">SSTO Lunar Ascent with Linear Tangent Guidance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/ssto_moon_polynomial_controls/ssto_moon_polynomial_controls.html">SSTO Lunar Ascent with Polynomial Controls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/robertson_problem/robertson_problem.html">The Robertson Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/water_rocket/water_rocket.html">Water Rocket</a></li>
+
+<li class="toctree-l2"><a class="reference internal" href="../../examples/cart_pole/cart_pole.html">Cart-Pole Optimal Control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/brachistochrone/brachistochrone_tandem_phases.html">Brachistochrone with tandem phases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/implicit_duration/brachistochrone_implicit_duration.html">Boundary Balance</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Feature Reference</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../phases/phases_list.html">Phases</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../phases/phases.html">Phases of a Trajectory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../phases/analytic_phases.html">Analytic Phases in Dymos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../phases/segments.html">Segments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../phases/variables.html">Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../phases/constraints.html">Constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../phases/objective.html">Objective</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../phases/timeseries.html">Timeseries Outputs</a></li>
+
+<li class="toctree-l2"><a class="reference internal" href="../phases/calc_expressions.html">Calculation Expressions</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Organizing Phases into Trajectories</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../exploiting_sparsity.html">Exploiting Sparsity for Faster Derivative Calculation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../plotting.html">Plotting Timeseries</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Frequently Asked Questions</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../faq/faq.html">Frequently Asked Questions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/add_ode_output_to_timeseries.html">How do I add an ODE output to the timeseries outputs?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/connect_scalar_parameters_to_ode.html">How do I connect a scalar input to the ODE?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/upstream_analysis.html">How do I connect the outputs of an upstream analysis as inputs to Dymos?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/downstream_analysis.html">How do I connect the outputs of Dymos to a downstream analysis?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/tandem_phases.html">How do I run two phases parallel-in-time?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/use_partial_coloring.html">How can I more efficiently use finite-differenced components in the ODE?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq/debugging.html">How can I debug models when things go wrong?</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Dymos API Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../api/api.html">Dymos Reference API</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../api/run_problem_function.html">The run_problem function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/phase_api.html">Phase Options</a></li>
+
+<li class="toctree-l2"><a class="reference internal" href="../../api/transcriptions_api.html">The Transcriptions API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/trajectory_api.html">The Trajectory API</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../contributing/contributing.html">Contributing to Dymos</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-launch-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Launch interactive content">
+    <i class="fas fa-rocket"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://colab.research.google.com/github/OpenMDAO/dymos/blob/master/docs/dymos_book/features/trajectories/trajectories.ipynb" target="_blank"
+   class="btn btn-sm dropdown-item"
+   title="Launch on Colab"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  
+    <img alt="Colab logo" src="../../_static/images/logo_colab.png">
+  </span>
+<span class="btn__text-container">Colab</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/OpenMDAO/dymos" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/OpenMDAO/dymos/issues/new?title=Issue%20on%20page%20%2Ffeatures/trajectories/trajectories.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../../_sources/features/trajectories/trajectories.ipynb" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.ipynb</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Organizing Phases into Trajectories</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#instantiating-a-trajectory">Instantiating a Trajectory</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#adding-phases">Adding Phases</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#defining-phase-linkages">Defining Phase Linkages</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#add-linkage-constraint">add_linkage_constraint</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#link-phases">link_phases</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-of-using-the-link-phases-method">Examples of using the <code class="docutils literal notranslate"><span class="pre">link_phases</span></code> method</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#trajectory-level-parameters">Trajectory-Level Parameters</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#explicit-simulation-of-trajectories">Explicit Simulation of Trajectories</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="organizing-phases-into-trajectories">
+<h1>Organizing Phases into Trajectories<a class="headerlink" href="#organizing-phases-into-trajectories" title="Link to this heading">#</a></h1>
+<p>The majority of real-world use cases of optimal control involve complex trajectories that cannot be modeled with a single phase.
+For instance, different phases of a trajectory may have different equations of motion, different control parameterizations, or different path constraints.
+Phases are also necessary if the user wishes to impose intermediate constraints upon some variable, by imposing them as boundary constraints at a phase junction.</p>
+<p>The <em>Trajectory</em> class in Dymos is intended to simplify the development of multi-phase problems.
+It serves as a Group which contains the various phases belonging to the trajectory, and it provides linkage constraints that dictate how phases are linked together.
+This enables trajectories that are not only a sequence of phases in time, but may include branching behavior, allowing us to do things like track/constrain the path of a jettisoned rocket stage.</p>
+<p>It supports a <code class="docutils literal notranslate"><span class="pre">get_values</span></code> method similar to that of Phases that allows the user to retrieve the value of a variable within the trajectory.
+When verifying an answer with explicit simulation, the <code class="docutils literal notranslate"><span class="pre">simulate</span></code> method of Trajectory can simulate all of its member phases in parallel, providing a significant performance improvement for some cases.</p>
+<section id="instantiating-a-trajectory">
+<h2>Instantiating a Trajectory<a class="headerlink" href="#instantiating-a-trajectory" title="Link to this heading">#</a></h2>
+<p>Instantiating a Trajectory is simple.  Simply invoke <code class="docutils literal notranslate"><span class="pre">Trajectory()</span></code>.  The trajectory object
+itself is an OpenMDAO <code class="docutils literal notranslate"><span class="pre">Group</span></code> which serves as a container for its constituent Phases.</p>
+<ul class="simple">
+<li><p>phases
+An OpenMDAO <code class="docutils literal notranslate"><span class="pre">Group</span></code> or <code class="docutils literal notranslate"><span class="pre">ParallelGroup</span></code> holding the member phases</p></li>
+<li><p>linkages
+A Dymos <code class="docutils literal notranslate"><span class="pre">PhaseLinkageComp</span></code> that manages all of the linkage constraints that dictate how the phases are connected.</p></li>
+</ul>
+</section>
+<section id="adding-phases">
+<h2>Adding Phases<a class="headerlink" href="#adding-phases" title="Link to this heading">#</a></h2>
+<p>Phases are added to a Trajectory using the <code class="docutils literal notranslate"><span class="pre">add_phase</span></code> method.</p>
+<blockquote>
+<div><dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">Trajectory.</span></span><span class="sig-name descname"><span class="pre">add_phase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/dymos/trajectory/trajectory.html#Trajectory.add_phase"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Add a phase to the trajectory.</p>
+<p>Phases will be added to the Trajectory’s <cite>phases</cite> subgroup.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>name</strong><span class="classifier">str</span></dt><dd><p>The name of the phase being added.</p>
+</dd>
+<dt><strong>phase</strong><span class="classifier">dymos Phase object</span></dt><dd><p>The Phase object to be added.</p>
+</dd>
+<dt><strong>**kwargs</strong><span class="classifier">dict</span></dt><dd><p>Additional arguments when adding the phase to the trajectory.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>PhaseBase</dt><dd><p>The Phase object added to the trajectory.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</div></blockquote>
+</section>
+<section id="defining-phase-linkages">
+<h2>Defining Phase Linkages<a class="headerlink" href="#defining-phase-linkages" title="Link to this heading">#</a></h2>
+<p>Having added phases to the Trajectory, they now exist as independent Groups within the OpenMDAO model.
+In order to enforce continuity among certain variables across phases, the user must declare which variables are to be continuous in value at each phase boundary.
+There are two methods in dymos which provide this functionality.
+The <code class="docutils literal notranslate"><span class="pre">add_linkage_constraint</span></code> method provides a very general way of coupling two phases together.
+It does so by generating a constraint of the following form:</p>
+<div class="amsmath math notranslate nohighlight" id="equation-7967e4ea-9ff7-44ea-ab5e-c7fd2ba9fd5f">
+<span class="eqno">(108)<a class="headerlink" href="#equation-7967e4ea-9ff7-44ea-ab5e-c7fd2ba9fd5f" title="Permalink to this equation">#</a></span>\[\begin{align}
+    c = \mathrm{sign}_a \mathrm{var}_a + \mathrm{sign}_b \mathrm{var}_b
+\end{align}\]</div>
+<p>Method <code class="docutils literal notranslate"><span class="pre">add_linkage_constraint</span></code> lets the user specify the variables and phases to be compared for this constraint, as well as the location of the variable in each phase (either ‘initial’ or ‘final’)
+By default this method is setup to provide continuity in a variable between two phases:</p>
+<ul class="simple">
+<li><p>the sign of variable <code class="docutils literal notranslate"><span class="pre">a</span></code> is +1 while the sign of variable <code class="docutils literal notranslate"><span class="pre">b</span></code> is -1.</p></li>
+<li><p>the location of variable <code class="docutils literal notranslate"><span class="pre">a</span></code> is ‘final’ while the location of variable <code class="docutils literal notranslate"><span class="pre">b</span></code> is ‘initial’.</p></li>
+<li><p>the default value of the constrained quantity is 0.0.</p></li>
+</ul>
+<p>In this way, the default behavior constrains the final value of some variable in phase <code class="docutils literal notranslate"><span class="pre">a</span></code> to be the same as the initial value of some variable in phase <code class="docutils literal notranslate"><span class="pre">b</span></code>.
+Other values for these options can provide other functionality.
+For instance, to simulate a mass jettison, we could require that the initial value of <code class="docutils literal notranslate"><span class="pre">mass</span></code> in phase <code class="docutils literal notranslate"><span class="pre">b</span></code> be 1000 kg less than the value of mass at the end of phase <code class="docutils literal notranslate"><span class="pre">a</span></code>.
+Providing arguments <code class="docutils literal notranslate"><span class="pre">equals</span> <span class="pre">=</span> <span class="pre">1000,</span> <span class="pre">units='kg</span></code> would achieve this.</p>
+<p>Similarly, specifying other values for the locations of the variables in each phase can be used to ensure that two phases start or end at the same condition - such as the case in a branching trajectory or a rendezvous.</p>
+<p>While <code class="docutils literal notranslate"><span class="pre">add_linkage_constraint</span></code> gives the user a powerful capability, providing simple state and time continuity across multiple phases would be a very verbose undertaking using this method.
+The <code class="docutils literal notranslate"><span class="pre">link_phases</span></code> method is intended to simplify this process.
+In the finite-burn orbit raising example, there are three phases:  <code class="docutils literal notranslate"><span class="pre">burn1</span></code>, <code class="docutils literal notranslate"><span class="pre">coast</span></code>, <code class="docutils literal notranslate"><span class="pre">burn2</span></code>.
+This case is somewhat unusual in that the thrust acceleration is modeled as a state variable.<br />
+The acceleration needs to be zero in the coast phase, but continuous between <code class="docutils literal notranslate"><span class="pre">burn1</span></code> and <code class="docutils literal notranslate"><span class="pre">burn2</span></code>, assuming no mass was jettisoned during the coast and that the thrust magnitude doesn’t change.</p>
+<section id="add-linkage-constraint">
+<h3>add_linkage_constraint<a class="headerlink" href="#add-linkage-constraint" title="Link to this heading">#</a></h3>
+<blockquote>
+<div><dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">Trajectory.</span></span><span class="sig-name descname"><span class="pre">add_linkage_constraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phase_a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc_a</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'final'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc_b</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'initial'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sign_a</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">unspecified</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sign_b</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">unspecified</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mult_a</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">unspecified</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mult_b</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">unspecified</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">unspecified</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">equals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linear</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connected</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/dymos/trajectory/trajectory.html#Trajectory.add_linkage_constraint"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Explicitly add a single phase linkage constraint.</p>
+<p>Phase linkage constraints are enforced by constraining the following equation:</p>
+<p>mult_a * var_a + mult_b * var_b</p>
+<p>The resulting value of this equation is constrained.  This can satisfy ‘coupling’ or
+‘linkage’ conditions across phase boundaries:  enforcing continuity,
+common initial conditions, or common final conditions.</p>
+<p>With default values, this equation can be used to enforce variable continuity at phase
+boundaries.  For instance, constraining some variable <cite>x</cite> (either a state, control,
+parameter, or output of the ODE) to have the same value at the final point of phase ‘foo’
+and the initial point of phase ‘bar’ is accomplished by:</p>
+<p><code class="docutils literal notranslate"><span class="pre">`</span>
+<span class="pre">add_linkage_constraint('foo',</span> <span class="pre">'bar',</span> <span class="pre">'x',</span> <span class="pre">'x')</span>
+<span class="pre">`</span></code></p>
+<p>We may sometimes want two phases to have the same value of some variable at the start of
+each phase:</p>
+<p><code class="docutils literal notranslate"><span class="pre">`</span>
+<span class="pre">add_linkage_constraint('foo',</span> <span class="pre">'bar',</span> <span class="pre">'x',</span> <span class="pre">'x',</span> <span class="pre">loc_a='initial',</span> <span class="pre">loc_b='initial')</span>
+<span class="pre">`</span></code></p>
+<p>(Here the specification of loc_b is unnecessary but helps in the clarity of whats going on.)</p>
+<p>Or perhaps a phase has cyclic behavior.  We may not know the exact value of some variable
+<cite>x</cite> at the start and end of the phase <cite>foo</cite>, but it must be the same value at each point.</p>
+<p><code class="docutils literal notranslate"><span class="pre">`</span>
+<span class="pre">add_linkage_constraint('foo',</span> <span class="pre">'foo',</span> <span class="pre">'x',</span> <span class="pre">'x')</span>
+<span class="pre">`</span></code></p>
+<p>If <cite>lower</cite>, <cite>upper</cite>, and <cite>equals</cite> are all <cite>None</cite>, then dymos will use <cite>equals=0</cite> by default.
+If the continuity condition is limited by some bounds instead, lower and upper can be used.
+For instance, perhaps the velocity (‘vel’) is allowed to have an impulsive change within
+a certain magnitude between two phases:</p>
+<p><code class="docutils literal notranslate"><span class="pre">`</span>
+<span class="pre">add_linkage_constraint('foo',</span> <span class="pre">'bar',</span> <span class="pre">'vel',</span> <span class="pre">'vel',</span> <span class="pre">lower=-100,</span> <span class="pre">upper=100,</span> <span class="pre">units='m/s')</span>
+<span class="pre">`</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>phase_a</strong><span class="classifier">str</span></dt><dd><p>The first phase in the linkage constraint.</p>
+</dd>
+<dt><strong>phase_b</strong><span class="classifier">str</span></dt><dd><p>The second phase in the linkage constraint.</p>
+</dd>
+<dt><strong>var_a</strong><span class="classifier">str</span></dt><dd><p>The linked variable from the first phase in the linkage constraint.</p>
+</dd>
+<dt><strong>var_b</strong><span class="classifier">str</span></dt><dd><p>The linked variable from the second phase in the linkage constraint.</p>
+</dd>
+<dt><strong>loc_a</strong><span class="classifier">str</span></dt><dd><p>The location of the variable in the first phase of the linkage constraint (one of
+‘initial’ or ‘final’).</p>
+</dd>
+<dt><strong>loc_b</strong><span class="classifier">str</span></dt><dd><p>The location of the variable in the second phase of the linkage constraint (one of
+‘initial’ or ‘final’).</p>
+</dd>
+<dt><strong>sign_a</strong><span class="classifier">float</span></dt><dd><p>The multiplier applied to the variable from the first phase in the linkage constraint.
+This argument is deprecated in favor of mult_a.</p>
+</dd>
+<dt><strong>sign_b</strong><span class="classifier">float</span></dt><dd><p>The multiplier applied to the variable from the second phase in the linkage constraint.
+This argument is deprecated in favor of mult_b.</p>
+</dd>
+<dt><strong>mult_a</strong><span class="classifier">float</span></dt><dd><p>The multiplier applied to the variable from the first phase in the linkage constraint.</p>
+</dd>
+<dt><strong>mult_b</strong><span class="classifier">float</span></dt><dd><p>The multiplier applied to the variable from the second phase in the linkage constraint.</p>
+</dd>
+<dt><strong>units</strong><span class="classifier">str or None or _unspecified</span></dt><dd><p>Units of the linkage. If _unspecified, dymos will use the units from the variable
+in the first phase of the linkage. Units of the two specified variables must be
+compatible.</p>
+</dd>
+<dt><strong>lower</strong><span class="classifier">float or array or None</span></dt><dd><p>The lower bound applied as a constraint on the linkage equation.</p>
+</dd>
+<dt><strong>upper</strong><span class="classifier">float or array or None</span></dt><dd><p>The upper bound applied as a constraint on the linkage equation.</p>
+</dd>
+<dt><strong>equals</strong><span class="classifier">float or array or None</span></dt><dd><p>Specifies a targeted value for an equality constraint on the linkage equation.</p>
+</dd>
+<dt><strong>scaler</strong><span class="classifier">float or array or None</span></dt><dd><p>The scaler of the linkage constraint.</p>
+</dd>
+<dt><strong>adder</strong><span class="classifier">float or array or None</span></dt><dd><p>The adder of the linkage constraint.</p>
+</dd>
+<dt><strong>ref0</strong><span class="classifier">float or array or None</span></dt><dd><p>The zero-reference value of the linkage constraint.</p>
+</dd>
+<dt><strong>ref</strong><span class="classifier">float or array or None</span></dt><dd><p>The unit-reference value of the linkage constraint.</p>
+</dd>
+<dt><strong>linear</strong><span class="classifier">bool</span></dt><dd><p>If True, treat this variable as a linear constraint, otherwise False. Linear
+constraints should only be applied if the variable on each end of the linkage is a
+design variable or a linear function of one.</p>
+</dd>
+<dt><strong>connected</strong><span class="classifier">bool</span></dt><dd><p>If True, this constraint is enforced by direct connection rather than a constraint
+for the optimizer. This is only valid for states and time.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</div></blockquote>
+</section>
+<section id="link-phases">
+<h3>link_phases<a class="headerlink" href="#link-phases" title="Link to this heading">#</a></h3>
+<blockquote>
+<div><dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">Trajectory.</span></span><span class="sig-name descname"><span class="pre">link_phases</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phases</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vars</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">locs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('final',</span> <span class="pre">'initial')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connected</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">unspecified</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linear</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/dymos/trajectory/trajectory.html#Trajectory.link_phases"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Specify that phases in the given sequence are to assume continuity of the given variables.</p>
+<p>This method caches the phase linkages, and may be called multiple times to express more
+complex behavior (branching phases, phases only continuous in some variables, etc).</p>
+<p>The location at which the variables should be coupled in the two phases are provided
+with one of two strings:</p>
+<ul class="simple">
+<li><p>‘final’ specifies the value at the end of the phase (at time t_initial + t_duration)</p></li>
+<li><p>‘initial’ specifies the value at the start of the phase (at time t_initial)</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>phases</strong><span class="classifier">sequence of str</span></dt><dd><p>The names of the phases in this trajectory to be sequentially linked.</p>
+</dd>
+<dt><strong>vars</strong><span class="classifier">sequence of str</span></dt><dd><p>The variables in the phases to be linked, or ‘*’.  Providing ‘*’ will link time and all
+states.  Linking control values or rates requires them to be listed explicitly.</p>
+</dd>
+<dt><strong>locs</strong><span class="classifier">tuple of str</span></dt><dd><p>A two-element tuple of a location specification.  For every pair in
+phases, the location specification refers to which location in the first phase is
+connected to which location in the second phase.  If the user wishes to specify
+different locations for different phase pairings, those phase pairings must be made
+in separate calls to link_phases.</p>
+</dd>
+<dt><strong>connected</strong><span class="classifier">bool</span></dt><dd><p>Set to True to directly connect the phases being linked. Otherwise, create constraints
+for the optimizer to solve.</p>
+</dd>
+<dt><strong>units</strong><span class="classifier">str or None or _unspecified</span></dt><dd><p>Units of the linkage.  If _unspecified, dymos will use the units from the variable
+in the first phase of the linkage.  Units of the two specified variables must be
+compatible.</p>
+</dd>
+<dt><strong>scaler</strong><span class="classifier">float or array or None</span></dt><dd><p>The scaler of the linkage constraint.</p>
+</dd>
+<dt><strong>adder</strong><span class="classifier">float or array or None</span></dt><dd><p>The adder of the linkage constraint.</p>
+</dd>
+<dt><strong>ref0</strong><span class="classifier">float or array or None</span></dt><dd><p>The zero-reference value of the linkage constraint.</p>
+</dd>
+<dt><strong>ref</strong><span class="classifier">float or array or None</span></dt><dd><p>The unit-reference value of the linkage constraint.</p>
+</dd>
+<dt><strong>linear</strong><span class="classifier">bool</span></dt><dd><p>If True, treat this variable as a linear constraint, otherwise False.  Linear
+constraints should only be applied if the variable on each end of the linkage is a
+design variable or a linear function of one.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_linkage_constraint</span></code></dt><dd><p>Explicitly add a single phase linkage constraint.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+</div></blockquote>
+</section>
+</section>
+<section id="examples-of-using-the-link-phases-method">
+<h2>Examples of using the <code class="docutils literal notranslate"><span class="pre">link_phases</span></code> method<a class="headerlink" href="#examples-of-using-the-link-phases-method" title="Link to this heading">#</a></h2>
+<p><strong>Typical Phase Linkage Sequence</strong></p>
+<p>A typical phase linkage sequence, where all phases use the same ODE (and therefore have
+the same states), are simply linked sequentially in time.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">t</span><span class="o">.</span><span class="n">link_phases</span><span class="p">([</span><span class="s1">&#39;phase1&#39;</span><span class="p">,</span> <span class="s1">&#39;phase2&#39;</span><span class="p">,</span> <span class="s1">&#39;phase3&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p><strong>Adding an Additional Linkage</strong></p>
+<p>If the user wants some control variable, <code class="docutils literal notranslate"><span class="pre">u</span></code>, to be continuous in value between <code class="docutils literal notranslate"><span class="pre">phase2</span></code> and
+<code class="docutils literal notranslate"><span class="pre">phase3</span></code> only, they could indicate that with the following code:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">t</span><span class="o">.</span><span class="n">link_phases</span><span class="p">([</span><span class="s1">&#39;phase2&#39;</span><span class="p">,</span> <span class="s1">&#39;phase3&#39;</span><span class="p">],</span> <span class="nb">vars</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;u&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p><strong>Branching Trajectories</strong></p>
+<p>For a more complex example, consider the case where there are two phases which branch off
+from the same point, such as the case of a jettisoned stage.  The nominal trajectory
+consists of the phase sequence <code class="docutils literal notranslate"><span class="pre">['a',</span> <span class="pre">'b',</span> <span class="pre">'c']</span></code>.  Let phase <code class="docutils literal notranslate"><span class="pre">['d']</span></code> be the phase that tracks
+the jettisoned component to its impact with the ground.  The linkages in this case
+would be defined as:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">t</span><span class="o">.</span><span class="n">link_phases</span><span class="p">([</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">])</span>
+<span class="n">t</span><span class="o">.</span><span class="n">link_phases</span><span class="p">([</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p><strong>Specifying Linkage Locations</strong></p>
+<p>Phase linkages assume that, for each pair, the state/control values at the end (<code class="docutils literal notranslate"><span class="pre">'final'</span></code>)
+of the first phase are linked to the state/control values at the start of the second phase
+(<code class="docutils literal notranslate"><span class="pre">'initial'</span></code>).</p>
+<p>The user can override this behavior, but they must specify a pair of location strings for
+each pair given in <code class="docutils literal notranslate"><span class="pre">phases</span></code>.  For instance, in the following example phases <code class="docutils literal notranslate"><span class="pre">a</span></code> and <code class="docutils literal notranslate"><span class="pre">b</span></code>
+have the same initial time and state, but phase <code class="docutils literal notranslate"><span class="pre">c</span></code> follows phase <code class="docutils literal notranslate"><span class="pre">b</span></code>.  Note since there
+are three phases provided, there are two linkages and thus two pairs of location
+specifiers given.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">t</span><span class="o">.</span><span class="n">link_phases</span><span class="p">([</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">],</span> <span class="n">locs</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;initial&#39;</span><span class="p">,</span> <span class="s1">&#39;initial&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;final&#39;</span><span class="p">,</span> <span class="s1">&#39;initial&#39;</span><span class="p">)])</span>
+</pre></div>
+</div>
+</section>
+<section id="trajectory-level-parameters">
+<h2>Trajectory-Level Parameters<a class="headerlink" href="#trajectory-level-parameters" title="Link to this heading">#</a></h2>
+<p>Often times, there are parameters which apply to the entirety of a trajectory that potentially need to be optimized.
+If we implemented these as parameters within each phase individually, we would need some constraints to ensure that they held the same value within each phase.
+To avoid this complexity, Dymos Trajectory objects support their own Parameters.</p>
+<p>Like their Phase-based counterparts, Trajectory parameters may be design variables for the problem or they may be inputs to the trajectory from external sources.</p>
+<p>When using Trajectory parameters, their values are connected to each phase as an Input Parameter within the Phase.
+Because ODEs in different phases may have different names for parameters (e.g. ‘mass’, ‘m’, ‘m_total’, etc) Dymos allows the user to specify the targeted ODE parameters on a phase-by-phase basis using the <code class="docutils literal notranslate"><span class="pre">targets</span></code> and <code class="docutils literal notranslate"><span class="pre">target_params</span></code> option.
+It can take on the following values.</p>
+<ul class="simple">
+<li><p>If <code class="docutils literal notranslate"><span class="pre">targets</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code> the trajectory parameter will be connected to the phase input parameter of the same name in each phase, if it exists (otherwise it is not connected to that phase).</p></li>
+<li><p>Otherwise targets should be specified as a dictionary. And the behavior depends on the value associated with each phase name:</p>
+<ul>
+<li><p>If the phase name is not in the given dictionary, attempt to connect to an existing parameter of the same name in that phase.</p></li>
+<li><p>If the associated value is None, explicitly omit a connection to that phase.</p></li>
+<li><p>If the associated value is a string, connect to an existing input parameter whose name is given by the string in that phase.</p></li>
+<li><p>If the associated value is a Sequence, create an input parameter in that phase connected to the ODE targets given by the Sequence.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="explicit-simulation-of-trajectories">
+<h2>Explicit Simulation of Trajectories<a class="headerlink" href="#explicit-simulation-of-trajectories" title="Link to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">simulate</span></code> method on Trajectory is similar to that of the <code class="docutils literal notranslate"><span class="pre">simulate</span></code> method of Phases.  When
+invoked, it will perform a simulation of each Phase in the trajectory.</p>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./features/trajectories"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../phases/calc_expressions.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Calculation Expressions</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../exploiting_sparsity.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Exploiting Sparsity for Faster Derivative Calculation</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#instantiating-a-trajectory">Instantiating a Trajectory</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#adding-phases">Adding Phases</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#defining-phase-linkages">Defining Phase Linkages</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#add-linkage-constraint">add_linkage_constraint</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#link-phases">link_phases</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-of-using-the-link-phases-method">Examples of using the <code class="docutils literal notranslate"><span class="pre">link_phases</span></code> method</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#trajectory-level-parameters">Trajectory-Level Parameters</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#explicit-simulation-of-trajectories">Explicit Simulation of Trajectories</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By The Dymos Development Team
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

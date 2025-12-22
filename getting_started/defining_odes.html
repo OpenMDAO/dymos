@@ -1,0 +1,1151 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Defining ODEs &#8212; Dymos</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/myfile.css?v=9678755d" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'getting_started/defining_odes';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="What is collocation?" href="collocation.html" />
+    <link rel="prev" title="Optimal Control Transcriptions" href="transcriptions.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/dymos_logo.png" class="logo__image only-light" alt="Dymos - Home"/>
+    <script>document.write(`<img src="../_static/dymos_logo.png" class="logo__image only-dark" alt="Dymos - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../index.html">
+                    Multidisciplinary Optimal Control Library
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Installation</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installing Dymos</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="optimal_control.html">Optimal Control</a></li>
+
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="transcriptions.html">Optimal Control Transcriptions</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Defining ODEs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="collocation.html">What is collocation?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro_to_dymos/intro_ivp.html">Modeling Dynamic Systems with Dymos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro_to_dymos/intro_segments.html">Segments of Phases</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples and Tutorials</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../examples/examples.html">Dymos by Example</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/brachistochrone/brachistochrone.html">The Brachistochrone</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/brachistochrone/brachistochrone_upstream_init_duration_states.html">The Brachistochrone with externally-sourced initial state values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/vanderpol/vanderpol.html">The Van der Pol Oscillator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/balanced_field/balanced_field.html">Aircraft Balanced Field Length Calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/balanced_field/balanced_field_funccomp.html">Balanced Field Length using OpenMDAO’s Function Wrapping Components.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/bryson_denham/bryson_denham.html">The Bryson-Denham Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/commercial_aircraft/commercial_aircraft.html">Commercial Aircraft Range Maximization by Differential Inclusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/double_integrator/double_integrator.html">Double Integrator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/hull/hull_problem.html">The Hull Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/hypersensitive/hypersensitive.html">Hyper-Sensitive Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/finite_burn_orbit_raise/finite_burn_orbit_raise.html">Two-Burn Orbit Raise</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/length_constrained_brachistochrone/length_constrained_brachistochrone.html">The Length-Constrained Brachistochrone</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/min_time_climb/min_time_climb.html">Supersonic Interceptor Minimum Time Climb</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/mountain_car/mountain_car.html">The Mountain Car Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/moon_landing/moon_landing.html">Moon Landing Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/multi_phase_cannonball/multi_phase_cannonball.html">Multi-Phase Cannonball</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/multibranch_trajectory/multibranch_trajectory.html">Multibranch Trajectory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/racecar/racecar.html">Race car Lap Simulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/reentry/reentry.html">Single-Phase Space Shuttle Reentry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/ssto_earth/ssto_earth.html">SSTO Earth Launch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/ssto_moon_linear_tangent/ssto_moon_linear_tangent.html">SSTO Lunar Ascent with Linear Tangent Guidance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/ssto_moon_polynomial_controls/ssto_moon_polynomial_controls.html">SSTO Lunar Ascent with Polynomial Controls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/robertson_problem/robertson_problem.html">The Robertson Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/water_rocket/water_rocket.html">Water Rocket</a></li>
+
+<li class="toctree-l2"><a class="reference internal" href="../examples/cart_pole/cart_pole.html">Cart-Pole Optimal Control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/brachistochrone/brachistochrone_tandem_phases.html">Brachistochrone with tandem phases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/implicit_duration/brachistochrone_implicit_duration.html">Boundary Balance</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Feature Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../features/phases/phases_list.html">Phases</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../features/phases/phases.html">Phases of a Trajectory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../features/phases/analytic_phases.html">Analytic Phases in Dymos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../features/phases/segments.html">Segments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../features/phases/variables.html">Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../features/phases/constraints.html">Constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../features/phases/objective.html">Objective</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../features/phases/timeseries.html">Timeseries Outputs</a></li>
+
+<li class="toctree-l2"><a class="reference internal" href="../features/phases/calc_expressions.html">Calculation Expressions</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../features/trajectories/trajectories.html">Organizing Phases into Trajectories</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../features/exploiting_sparsity.html">Exploiting Sparsity for Faster Derivative Calculation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../features/plotting.html">Plotting Timeseries</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Frequently Asked Questions</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../faq/faq.html">Frequently Asked Questions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../faq/add_ode_output_to_timeseries.html">How do I add an ODE output to the timeseries outputs?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/connect_scalar_parameters_to_ode.html">How do I connect a scalar input to the ODE?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/upstream_analysis.html">How do I connect the outputs of an upstream analysis as inputs to Dymos?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/downstream_analysis.html">How do I connect the outputs of Dymos to a downstream analysis?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/tandem_phases.html">How do I run two phases parallel-in-time?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/use_partial_coloring.html">How can I more efficiently use finite-differenced components in the ODE?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/debugging.html">How can I debug models when things go wrong?</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Dymos API Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api/api.html">Dymos Reference API</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api/run_problem_function.html">The run_problem function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/phase_api.html">Phase Options</a></li>
+
+<li class="toctree-l2"><a class="reference internal" href="../api/transcriptions_api.html">The Transcriptions API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/trajectory_api.html">The Trajectory API</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../contributing/contributing.html">Contributing to Dymos</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-launch-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Launch interactive content">
+    <i class="fas fa-rocket"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://colab.research.google.com/github/OpenMDAO/dymos/blob/master/docs/dymos_book/getting_started/defining_odes.ipynb" target="_blank"
+   class="btn btn-sm dropdown-item"
+   title="Launch on Colab"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  
+    <img alt="Colab logo" src="../_static/images/logo_colab.png">
+  </span>
+<span class="btn__text-container">Colab</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/OpenMDAO/dymos" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/OpenMDAO/dymos/issues/new?title=Issue%20on%20page%20%2Fgetting_started/defining_odes.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/getting_started/defining_odes.ipynb" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.ipynb</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Defining ODEs</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#system-options">System Options</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#variables-of-the-optimal-control-problem">Variables of the Optimal Control Problem</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#time">Time</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#states">States</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#controls">Controls</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#parameters">Parameters</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tagging-variables">Tagging Variables</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automatic-target-detection">Automatic target detection</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vectorizing-the-ode">Vectorizing the ODE</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dimensioned-inputs-and-outputs">Dimensioned Inputs and Outputs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#non-vector-inputs">Non-Vector Inputs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#providing-the-ode-to-the-phase">Providing the ODE to the Phase</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="defining-odes">
+<h1>Defining ODEs<a class="headerlink" href="#defining-odes" title="Link to this heading">#</a></h1>
+<p>Optimal control problems contain ordinary differential equations (ODE) or differential algebraic equations (DAE) that dictate the evolution of the state of the system.
+Typically this evolution occurs in time, and the ODE represents equations of motion (EOM).
+The equations of motion can define a variety of systems, not just mechanical ones.
+In other fields they are sometimes referred to as <em>process equations</em>.</p>
+<div class="amsmath math notranslate nohighlight" id="equation-c72ad026-3b73-4161-b8a3-c6fb79992fae">
+<span class="eqno">(4)<a class="headerlink" href="#equation-c72ad026-3b73-4161-b8a3-c6fb79992fae" title="Permalink to this equation">#</a></span>\[\begin{align}
+    \dot{\bar{x}} = f_{ode}(\bar{x},t,\bar{u},\bar{d})
+\end{align}\]</div>
+<p>To represent EOM, Dymos uses a standard OpenMDAO System (a Group or Component).
+This System takes some set of variables as input and computes outputs that include the time-derivatives of the state variables <span class="math notranslate nohighlight">\(\bar{x}\)</span>.
+The ODE may also be a function of the current time <span class="math notranslate nohighlight">\(t\)</span>.</p>
+<p>Finally, the dynamics may be subject to some set of controllable parameters.
+In Dymos these are broken into the dynamic controls <span class="math notranslate nohighlight">\(\bar{u}\)</span> and the static parameters <span class="math notranslate nohighlight">\(\bar{d}\)</span>.</p>
+<section id="system-options">
+<h2>System Options<a class="headerlink" href="#system-options" title="Link to this heading">#</a></h2>
+<p>ODE Systems in Dymos need to provide values at numerous points in time we call nodes.
+For performance reasons, it’s best if it can do so using vectorized mathematical operations to compute the values simultaneously rather than using the loop to perform the calculation at each node.
+Different optimal control transcriptions will need to have computed ODE values at different numbers of nodes, so each ODE system in Dymos is required to support the option <code class="docutils literal notranslate"><span class="pre">num_nodes</span></code>, which is defined in the <code class="docutils literal notranslate"><span class="pre">initialize</span></code> method.</p>
+<p>ODE systems may define initial options as well.
+Since these options in OpenMDAO are typically provided as arguments to the instantiation of the ODE system, the user has the ability to provide additional input keyword arguments using the <code class="docutils literal notranslate"><span class="pre">ode_init_kwargs</span></code> option on Phase.</p>
+</section>
+<section id="variables-of-the-optimal-control-problem">
+<h2>Variables of the Optimal Control Problem<a class="headerlink" href="#variables-of-the-optimal-control-problem" title="Link to this heading">#</a></h2>
+<p>Dymos needs to know how state, time, and control variables are to be connected to the System, and needs to know which outputs to use as state time-derivatives.</p>
+<section id="time">
+<h3>Time<a class="headerlink" href="#time" title="Link to this heading">#</a></h3>
+<p>The following time options can be set via the <code class="docutils literal notranslate"><span class="pre">set_time_options</span></code> method of Phase:</p>
+<div class="cell tag_remove-input docutils container">
+<div class="cell_output docutils container">
+<div class="output text_html">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        h2 {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h2></h2>
+        <table style="border: 1px solid #999; border-collapse: collapse;">
+        <tr><th style="border: 1px solid #999; border-collapse: collapse; padding: 5px; background-color: #E9E9E9; text-align: left;">Option</th><th style="border: 1px solid #999; border-collapse: collapse; padding: 5px; background-color: #E9E9E9; text-align: left;">Default</th><th style="border: 1px solid #999; border-collapse: collapse; padding: 5px; background-color: #E9E9E9; text-align: left;">Acceptable Values</th><th style="border: 1px solid #999; border-collapse: collapse; padding: 5px; background-color: #E9E9E9; text-align: left;">Acceptable Types</th><th style="border: 1px solid #999; border-collapse: collapse; padding: 5px; background-color: #E9E9E9; text-align: left;">Description</th></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">dt_dstau_targets</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">targets in the ODE to which the ratio of segment time duration to nondim duration is connected</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">duration_adder</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Adder for the duration of the integration variable across the phase.</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">duration_bounds</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">(None, None)</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Iterable&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Tuple of (lower, upper) bounds for the duration of the integration variable across the phase.</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">duration_ref</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Unit-reference value for the duration of the integration variable across the phase.</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">duration_ref0</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Zero-reference value for the duration of the integration variable across the phase.</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">duration_scaler</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Scalar for the duration of the integration variable across the phase.</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">duration_val</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">1.0</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Value of the duration of the integration variable across the phase.</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">fix_duration</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">False</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[True, False]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;bool&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">If True, the  phase duration is not a design variable.</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">fix_initial</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">False</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[True, False]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;bool&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">If True, the initial value of time is not a design variable.</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">initial_adder</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Adder for the initial value of the integration variable.</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">initial_bounds</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">(None, None)</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Iterable&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Tuple of (lower, upper) bounds for the integration variable at the start of the phase.</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">initial_ref</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Unit-reference value for the initial value of the integration variable.</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">initial_ref0</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Zero-reference value for the initial value of the integration variable.</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">initial_scaler</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Scalar for the initial value of the integration variable.</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">initial_val</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">0.0</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Value of the integration variable at the start of the phase.</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">input_duration</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">False</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[True, False]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;bool&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">If True, the phase duration (t_duration) is expected to be connected to an external output source.</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">input_initial</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">False</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[True, False]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;bool&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">If True, the initial value of time (t_initial) is expected to be connected to an external output source.</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">name</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">time</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;str&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Name of the integraiton variable in the phase.</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">t_duration_balance_options</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">{}</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">options dictionary for the duration residual</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">t_duration_targets</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">targets in the ODE to which the total duration of the phase is connected</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">t_final_targets</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">targets in the ODE to which the final time of the phase is connected</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">t_initial_targets</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">targets in the ODE to which the initial time of the phase is connected</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">targets</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">unspecified</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">targets in the ODE to which the integration variable is connected</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">time_phase_targets</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">unspecified</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">targets in the ODE to which the elapsed duration of the phase is connected</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">units</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">s</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;str&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Units for the integration variable</td></tr>
+    </table>
+</body>
+</html>
+</div></div>
+</div>
+</section>
+<section id="states">
+<h3>States<a class="headerlink" href="#states" title="Link to this heading">#</a></h3>
+<p>States have the following options set via the <code class="docutils literal notranslate"><span class="pre">add_state</span></code> and <code class="docutils literal notranslate"><span class="pre">set_state_options</span></code> methods of Phase:</p>
+<div class="cell tag_remove-input docutils container">
+<div class="cell_output docutils container">
+<div class="output text_html">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        h2 {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h2></h2>
+        <table style="border: 1px solid #999; border-collapse: collapse;">
+        <tr><th style="border: 1px solid #999; border-collapse: collapse; padding: 5px; background-color: #E9E9E9; text-align: left;">Option</th><th style="border: 1px solid #999; border-collapse: collapse; padding: 5px; background-color: #E9E9E9; text-align: left;">Default</th><th style="border: 1px solid #999; border-collapse: collapse; padding: 5px; background-color: #E9E9E9; text-align: left;">Acceptable Values</th><th style="border: 1px solid #999; border-collapse: collapse; padding: 5px; background-color: #E9E9E9; text-align: left;">Acceptable Types</th><th style="border: 1px solid #999; border-collapse: collapse; padding: 5px; background-color: #E9E9E9; text-align: left;">Description</th><th style="border: 1px solid #999; border-collapse: collapse; padding: 5px; background-color: #E9E9E9; text-align: left;">Deprecation</th></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">adder</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Iterable&#x27;, &#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Adder of the state variable at the discretization nodes. This option is invalid if opt=False.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">connected_initial</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">False</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[True, False]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;bool&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Whether an input is created to pass in the initial state. This may be set by a trajectory that links phases.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">State option &#x27;connected_initial&#x27; is deprecated. Please use &#x27;input_initial&#x27; instead.</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">continuity</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">True</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;bool&#x27;, &#x27;dict&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Enforce continuity of state values at segment boundaries. This option is invalid if opt=False.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">continuity_ref</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Reference unit value for continuity at segment boundaries instead of scaler.This option is invalid if opt=False.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">continuity_scaler</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Scaler for continuity at segment boundaries. This option is invalid if opt=False.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">defect_ref</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Iterable&#x27;, &#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Unit-reference value of the state defects at the collocation nodes. This option is invalid if opt=False.  If provided, this option overrides defect_scaler. If defect_scaler and defect_ref are both None but the state scaler or ref are provided, use those values as the defect scaler or ref.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">defect_scaler</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Iterable&#x27;, &#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Scaler of the state variable defects at the collocation nodes. If defect_scaler and defect_ref are both None but the state scaler or ref are provided, use those values as the defect scaler or ref. This option is invalid if opt=False.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">desc</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;"></td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;str&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">description of the state variable</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">final_bounds</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Iterable&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Bounds on the value of the state at the end of the phase. This option is invalid if opt=False.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">fix_final</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">False</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;bool&#x27;, &#x27;Iterable&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">If True, the final value of this state is fixed and not a design variable. If the state variable has a non-scalar shape, this may be an iterable of bool for each index. This option is invalid if opt=False.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">fix_initial</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">False</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;bool&#x27;, &#x27;Iterable&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">If True, the initial value of this state is fixed and not a design variable. If the state variable has a non-scalar shape, this may be an iterable of bool for each index. This option is invalid if opt=False.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">initial_bounds</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Iterable&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Bounds on the value of the state at the start of the phase. This option is invalid if opt=False.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">input_final</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">False</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[True, False]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;bool&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Whether the final value of the state is expected to be connected to an exterior value.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">input_initial</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">False</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[True, False]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;bool&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Whether the initial value of the state is expected to be connected to an exterior value.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">lower</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Iterable&#x27;, &#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Lower bound of the state variable at the discretization nodes. This option is invalid if opt=False.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">name</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">**Required**</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;str&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">name of ODE state variable</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">opt</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">True</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[True, False]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;bool&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">If true, the values of this state are a design variable for the optimizer.  Otherwise it exists as an unconnected input.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">rate_source</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;str&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">ODE-path or phase variable providing the derivative of the state variable</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">ref</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Iterable&#x27;, &#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Unit-reference value of the state variable at the discretization nodes. This option is invalid if opt=False.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">ref0</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Iterable&#x27;, &#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Zero-reference value of the state variable at the discretization nodes. This option is invalid if opt=False.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">scaler</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Iterable&#x27;, &#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Scaler of the state variable at the discretization nodes. This option is invalid if opt=False.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">shape</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Iterable&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">shape of the state variable, as determined by introspection</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">solve_segments</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[False, &#x27;forward&#x27;, &#x27;backward&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">If &#x27;forward&#x27;, collocation defects within eachsegment are solved with a Newton solver by fixing the initial value in thephase (if using compressed transcription) or segment (if not using compressed transcription). This provides a forward shooting (or multiple shooting)method.  If &#x27;backward&#x27;, the final value in the phase or segment is fixedand a solver finds the other ones to mimic reverse propagation. If None, (the default) use the value of solve_segments in the transcription. Set to False to explicitly disable the use of a solver to converge the statetime history.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">source</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;str&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">RHS-path or phase variable providing value of the state variable, for Analytic transcription only!</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">targets</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">unspecified</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Targets in the ODE to which the state is connected</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">units</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">unspecified</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">units in which the state variable is defined</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">upper</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Iterable&#x27;, &#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Upper bound of the state variable at the discretization nodes. This option is invalid if opt=False.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">val</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">1.0</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Iterable&#x27;, &#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Default value of the state variable at the discretization nodes</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+    </table>
+</body>
+</html>
+</div></div>
+</div>
+</section>
+<section id="controls">
+<h3>Controls<a class="headerlink" href="#controls" title="Link to this heading">#</a></h3>
+<p>Inputs to the ODE which are to be dynamic controls are added via the <code class="docutils literal notranslate"><span class="pre">add_control</span></code> and <code class="docutils literal notranslate"><span class="pre">set_control_options</span></code> methods of Phase. The available options are as follows:</p>
+<div class="cell tag_remove-input docutils container">
+<div class="cell_output docutils container">
+<div class="output text_html">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        h2 {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h2></h2>
+        <table style="border: 1px solid #999; border-collapse: collapse;">
+        <tr><th style="border: 1px solid #999; border-collapse: collapse; padding: 5px; background-color: #E9E9E9; text-align: left;">Option</th><th style="border: 1px solid #999; border-collapse: collapse; padding: 5px; background-color: #E9E9E9; text-align: left;">Default</th><th style="border: 1px solid #999; border-collapse: collapse; padding: 5px; background-color: #E9E9E9; text-align: left;">Acceptable Values</th><th style="border: 1px solid #999; border-collapse: collapse; padding: 5px; background-color: #E9E9E9; text-align: left;">Acceptable Types</th><th style="border: 1px solid #999; border-collapse: collapse; padding: 5px; background-color: #E9E9E9; text-align: left;">Description</th></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">adder</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Iterable&#x27;, &#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">The adder of the control variable at the nodes. This option is invalid if opt=False.</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">continuity</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">True</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;bool&#x27;, &#x27;dict&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Enforce continuity of control values at segment boundaries. This option is invalid if opt=False.</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">continuity_ref</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Reference unit value for continuity at segment boundaries instead of scaler.This option is invalid if opt=False.</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">continuity_scaler</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Scaler for continuity at segment boundaries. This option is invalid if opt=False.</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">control_type</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">full</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;str&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">The type of control variable.  Options are `full` or `polynomial`.</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">desc</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;"></td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;str&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">The description of the control variable.</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">fix_final</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">False</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[True, False]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;bool&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">If True, the final value of this control is fixed and not a design variable. This option is invalid if opt=False.</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">fix_initial</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">False</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[True, False]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;bool&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">If True, the initial value of this control is fixed and not a design variable. This option is invalid if opt=False.</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">lower</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Iterable&#x27;, &#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">The lower bound of the control variable at the nodes. This option is invalid if opt=False.</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">name</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">**Required**</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;str&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">The name of ODE system parameter to be controlled.</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">opt</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">True</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[True, False]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;bool&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">If True, the control value will be a design variable for the optimization problem.  If False, allow the control to be connected externally.</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">order</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;int&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">A integer that provides the interpolation order when the control is to assume a single polynomial basis across the entire phase, or None to use the default control behavior.</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">rate2_continuity</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">False</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;bool&#x27;, &#x27;dict&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Enforce continuity of control second derivatives at segment boundaries. This option is invalid if opt=False.</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">rate2_continuity_ref</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Reference unit value for rate2 continuity at segment boundaries instead of scaler.This option is invalid if opt=False.</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">rate2_continuity_scaler</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Scaler of the rate2 continuity constraint at segment boundaries. This option is invalid if opt=False.</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">rate2_targets</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">unspecified</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">The targets in the ODE to which the control 2nd derivative is connected</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">rate_continuity</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">True</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;bool&#x27;, &#x27;dict&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Enforce continuity of control first derivatives in dimensionless time at segment boundaries. This option is invalid if opt=False.</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">rate_continuity_ref</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Reference unit value for rate continuity at segment boundaries instead of scaler.This option is invalid if opt=False.</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">rate_continuity_scaler</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Scaler of the rate continuity constraint at segment boundaries. This option is invalid if opt=False.</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">rate_targets</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">unspecified</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">The targets in the ODE to which the control rate is connected</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">ref</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Iterable&#x27;, &#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">The unit-reference value of the control variable at the nodes. This option is invalid if opt=False.</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">ref0</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Iterable&#x27;, &#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">The zero-reference value of the control variable at the nodes. This option is invalid if opt=False.</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">scaler</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Iterable&#x27;, &#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">The scaler of the control variable at the nodes. This option is invalid if opt=False.</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">shape</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Iterable&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">The shape of the control variable at each point in time.</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">targets</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">unspecified</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Targets in the ODE to which the state is connected</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">units</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">unspecified</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">The units in which the control variable is defined.</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">upper</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Iterable&#x27;, &#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">The upper bound of the control variable at the nodes. This option is invalid if opt=False.</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">val</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[0.]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Iterable&#x27;, &#x27;ndarray&#x27;, &#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">The default value of the control variable at the control discretization nodes.</td></tr>
+    </table>
+</body>
+</html>
+</div></div>
+</div>
+</section>
+<section id="parameters">
+<h3>Parameters<a class="headerlink" href="#parameters" title="Link to this heading">#</a></h3>
+<p>Inputs to the ODE which are non-time-varying can be specified using the <code class="docutils literal notranslate"><span class="pre">add_parameter</span></code> method of Phase.
+Parameters may be used as design variables (by setting <code class="docutils literal notranslate"><span class="pre">opt</span> <span class="pre">=</span> <span class="pre">True</span></code>), or they may be connected to an output external to the Phase or Trajectory.
+The available options are as follows:</p>
+<div class="cell tag_remove-input docutils container">
+<div class="cell_output docutils container">
+<div class="output text_html">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        h2 {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h2></h2>
+        <table style="border: 1px solid #999; border-collapse: collapse;">
+        <tr><th style="border: 1px solid #999; border-collapse: collapse; padding: 5px; background-color: #E9E9E9; text-align: left;">Option</th><th style="border: 1px solid #999; border-collapse: collapse; padding: 5px; background-color: #E9E9E9; text-align: left;">Default</th><th style="border: 1px solid #999; border-collapse: collapse; padding: 5px; background-color: #E9E9E9; text-align: left;">Acceptable Values</th><th style="border: 1px solid #999; border-collapse: collapse; padding: 5px; background-color: #E9E9E9; text-align: left;">Acceptable Types</th><th style="border: 1px solid #999; border-collapse: collapse; padding: 5px; background-color: #E9E9E9; text-align: left;">Description</th><th style="border: 1px solid #999; border-collapse: collapse; padding: 5px; background-color: #E9E9E9; text-align: left;">Deprecation</th></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">adder</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Iterable&#x27;, &#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">The adder of the parameter. This option is invalid if opt=False.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">desc</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;"></td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;str&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">The description of the parameter.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">dynamic</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">unspecified</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[True, False, unspecified]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">True if this parameter can be used as a dynamic control, else False.If _unspecified, attempt to determine through introspection.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Option dynamic has been replaced by option &#x27;static_target&#x27; and will be removed in Dymos 2.0.0.
+    Note that &#x27;static_target&#x27; has the opposite meaning of option &#x27;dynamic&#x27;, so parameters with option &#x27;dynamic&#x27; set to False should now use &#x27;static_target&#x27; set to True.</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">include_timeseries</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[True, False]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;bool&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">True if the static parameters should be included in output timeseries, else False.If None (default) set the value based on Phase.timeseries_options[&quot;include_parameters&quot;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">lower</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Iterable&#x27;, &#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">The lower bound of the parameter. This option is invalid if opt=False.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">name</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">**Required**</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;str&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">The name of ODE system parameter to be set via parameter.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">opt</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">True</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[True, False]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;bool&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">If True, the control value will be a design variable for the optimization problem.  If False, allow the control to be connected externally.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">ref</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Iterable&#x27;, &#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">The unit-reference value of the parameter. This option is invalid if opt=False.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">ref0</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Iterable&#x27;, &#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">The zero-reference value of the parameter. This option is invalid if opt=False.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">scaler</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Iterable&#x27;, &#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">The scaler of the parameter. This option is invalid if opt=False.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">shape</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">unspecified</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">The shape of the parameter.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">static_target</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">unspecified</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">True if the target of this parameter does NOT have a unique value at each node in the ODE.If _unspecified, attempt to determine through introspection.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Use option `static_targets` to specify whether all targets
+    are static (static_targets=True), none are static (static_targets=False),
+    static_targets are determined via introspection (static_targets=_unspecified),
+    or give an explicit sequence of the static targets.</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">static_targets</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">unspecified</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">If a boolean, specifies whether all targets are static (True), or no
+    targets are static (False). Otherwise, provide a list of the static
+    targets within the ODE. If left unspecified, static targets will be
+    determined by finding inptus tagged with &#x27;dymos.static_target&#x27;.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">targets</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">unspecified</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">Targets in the ODE to which the state is connected</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">units</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">unspecified</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">The units in which the parameter is defined.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: #F3F3F3;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">upper</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Iterable&#x27;, &#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">The upper bound of the parameter. This option is invalid if opt=False.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+       <tr style="background-color: ghostwhite;"><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">val</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">0.0</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">[&#x27;Iterable&#x27;, &#x27;ndarray&#x27;, &#x27;Number&#x27;]</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">The default value of the parameter in the phase.</td><td style="border: 1px solid #999; border-collapse: collapse; padding: 5px; text-align: left;">N/A</td></tr>
+    </table>
+</body>
+</html>
+</div></div>
+</div>
+<p>By default, Dymos assumes that the ODE is defined such that a value of the parameter is provided at each node.
+This makes it easier to define the partials for the ODE in a way such that some inputs may be used interchangeably as either controls or parameters.
+If an ODE input is only to be used as a static variable (and not sized as <code class="docutils literal notranslate"><span class="pre">num_nodes</span></code> in the first dimension), then the user may specify option <code class="docutils literal notranslate"><span class="pre">static_target</span> <span class="pre">=</span> <span class="pre">True</span></code> to override this behavior.</p>
+</section>
+<section id="tagging-variables">
+<h3>Tagging Variables<a class="headerlink" href="#tagging-variables" title="Link to this heading">#</a></h3>
+<p>Dymos will also automatically find and add any states that have been declared in components in the ODE. The syntax
+for declaring them is as follows.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="s1">&#39;vdot&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nn</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;acceleration magnitude&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m/s**2&#39;</span><span class="p">,</span>
+                <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dymos.state_rate_source:v&#39;</span><span class="p">,</span> <span class="s1">&#39;dymos.state_units:m/s&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>The state is defined by adding tags to the state rate’s output.
+The tag ‘dymos.state_rate_source:v’ declares that ‘v’ is the state for which this output (‘vdot’) is the rate source.
+You can also optionally use a tag in the format ‘dymos.state_units:m/s’ to define units for that state.
+If you need to set any other options, then use <code class="docutils literal notranslate"><span class="pre">set_state_options</span></code> at the phase level.</p>
+<p>Inputs which are sized as ‘static’ in the ODE (the first dimension is <em>not</em> the number of nodes), must be made known to Dymos when using them as parameters.
+This is normally accomplished with the ‘static_target=True’ option when calling add_parameter.
+To avoid repetitive use of this option, users can add the tag ‘dymos.static_target’ to any input which should always be considered static.
+When connecting to multiple targets, a ‘dymos.static_target’ tag on one of them will result in all of them being considered static.
+Inputs tagged with ‘dymos.static_target’ cannot be used as controls or polynomial controls.</p>
+<p>Similarly, the tag ‘dymos.static_output’ is used to convey that an output of the ODE is not sized with <code class="docutils literal notranslate"><span class="pre">num_nodes</span></code> as its first dimension. These outputs may not be used as timeseries outputs, nor may they be used as boundary or path constraints. The general OpenMDAO <code class="docutils literal notranslate"><span class="pre">add_constraint</span></code> method can still be applied to them by using the full path to the output in the ODE.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>Tag</p></th>
+<th class="head text-center"><p>Applies to</p></th>
+<th class="head text-left"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p>dymos.state_rate_source:{state_name}</p></td>
+<td class="text-center"><p>Outputs</p></td>
+<td class="text-left"><p>Specifies that the tagged output provides the rate used to integrate the state of the given name.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>dymos.state_units:{units}</p></td>
+<td class="text-center"><p>Outputs</p></td>
+<td class="text-left"><p>Specifies the default units to be used for the state whose rate is provided by the tagged output. May only be used on outputs also tagged with ‘dymos.state_rate_source:{state_name}’ or ‘dymos.state_source:{state_name}’.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>dymos.state_source:{state_name}</p></td>
+<td class="text-center"><p>Outputs</p></td>
+<td class="text-left"><p>For AnalyticPhase only, this tag specifies that the output provides the analytic solution to a state.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>dymos.static_target</p></td>
+<td class="text-center"><p>Inputs</p></td>
+<td class="text-left"><p>Specifies that the input is <em>not</em> shaped with num_nodes as the first dimension. This effects the way in which parameters are connected to the input. Inputs tagged with ‘dymos.static_target’ cannot be used as controls.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>dymos.static_output</p></td>
+<td class="text-center"><p>Outputs</p></td>
+<td class="text-left"><p>Specifies that the output is <em>not</em> shaped with num_nodes as the first dimension, and may not be used as a timeseries output, boundary constraint, or path constraint.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<section id="automatic-target-detection">
+<h2>Automatic target detection<a class="headerlink" href="#automatic-target-detection" title="Link to this heading">#</a></h2>
+<p>Dymos will attempt to automatically connect variables to targets in the same name if those targets
+exist at the top-level of the ODE and have the same name as the state, control, parameter, or ‘time’.</p>
+</section>
+<section id="vectorizing-the-ode">
+<h2>Vectorizing the ODE<a class="headerlink" href="#vectorizing-the-ode" title="Link to this heading">#</a></h2>
+<p>In addition to specifying the ODE Options, a system used as an ODE is required to have a metadata
+entry called <code class="docutils literal notranslate"><span class="pre">num_nodes</span></code>.  When evaluating the dynamics, these systems will receive time, states,
+controls, and other inputs as <em>vectorized</em> values, where item in the vector represents the variable
+value at a discrete time in the trajectory.</p>
+<p>The nodes are discretization or collocation locations in the polynomials which represent
+each segment.  The number of nodes in a given phase (to be evaluated by the ODE system) is determined
+by the number of segments in the phase and the polynomial order in each segment.  When Dymos instantiates
+the ODE system it provides the total number of nodes at which evaluation is required to the ODE system.
+Thus, at a minimum, the <code class="docutils literal notranslate"><span class="pre">initialize</span></code> method of components for an ODE system typically look something
+like this:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">MyODESystem</span><span class="p">(</span><span class="n">om</span><span class="o">.</span><span class="n">ExplicitComponent</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">declare</span><span class="p">(</span><span class="s1">&#39;num_nodes&#39;</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>The inputs and outputs of the system are expected to provide a scalar or dimensioned
+value <em>at each node</em>.  Vectorization of the component via numpy adds a significant performance increase
+compared to using a for loop to cycle through calculations at each node.  It’s important to remember
+that vectorized data is going to be coming in, this is especially important for defining partials.
+From the perspective of the ODE system, the outputs at some time <code class="docutils literal notranslate"><span class="pre">t</span></code> only depend on the values
+of the input variables at time <code class="docutils literal notranslate"><span class="pre">t</span></code>.  When the output variables are scalar at any given time, this
+results in components whose Jacobian matrices are diagonal.  This large degree of sparsity leads
+to computational advantages when using sparse-aware optimizers like SNOPT.  Users should declare
+the partial derivatives of their components to be sparse (by specifying nonzero rows and columns)
+whenever possible.</p>
+<p>For example, if <code class="docutils literal notranslate"><span class="pre">MyODEComponent</span></code> is to compute the linear function <span class="math notranslate nohighlight">\(y = a * x + b\)</span> then the
+setup, compute, and compute partials methods might look like this:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">nn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;num_nodes&#39;</span><span class="p">]</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nn</span><span class="p">,),</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nn</span><span class="p">,),</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;1/s&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nn</span><span class="p">,),</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m/s&#39;</span><span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nn</span><span class="p">,),</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m/s&#39;</span><span class="p">)</span>
+
+    <span class="n">r</span> <span class="o">=</span> <span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nn</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">c</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">c</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">c</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">):</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">]</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">]</span>
+
+    <span class="n">outputs</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="n">b</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_partials</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">partials</span><span class="p">):</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">]</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span>
+    <span class="c1"># b = inputs[&#39;b&#39;]  # b is not used when computing partials</span>
+
+    <span class="n">partials</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span>
+    <span class="n">partials</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>A few things to note here.  We can use the <code class="docutils literal notranslate"><span class="pre">shape</span></code> or <code class="docutils literal notranslate"><span class="pre">val</span></code> argument of <code class="docutils literal notranslate"><span class="pre">add_input</span></code> and <code class="docutils literal notranslate"><span class="pre">add_output</span></code>
+to dimension each variable.  In this case each variable is assumed to be a scalar at each point in
+time (each node).  We use the <code class="docutils literal notranslate"><span class="pre">rows</span></code> and <code class="docutils literal notranslate"><span class="pre">cols</span></code> arguments of <code class="docutils literal notranslate"><span class="pre">declare_partials</span></code> to provide the sparsity.
+Here using <code class="docutils literal notranslate"><span class="pre">arange(nn)</span></code> for both gives us a diagonal jacobian with <code class="docutils literal notranslate"><span class="pre">nn</span></code> rows and <code class="docutils literal notranslate"><span class="pre">nn</span></code> columns.  Since
+the number of nonzero values in the jacobian is <code class="docutils literal notranslate"><span class="pre">nn</span></code>, we only need to provide <code class="docutils literal notranslate"><span class="pre">nn</span></code> values in the
+<code class="docutils literal notranslate"><span class="pre">compute_partials</span></code> method.  It will automatically fill them into the sparse jacobian matrix, in
+row-major order.</p>
+<p>In this example, the partial of <code class="docutils literal notranslate"><span class="pre">y</span></code> with respect to <code class="docutils literal notranslate"><span class="pre">b</span></code> is linear, so we can simply provide it in
+the <code class="docutils literal notranslate"><span class="pre">declare_partials</span></code> call rather than reassigning it every time <code class="docutils literal notranslate"><span class="pre">compute_partials</span></code> is called.
+The provided scalar value of <code class="docutils literal notranslate"><span class="pre">1.0</span></code> is broadcast to all <code class="docutils literal notranslate"><span class="pre">nn</span></code> values of the Jacobian matrix.</p>
+</section>
+<section id="dimensioned-inputs-and-outputs">
+<h2>Dimensioned Inputs and Outputs<a class="headerlink" href="#dimensioned-inputs-and-outputs" title="Link to this heading">#</a></h2>
+<p>The above example assumes all inputs and outputs are scalar at each node.  Sometimes the user may
+encounter a situation in which the inputs and/or outputs are vectors, matrices, or tensors at
+each node.  In this case the dimension of the variable is <code class="docutils literal notranslate"><span class="pre">num_nodes</span></code>, with the dimension of the
+variable at a single node filling out the remaining indices. A 3-vector is thus dimensioned
+<code class="docutils literal notranslate"><span class="pre">(num_nodes,</span> <span class="pre">3)</span></code>, while a 3 x 3 matrix would be sized <code class="docutils literal notranslate"><span class="pre">(num_nodes,</span> <span class="pre">3,</span> <span class="pre">3)</span></code>.</p>
+</section>
+<section id="non-vector-inputs">
+<h2>Non-Vector Inputs<a class="headerlink" href="#non-vector-inputs" title="Link to this heading">#</a></h2>
+<p>Declaring inputs as vectors means that they have the potential to be used either as parameters or as dynamic controls which can assume a different value at each node.
+For some quantities, such as gravitational acceleration in the Brachistochrone example, we can assume that the value will never need to be dynamic.
+To accommodate this, parameters can be declared static with the argument <code class="docutils literal notranslate"><span class="pre">static_target=True</span></code>.
+This prevents Dymos from “fanning out” the static value to the <em>n</em> nodes in the ODE system.</p>
+</section>
+<section id="providing-the-ode-to-the-phase">
+<h2>Providing the ODE to the Phase<a class="headerlink" href="#providing-the-ode-to-the-phase" title="Link to this heading">#</a></h2>
+<p>Phases in Dymos are instantiated with both the <code class="docutils literal notranslate"><span class="pre">ode_class</span></code> and the <code class="docutils literal notranslate"><span class="pre">transcription</span></code> to be used.
+Internally, Dymos needs to instantiate the ODE multiple times.
+This instantiation takes the form:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ode_instance</span> <span class="o">=</span> <span class="n">ode_class</span><span class="p">(</span><span class="n">num_nodes</span><span class="o">=&lt;</span><span class="nb">int</span><span class="o">&gt;</span><span class="p">,</span> <span class="o">**</span><span class="n">ode_init_kwargs</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This allows an OpenMDAO ExecComp to be used as an ODE via a lambda.
+For instance, the brachistochrone ODE can be written as:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">ode</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">om</span><span class="o">.</span><span class="n">ExecComp</span><span class="p">([</span><span class="s1">&#39;vdot = g * cos(theta)&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;xdot = v * sin(theta)&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;ydot = -v * cos(theta)&#39;</span><span class="p">],</span>
+                        <span class="n">g</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="mf">9.80665</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;m/s**2&#39;</span><span class="p">},</span>
+                        <span class="n">v</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">num_nodes</span><span class="p">,),</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;m/s&#39;</span><span class="p">},</span>
+                        <span class="n">theta</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">num_nodes</span><span class="p">,),</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;rad&#39;</span><span class="p">},</span>
+                        <span class="n">vdot</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">num_nodes</span><span class="p">,),</span>
+                              <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;m/s**2&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;tags&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;state_rate_source:v&#39;</span><span class="p">]},</span>
+                        <span class="n">xdot</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">num_nodes</span><span class="p">,),</span>
+                              <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;m/s&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;tags&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;state_rate_source:v&#39;</span><span class="p">]},</span>
+                        <span class="n">ydot</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">num_nodes</span><span class="p">,),</span>
+                              <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;m/s&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;tags&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;state_rate_source:v&#39;</span><span class="p">]},</span>
+                        <span class="n">has_diag_partials</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">Radau</span><span class="p">(</span><span class="n">num_segments</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">phase</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">Phase</span><span class="p">(</span><span class="n">ode_class</span><span class="o">=</span><span class="n">ode</span><span class="p">,</span> <span class="n">transcription</span><span class="o">=</span><span class="n">t</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Note the use of <code class="docutils literal notranslate"><span class="pre">has_diag_partials=True</span></code> to provide more efficient graph coloring for the derivatives.</p>
+<p>In theory, this also means you can implement Python’s <code class="docutils literal notranslate"><span class="pre">__call__</span></code> method for an ODE.
+The following code will return a copy of the brachistochrone ODE with the appropriate number of nodes.
+Note that the implementation below does not deal with any options provided via the <code class="docutils literal notranslate"><span class="pre">ode_init_kwargs</span></code>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">CallableBrachistochroneODE</span><span class="p">(</span><span class="n">om</span><span class="o">.</span><span class="n">ExplicitComponent</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">declare</span><span class="p">(</span><span class="s1">&#39;num_nodes&#39;</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_nodes</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">deepcopy</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;num_nodes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">num_nodes</span>
+        <span class="k">return</span> <span class="n">ret</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">nn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;num_nodes&#39;</span><span class="p">]</span>
+
+        <span class="c1"># Inputs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nn</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;velocity&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m/s&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mf">9.80665</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;grav. acceleration&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m/s/s&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;theta&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">nn</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;angle of wire&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;rad&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Outputs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="s1">&#39;xdot&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nn</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;velocity component in x&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m/s&#39;</span><span class="p">,</span>
+                        <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;state_rate_source:x&#39;</span><span class="p">,</span> <span class="s1">&#39;state_units:m&#39;</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="s1">&#39;ydot&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nn</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;velocity component in y&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m/s&#39;</span><span class="p">,</span>
+                        <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;state_rate_source:y&#39;</span><span class="p">,</span> <span class="s1">&#39;state_units:m&#39;</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_output</span><span class="p">(</span><span class="s1">&#39;vdot&#39;</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nn</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;acceleration magnitude&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m/s**2&#39;</span><span class="p">,</span>
+                        <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;state_rate_source:v&#39;</span><span class="p">,</span> <span class="s1">&#39;state_units:m/s&#39;</span><span class="p">])</span>
+
+        <span class="c1"># Derivatives</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">declare_partials</span><span class="p">(</span><span class="n">of</span><span class="o">=</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;cs&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">declare_coloring</span><span class="p">(</span><span class="n">wrt</span><span class="o">=</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1.0E-12</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>An instance of the above ODE can then be provided to the phase upon instantiation.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ode</span> <span class="o">=</span> <span class="n">CallableBrachistochroneODE</span><span class="p">(</span><span class="n">num_nodes</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">Radau</span><span class="p">(</span><span class="n">num_segments</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">phase</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">Phase</span><span class="p">(</span><span class="n">ode_class</span><span class="o">=</span><span class="n">ode</span><span class="p">,</span> <span class="n">transcription</span><span class="o">=</span><span class="n">t</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>This can potentially lead to unintended behavior if multiple copies of the ODE are intended to share data.
+See <a class="reference external" href="https://docs.python.org/3/library/copy.html">the Python docs</a> for some of the limitations of deepcopy.</p>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./getting_started"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="transcriptions.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Optimal Control Transcriptions</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="collocation.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">What is collocation?</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#system-options">System Options</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#variables-of-the-optimal-control-problem">Variables of the Optimal Control Problem</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#time">Time</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#states">States</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#controls">Controls</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#parameters">Parameters</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tagging-variables">Tagging Variables</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automatic-target-detection">Automatic target detection</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vectorizing-the-ode">Vectorizing the ODE</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dimensioned-inputs-and-outputs">Dimensioned Inputs and Outputs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#non-vector-inputs">Non-Vector Inputs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#providing-the-ode-to-the-phase">Providing the ODE to the Phase</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By The Dymos Development Team
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

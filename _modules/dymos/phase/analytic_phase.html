@@ -1,0 +1,975 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>dymos.phase.analytic_phase &#8212; Dymos</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/myfile.css?v=9678755d" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../../../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../../../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/dymos/phase/analytic_phase';</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/dymos_logo.png" class="logo__image only-light" alt="Dymos - Home"/>
+    <script>document.write(`<img src="../../../_static/dymos_logo.png" class="logo__image only-dark" alt="Dymos - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../../../index.html">
+                    Multidisciplinary Optimal Control Library
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Installation</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installing Dymos</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/optimal_control.html">Optimal Control</a></li>
+
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/transcriptions.html">Optimal Control Transcriptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/defining_odes.html">Defining ODEs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/collocation.html">What is collocation?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/intro_to_dymos/intro_ivp.html">Modeling Dynamic Systems with Dymos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/intro_to_dymos/intro_segments.html">Segments of Phases</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples and Tutorials</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../examples/examples.html">Dymos by Example</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/brachistochrone/brachistochrone.html">The Brachistochrone</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/brachistochrone/brachistochrone_upstream_init_duration_states.html">The Brachistochrone with externally-sourced initial state values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/vanderpol/vanderpol.html">The Van der Pol Oscillator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/balanced_field/balanced_field.html">Aircraft Balanced Field Length Calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/balanced_field/balanced_field_funccomp.html">Balanced Field Length using OpenMDAO’s Function Wrapping Components.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/bryson_denham/bryson_denham.html">The Bryson-Denham Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/commercial_aircraft/commercial_aircraft.html">Commercial Aircraft Range Maximization by Differential Inclusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/double_integrator/double_integrator.html">Double Integrator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/hull/hull_problem.html">The Hull Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/hypersensitive/hypersensitive.html">Hyper-Sensitive Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/finite_burn_orbit_raise/finite_burn_orbit_raise.html">Two-Burn Orbit Raise</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/length_constrained_brachistochrone/length_constrained_brachistochrone.html">The Length-Constrained Brachistochrone</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/min_time_climb/min_time_climb.html">Supersonic Interceptor Minimum Time Climb</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/mountain_car/mountain_car.html">The Mountain Car Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/moon_landing/moon_landing.html">Moon Landing Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/multi_phase_cannonball/multi_phase_cannonball.html">Multi-Phase Cannonball</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/multibranch_trajectory/multibranch_trajectory.html">Multibranch Trajectory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/racecar/racecar.html">Race car Lap Simulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/reentry/reentry.html">Single-Phase Space Shuttle Reentry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/ssto_earth/ssto_earth.html">SSTO Earth Launch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/ssto_moon_linear_tangent/ssto_moon_linear_tangent.html">SSTO Lunar Ascent with Linear Tangent Guidance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/ssto_moon_polynomial_controls/ssto_moon_polynomial_controls.html">SSTO Lunar Ascent with Polynomial Controls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/robertson_problem/robertson_problem.html">The Robertson Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/water_rocket/water_rocket.html">Water Rocket</a></li>
+
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/cart_pole/cart_pole.html">Cart-Pole Optimal Control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/brachistochrone/brachistochrone_tandem_phases.html">Brachistochrone with tandem phases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples/implicit_duration/brachistochrone_implicit_duration.html">Boundary Balance</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Feature Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../features/phases/phases_list.html">Phases</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../features/phases/phases.html">Phases of a Trajectory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../features/phases/analytic_phases.html">Analytic Phases in Dymos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../features/phases/segments.html">Segments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../features/phases/variables.html">Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../features/phases/constraints.html">Constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../features/phases/objective.html">Objective</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../features/phases/timeseries.html">Timeseries Outputs</a></li>
+
+<li class="toctree-l2"><a class="reference internal" href="../../../features/phases/calc_expressions.html">Calculation Expressions</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../features/trajectories/trajectories.html">Organizing Phases into Trajectories</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../features/exploiting_sparsity.html">Exploiting Sparsity for Faster Derivative Calculation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../features/plotting.html">Plotting Timeseries</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Frequently Asked Questions</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../faq/faq.html">Frequently Asked Questions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../faq/add_ode_output_to_timeseries.html">How do I add an ODE output to the timeseries outputs?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../faq/connect_scalar_parameters_to_ode.html">How do I connect a scalar input to the ODE?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../faq/upstream_analysis.html">How do I connect the outputs of an upstream analysis as inputs to Dymos?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../faq/downstream_analysis.html">How do I connect the outputs of Dymos to a downstream analysis?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../faq/tandem_phases.html">How do I run two phases parallel-in-time?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../faq/use_partial_coloring.html">How can I more efficiently use finite-differenced components in the ODE?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../faq/debugging.html">How can I debug models when things go wrong?</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Dymos API Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/api.html">Dymos Reference API</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/run_problem_function.html">The run_problem function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/phase_api.html">Phase Options</a></li>
+
+<li class="toctree-l2"><a class="reference internal" href="../../../api/transcriptions_api.html">The Transcriptions API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/trajectory_api.html">The Trajectory API</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing/contributing.html">Contributing to Dymos</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/OpenMDAO/dymos" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/OpenMDAO/dymos/issues/new?title=Issue%20on%20page%20%2F_modules/dymos/phase/analytic_phase.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1></h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for dymos.phase.analytic_phase</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">deepcopy</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.phase</span><span class="w"> </span><span class="kn">import</span> <span class="n">Phase</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..transcriptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">Analytic</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.options</span><span class="w"> </span><span class="kn">import</span> <span class="n">StateOptionsDictionary</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">..utils.misc</span><span class="w"> </span><span class="kn">import</span> <span class="n">_unspecified</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">AnalyticPhase</span><span class="p">(</span><span class="n">Phase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The AnalyticPhase object in Dymos.</span>
+
+<span class="sd">    The AnalyticPhase object in dymos inherits from PhaseBase but is used to override some base methods with ones</span>
+<span class="sd">    that will warn about certain options or methods being invalid for the AnalyticPhase.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    from_phase : &lt;Phase&gt; or None</span>
+<span class="sd">        A phase instance from which the initialized phase should copy its data.</span>
+<span class="sd">    **kwargs : dict</span>
+<span class="sd">        Dictionary of optional phase arguments.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">from_phase</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">from_phase</span><span class="o">=</span><span class="n">from_phase</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">simulate_options</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Declare instantiation options for the phase.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">declare</span><span class="p">(</span><span class="s1">&#39;num_nodes&#39;</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                             <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Number of points in time at which to evaluate the solution to the ODE.&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="AnalyticPhase.add_state">
+<a class="viewcode-back" href="../../../features/phases/analytic_phases.html#dymos.AnalyticPhase.add_state">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">state_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a state variable to be integrated by the phase.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name : str</span>
+<span class="sd">            Path to use as the source of the state variable.</span>
+<span class="sd">        state_name : str</span>
+<span class="sd">            Name of the state variable, if the last element of the source path is ambiguous.</span>
+<span class="sd">        units : str or None</span>
+<span class="sd">            Units in which the state variable is defined.  If units is not</span>
+<span class="sd">            specified here then the unit will be determined from the source.</span>
+<span class="sd">        shape : tuple of int</span>
+<span class="sd">            The shape of the state variable.  For instance, a 3D cartesian position vector would have</span>
+<span class="sd">            a shape of (3,).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_state_name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">state_name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">state_name</span>
+
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_options</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state_options</span><span class="p">[</span><span class="n">_state_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">StateOptionsDictionary</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state_options</span><span class="p">[</span><span class="n">_state_name</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_state_name</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_state_options</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">state_name</span><span class="o">=</span><span class="n">state_name</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">shape</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_state_options</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">state_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set options that apply the EOM state variable of the given name.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name : str</span>
+<span class="sd">            Path to use as the source of the state variable.</span>
+<span class="sd">        state_name : str</span>
+<span class="sd">            Name of the state variable, if the last element of the source path is ambiguous.</span>
+<span class="sd">        units : str or None</span>
+<span class="sd">            Units in which the state variable is defined.  If units is not</span>
+<span class="sd">            specified here then the unit will be determined from the source.</span>
+<span class="sd">        shape : tuple of int</span>
+<span class="sd">            The shape of the state variable.  For instance, a 3D cartesian position vector would have</span>
+<span class="sd">            a shape of (3,).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="n">_state_name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">state_name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">state_name</span>
+
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_options</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state_options</span><span class="p">[</span><span class="n">_state_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">StateOptionsDictionary</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state_options</span><span class="p">[</span><span class="n">_state_name</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_state_name</span>
+
+        <span class="k">if</span> <span class="n">units</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_unspecified</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state_options</span><span class="p">[</span><span class="n">_state_name</span><span class="p">][</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">units</span>
+
+        <span class="k">if</span> <span class="n">shape</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_unspecified</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state_options</span><span class="p">[</span><span class="n">_state_name</span><span class="p">][</span><span class="s1">&#39;shape&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">shape</span>
+
+        <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_unspecified</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state_options</span><span class="p">[</span><span class="n">_state_name</span><span class="p">][</span><span class="s1">&#39;source&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">source</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_control</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
+                    <span class="n">fix_initial</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">fix_final</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
+                    <span class="n">rate_targets</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">rate2_targets</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
+                    <span class="n">shape</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">scaler</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
+                    <span class="n">adder</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">ref0</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">continuity</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
+                    <span class="n">continuity_scaler</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">rate_continuity</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
+                    <span class="n">rate_continuity_scaler</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">rate2_continuity</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
+                    <span class="n">rate2_continuity_scaler</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds a dynamic control variable to be tied to a parameter in the ODE.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name : str</span>
+<span class="sd">            The name assigned to the control variable.  If the ODE has been decorated with</span>
+<span class="sd">            parameters, this should be the name of a control in the system.</span>
+<span class="sd">        units : str or None</span>
+<span class="sd">            The units with which the control parameter in this phase will be defined.  It must be</span>
+<span class="sd">            compatible with the units of the targets to which the control is connected.</span>
+<span class="sd">        desc : str</span>
+<span class="sd">            A description of the control variable.</span>
+<span class="sd">        opt : bool</span>
+<span class="sd">            If True, the control value will be a design variable for the optimization problem.</span>
+<span class="sd">            If False, allow the control to be connected externally.</span>
+<span class="sd">        fix_initial : bool</span>
+<span class="sd">            If True, the initial value of this control is fixed and not a design variable.</span>
+<span class="sd">            This option is invalid if opt=False.</span>
+<span class="sd">        fix_final : bool</span>
+<span class="sd">            If True, the final value of this control is fixed and not a design variable.</span>
+<span class="sd">            This option is invalid if opt=False.</span>
+<span class="sd">        targets : Sequence of str or None</span>
+<span class="sd">            Targets in the ODE to which this control is connected.</span>
+<span class="sd">            In the future, if left _unspecified (the default), the phase control will try to connect to an ODE input</span>
+<span class="sd">            of the same name. Set targets to None to prevent this.</span>
+<span class="sd">        rate_targets : Sequence of str or None</span>
+<span class="sd">            The targets in the ODE to which the control rate is connected.</span>
+<span class="sd">        rate2_targets : Sequence of str or None</span>
+<span class="sd">            The parameter in the ODE to which the control 2nd derivative is connected.</span>
+<span class="sd">        val : float</span>
+<span class="sd">            The default value of the control variable at the control input nodes.</span>
+<span class="sd">        shape : Sequence of int</span>
+<span class="sd">            The shape of the control variable at each point in time. Only needed for controls that don&#39;t</span>
+<span class="sd">            have a target in the ode.</span>
+<span class="sd">        lower : Sequence of Number or None</span>
+<span class="sd">            The lower bound of the control variable at the nodes.</span>
+<span class="sd">            This option is invalid if opt=False.</span>
+<span class="sd">        upper : Sequence or Number or None</span>
+<span class="sd">            The upper bound of the control variable at the nodes.</span>
+<span class="sd">            This option is invalid if opt=False.</span>
+<span class="sd">        scaler : float or None</span>
+<span class="sd">            The scaler of the control variable at the nodes.</span>
+<span class="sd">            This option is invalid if opt=False.</span>
+<span class="sd">        adder : float or None</span>
+<span class="sd">            The adder of the control variable at the nodes.</span>
+<span class="sd">            This option is invalid if opt=False.</span>
+<span class="sd">        ref0 : float or None</span>
+<span class="sd">            The zero-reference value of the control variable at the nodes.</span>
+<span class="sd">            This option is invalid if opt=False.</span>
+<span class="sd">        ref : float or None</span>
+<span class="sd">            The unit-reference value of the control variable at the nodes.</span>
+<span class="sd">            This option is invalid if opt=False.</span>
+<span class="sd">        continuity : bool</span>
+<span class="sd">            Enforce continuity of control values at segment boundaries.</span>
+<span class="sd">            This option is invalid if opt=False.</span>
+<span class="sd">        continuity_scaler : bool</span>
+<span class="sd">            Scaler of the continuity constraint. This option is invalid if opt=False.  This</span>
+<span class="sd">            option is only relevant in the Radau pseudospectral transcription where the continuity</span>
+<span class="sd">            constraint is nonlinear.  For Gauss-Lobatto the continuity constraint is linear.</span>
+<span class="sd">        rate_continuity : bool</span>
+<span class="sd">            Enforce continuity of control first derivatives  (in dimensionless time) at</span>
+<span class="sd">            segment boundaries.</span>
+<span class="sd">            This option is invalid if opt=False.</span>
+<span class="sd">        rate_continuity_scaler : float</span>
+<span class="sd">            Scaler of the rate continuity constraint at segment boundaries.</span>
+<span class="sd">            This option is invalid if opt=False.</span>
+<span class="sd">        rate2_continuity : bool</span>
+<span class="sd">            Enforce continuity of control second derivatives at segment boundaries.</span>
+<span class="sd">            This option is invalid if opt=False.</span>
+<span class="sd">        rate2_continuity_scaler : float</span>
+<span class="sd">            Scaler of the dimensionless rate continuity constraint at segment boundaries.</span>
+<span class="sd">            This option is invalid if opt=False.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        rate and rate2 continuity are not enforced for input controls.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;AnalyticPhase does not support controls.&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_control_options</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
+                            <span class="n">fix_initial</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">fix_final</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
+                            <span class="n">rate_targets</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">rate2_targets</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
+                            <span class="n">shape</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">scaler</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
+                            <span class="n">adder</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">ref0</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">continuity</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
+                            <span class="n">continuity_scaler</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">rate_continuity</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
+                            <span class="n">rate_continuity_scaler</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">rate2_continuity</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
+                            <span class="n">rate2_continuity_scaler</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set options on an existing dynamic control variable in the phase.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name : str</span>
+<span class="sd">            The name assigned to the control variable.  If the ODE has been decorated with</span>
+<span class="sd">            parameters, this should be the name of a control in the system.</span>
+<span class="sd">        units : str or None</span>
+<span class="sd">            The units with which the control parameter in this phase will be defined.  It must be</span>
+<span class="sd">            compatible with the units of the targets to which the control is connected.</span>
+<span class="sd">        desc : str</span>
+<span class="sd">            A description of the control variable.</span>
+<span class="sd">        opt : bool</span>
+<span class="sd">            If True, the control value will be a design variable for the optimization problem.</span>
+<span class="sd">            If False, allow the control to be connected externally.</span>
+<span class="sd">        fix_initial : bool</span>
+<span class="sd">            If True, the initial value of this control is fixed and not a design variable.</span>
+<span class="sd">            This option is invalid if opt=False.</span>
+<span class="sd">        fix_final : bool</span>
+<span class="sd">            If True, the final value of this control is fixed and not a design variable.</span>
+<span class="sd">            This option is invalid if opt=False.</span>
+<span class="sd">        targets : Sequence of str or None</span>
+<span class="sd">            Targets in the ODE to which this control is connected.</span>
+<span class="sd">            In the future, if left _unspecified (the default), the phase control will try to connect to an ODE input</span>
+<span class="sd">            of the same name. Set targets to None to prevent this.</span>
+<span class="sd">        rate_targets : Sequence of str or None</span>
+<span class="sd">            The targets in the ODE to which the control rate is connected.</span>
+<span class="sd">        rate2_targets : Sequence of str or None</span>
+<span class="sd">            The parameter in the ODE to which the control 2nd derivative is connected.</span>
+<span class="sd">        val : float</span>
+<span class="sd">            The default value of the control variable at the control input nodes.</span>
+<span class="sd">        shape : Sequence of int</span>
+<span class="sd">            The shape of the control variable at each point in time. Only needed for controls that don&#39;t</span>
+<span class="sd">            have a target in the ode.</span>
+<span class="sd">        lower : Sequence of Number or None</span>
+<span class="sd">            The lower bound of the control variable at the nodes.</span>
+<span class="sd">            This option is invalid if opt=False.</span>
+<span class="sd">        upper : Sequence or Number or None</span>
+<span class="sd">            The upper bound of the control variable at the nodes.</span>
+<span class="sd">            This option is invalid if opt=False.</span>
+<span class="sd">        scaler : float or None</span>
+<span class="sd">            The scaler of the control variable at the nodes.</span>
+<span class="sd">            This option is invalid if opt=False.</span>
+<span class="sd">        adder : float or None</span>
+<span class="sd">            The adder of the control variable at the nodes.</span>
+<span class="sd">            This option is invalid if opt=False.</span>
+<span class="sd">        ref0 : float or None</span>
+<span class="sd">            The zero-reference value of the control variable at the nodes.</span>
+<span class="sd">            This option is invalid if opt=False.</span>
+<span class="sd">        ref : float or None</span>
+<span class="sd">            The unit-reference value of the control variable at the nodes.</span>
+<span class="sd">            This option is invalid if opt=False.</span>
+<span class="sd">        continuity : bool</span>
+<span class="sd">            Enforce continuity of control values at segment boundaries.</span>
+<span class="sd">            This option is invalid if opt=False.</span>
+<span class="sd">        continuity_scaler : bool</span>
+<span class="sd">            Scaler of the continuity constraint. This option is invalid if opt=False.  This</span>
+<span class="sd">            option is only relevant in the Radau pseudospectral transcription where the continuity</span>
+<span class="sd">            constraint is nonlinear.  For Gauss-Lobatto the continuity constraint is linear.</span>
+<span class="sd">        rate_continuity : bool</span>
+<span class="sd">            Enforce continuity of control first derivatives  (in dimensionless time) at</span>
+<span class="sd">            segment boundaries.</span>
+<span class="sd">            This option is invalid if opt=False.</span>
+<span class="sd">        rate_continuity_scaler : float</span>
+<span class="sd">            Scaler of the rate continuity constraint at segment boundaries.</span>
+<span class="sd">            This option is invalid if opt=False.</span>
+<span class="sd">        rate2_continuity : bool</span>
+<span class="sd">            Enforce continuity of control second derivatives at segment boundaries.</span>
+<span class="sd">            This option is invalid if opt=False.</span>
+<span class="sd">        rate2_continuity_scaler : float</span>
+<span class="sd">            Scaler of the dimensionless rate continuity constraint at segment boundaries.</span>
+<span class="sd">            This option is invalid if opt=False.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        rate and rate2 continuity are not enforced for input controls.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;AnalyticPhase does not support controls.&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_polynomial_control</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
+                               <span class="n">opt</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">fix_initial</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">fix_final</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
+                               <span class="n">lower</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
+                               <span class="n">scaler</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">adder</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">ref0</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
+                               <span class="n">ref</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">rate_targets</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
+                               <span class="n">rate2_targets</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds an polynomial control variable to be tied to a parameter in the ODE.</span>
+
+<span class="sd">        Polynomial controls are defined by values at the Legendre-Gauss-Lobatto nodes of a</span>
+<span class="sd">        single polynomial, defined on [-1, 1] in phase tau space.</span>
+
+<span class="sd">        For a polynomial control of a given order, the number of nodes used to define the</span>
+<span class="sd">        polynomial is (order + 1).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name : str</span>
+<span class="sd">            Name of the controllable parameter in the ODE.</span>
+<span class="sd">        order : int</span>
+<span class="sd">            The order of the interpolating polynomial used to represent the control value in</span>
+<span class="sd">            phase tau space.</span>
+<span class="sd">        desc : str</span>
+<span class="sd">            A description of the polynomial control.</span>
+<span class="sd">        val : float or ndarray</span>
+<span class="sd">            Default value of the control at all nodes.  If val scalar and the control</span>
+<span class="sd">            is dynamic it will be broadcast.</span>
+<span class="sd">        units : str or None or 0</span>
+<span class="sd">            Units in which the control variable is defined.  If 0, use the units declared</span>
+<span class="sd">            for the parameter in the ODE.</span>
+<span class="sd">        opt : bool</span>
+<span class="sd">            If True (default) the value(s) of this control will be design variables in</span>
+<span class="sd">            the optimization problem, in the path &#39;phase_name.indep_controls.controls:control_name&#39;.</span>
+<span class="sd">            If False, the values of this control will exist as input controls:{name}.</span>
+<span class="sd">        fix_initial : bool</span>
+<span class="sd">            If True, the given initial value of the polynomial control is not a design variable and</span>
+<span class="sd">            will not be changed during the optimization.</span>
+<span class="sd">        fix_final : bool</span>
+<span class="sd">            If True, the given final value of the polynomial control is not a design variable and</span>
+<span class="sd">            will not be changed during the optimization.</span>
+<span class="sd">        lower : float or ndarray</span>
+<span class="sd">            The lower bound of the control at the nodes of the phase.</span>
+<span class="sd">        upper : float or ndarray</span>
+<span class="sd">            The upper bound of the control at the nodes of the phase.</span>
+<span class="sd">        scaler : float or ndarray</span>
+<span class="sd">            The scaler of the control value at the nodes of the phase.</span>
+<span class="sd">        adder : float or ndarray</span>
+<span class="sd">            The adder of the control value at the nodes of the phase.</span>
+<span class="sd">        ref0 : float or ndarray</span>
+<span class="sd">            The zero-reference value of the control at the nodes of the phase.</span>
+<span class="sd">        ref : float or ndarray</span>
+<span class="sd">            The unit-reference value of the control at the nodes of the phase.</span>
+<span class="sd">        targets : Sequence of str or None</span>
+<span class="sd">            Targets in the ODE to which this polynomial control is connected.</span>
+<span class="sd">        rate_targets : None or str</span>
+<span class="sd">            The name of the parameter in the ODE to which the first time-derivative</span>
+<span class="sd">            of the control value is connected.</span>
+<span class="sd">        rate2_targets : None or str</span>
+<span class="sd">            The name of the parameter in the ODE to which the second time-derivative</span>
+<span class="sd">            of the control value is connected.</span>
+<span class="sd">        shape : Sequence of int</span>
+<span class="sd">            The shape of the control variable at each point in time.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;AnalyticPhase does not support polynomial controls.&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build the model hierarchy for a Dymos AnalyticPhase.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Finalize the variables if it hasn&#39;t happened already.</span>
+        <span class="c1"># If this phase exists within a Trajectory, the trajectory will finalize them during setup.</span>
+        <span class="n">transcription</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;transcription&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Analytic</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;num_nodes&#39;</span><span class="p">])</span>
+        <span class="n">transcription</span><span class="o">.</span><span class="n">setup_time</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">control_options</span><span class="p">:</span>
+            <span class="n">transcription</span><span class="o">.</span><span class="n">setup_controls</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameter_options</span><span class="p">:</span>
+            <span class="n">transcription</span><span class="o">.</span><span class="n">setup_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="c1"># Never allow state rate outputs for analytic phases</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timeseries_options</span><span class="p">[</span><span class="s1">&#39;include_state_rates&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timeseries_options</span><span class="o">.</span><span class="n">_dict</span><span class="p">[</span><span class="s1">&#39;include_state_rates&#39;</span><span class="p">][</span><span class="s1">&#39;values&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="kc">False</span><span class="p">]</span>
+
+        <span class="n">transcription</span><span class="o">.</span><span class="n">setup_states</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_ode</span><span class="p">()</span>
+        <span class="n">transcription</span><span class="o">.</span><span class="n">setup_ode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="n">transcription</span><span class="o">.</span><span class="n">setup_timeseries_outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">transcription</span><span class="o">.</span><span class="n">setup_defects</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">transcription</span><span class="o">.</span><span class="n">setup_solvers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">simulate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">times_per_seg</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span>
+                 <span class="n">first_step</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">max_step</span><span class="o">=</span><span class="n">_unspecified</span><span class="p">,</span> <span class="n">record_file</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Stub to make sure users are informed that simulate cannot be done on AnalyticPhase.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        times_per_seg : int or None</span>
+<span class="sd">            Number of equally spaced times per segment at which output is requested.  If None,</span>
+<span class="sd">            output will be provided at all Nodes.</span>
+<span class="sd">        method : str</span>
+<span class="sd">            The scipy.integrate.solve_ivp integration method.</span>
+<span class="sd">        atol : float</span>
+<span class="sd">            Absolute convergence tolerance for scipy.integrate.solve_ivp.</span>
+<span class="sd">        rtol : float</span>
+<span class="sd">            Relative convergence tolerance for scipy.integrate.solve_ivp.</span>
+<span class="sd">        first_step : float</span>
+<span class="sd">            Initial step size for the integration.</span>
+<span class="sd">        max_step : float</span>
+<span class="sd">            Maximum step size for the integration.</span>
+<span class="sd">        record_file : str or None</span>
+<span class="sd">            If a string, the file to which the result of the simulation will be saved.</span>
+<span class="sd">            If None, no record of the simulation will be saved.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        problem</span>
+<span class="sd">            An OpenMDAO Problem in which the simulation is implemented.  This Problem interface</span>
+<span class="sd">            can be interrogated to obtain timeseries outputs in the same manner as other Phases</span>
+<span class="sd">            to obtain results at the requested times.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Method `simulate` is not available for AnalyticPhase.&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_simulate_options</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Stub to make sure users are informed that simulate cannot be done on AnalyticPhase.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        *args</span>
+<span class="sd">            Position arguments.</span>
+<span class="sd">        **kwargs : float</span>
+<span class="sd">            Keyword arguments.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        NotImplementedError</span>
+<span class="sd">            Simulation cannot be performed on AnalyticPhase.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Method set_simulate_options is not available for AnalyticPhase.&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">duplicate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_nodes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">boundary_constraints</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">path_constraints</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">objectives</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                  <span class="n">fix_initial_time</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a copy of this phase where most options and attributes are deep copies of those in the original.</span>
+
+<span class="sd">        By default, a deepcopy of the transcription in the original phase is used.</span>
+<span class="sd">        Boundary constraints, path constraints, and objectives are _NOT_ copied by default, but the user may opt to do so.</span>
+<span class="sd">        By default, initial time is not fixed, nor are the initial or final state values.</span>
+<span class="sd">        These also can be overridden with the appropriate arguments.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        num_nodes : int or None</span>
+<span class="sd">            The number of nodes to use in the new phase, or None if it should use the same</span>
+<span class="sd">            number as the phase being duplicated.</span>
+<span class="sd">        boundary_constraints : bool</span>
+<span class="sd">            If True, retain all boundary constraints from the phase to be copied.</span>
+<span class="sd">        path_constraints : bool</span>
+<span class="sd">            If True, retain all path constraints from the phase to be copied.</span>
+<span class="sd">        objectives : bool</span>
+<span class="sd">            If True, retain all objectives from the phase to be copied.</span>
+<span class="sd">        fix_initial_time : bool</span>
+<span class="sd">            If True, fix the initial time of the returned phase.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        AnalyticPhase</span>
+<span class="sd">            The new phase created by duplicating this one.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nn</span> <span class="o">=</span> <span class="n">num_nodes</span> <span class="k">if</span> <span class="n">num_nodes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;num_nodes&#39;</span><span class="p">]</span>
+        <span class="n">ode_class</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ode_class&#39;</span><span class="p">]</span>
+        <span class="n">ode_init_kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;ode_init_kwargs&#39;</span><span class="p">]</span>
+        <span class="n">auto_solvers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;auto_solvers&#39;</span><span class="p">]</span>
+
+        <span class="n">p</span> <span class="o">=</span> <span class="n">AnalyticPhase</span><span class="p">(</span><span class="n">num_nodes</span><span class="o">=</span><span class="n">nn</span><span class="p">,</span> <span class="n">ode_class</span><span class="o">=</span><span class="n">ode_class</span><span class="p">,</span> <span class="n">ode_init_kwargs</span><span class="o">=</span><span class="n">ode_init_kwargs</span><span class="p">,</span>
+                          <span class="n">auto_solvers</span><span class="o">=</span><span class="n">auto_solvers</span><span class="p">)</span>
+
+        <span class="n">p</span><span class="o">.</span><span class="n">time_options</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_options</span><span class="p">))</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">time_options</span><span class="p">[</span><span class="s1">&#39;fix_initial&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fix_initial_time</span>
+
+        <span class="k">for</span> <span class="n">state_name</span><span class="p">,</span> <span class="n">state_options</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_options</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">state_options</span><span class="p">[</span><span class="n">state_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">state_options</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">param_name</span><span class="p">,</span> <span class="n">param_options</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameter_options</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">parameter_options</span><span class="p">[</span><span class="n">param_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">param_options</span><span class="p">)</span>
+
+        <span class="n">p</span><span class="o">.</span><span class="n">_timeseries</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_timeseries</span><span class="p">)</span>
+
+        <span class="n">p</span><span class="o">.</span><span class="n">refine_options</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">refine_options</span><span class="p">)</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">simulate_options</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">simulate_options</span><span class="p">)</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">timeseries_options</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">timeseries_options</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">boundary_constraints</span><span class="p">:</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">_initial_boundary_constraints</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_initial_boundary_constraints</span><span class="p">)</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">_final_boundary_constraints</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_final_boundary_constraints</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">path_constraints</span><span class="p">:</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">_path_constraints</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_path_constraints</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">objectives</span><span class="p">:</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">_objectives</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_objectives</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">p</span>
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By The Dymos Development Team
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

@@ -1,0 +1,973 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>The Trajectory API &#8212; Dymos</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/myfile.css?v=9678755d" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'api/trajectory_api';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Contributing to Dymos" href="../contributing/contributing.html" />
+    <link rel="prev" title="The Transcriptions API" href="transcriptions_api.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/dymos_logo.png" class="logo__image only-light" alt="Dymos - Home"/>
+    <script>document.write(`<img src="../_static/dymos_logo.png" class="logo__image only-dark" alt="Dymos - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../index.html">
+                    Multidisciplinary Optimal Control Library
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Installation</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installing Dymos</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/optimal_control.html">Optimal Control</a></li>
+
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/transcriptions.html">Optimal Control Transcriptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/defining_odes.html">Defining ODEs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/collocation.html">What is collocation?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/intro_to_dymos/intro_ivp.html">Modeling Dynamic Systems with Dymos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/intro_to_dymos/intro_segments.html">Segments of Phases</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples and Tutorials</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../examples/examples.html">Dymos by Example</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/brachistochrone/brachistochrone.html">The Brachistochrone</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/brachistochrone/brachistochrone_upstream_init_duration_states.html">The Brachistochrone with externally-sourced initial state values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/vanderpol/vanderpol.html">The Van der Pol Oscillator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/balanced_field/balanced_field.html">Aircraft Balanced Field Length Calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/balanced_field/balanced_field_funccomp.html">Balanced Field Length using OpenMDAO’s Function Wrapping Components.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/bryson_denham/bryson_denham.html">The Bryson-Denham Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/commercial_aircraft/commercial_aircraft.html">Commercial Aircraft Range Maximization by Differential Inclusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/double_integrator/double_integrator.html">Double Integrator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/hull/hull_problem.html">The Hull Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/hypersensitive/hypersensitive.html">Hyper-Sensitive Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/finite_burn_orbit_raise/finite_burn_orbit_raise.html">Two-Burn Orbit Raise</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/length_constrained_brachistochrone/length_constrained_brachistochrone.html">The Length-Constrained Brachistochrone</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/min_time_climb/min_time_climb.html">Supersonic Interceptor Minimum Time Climb</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/mountain_car/mountain_car.html">The Mountain Car Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/moon_landing/moon_landing.html">Moon Landing Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/multi_phase_cannonball/multi_phase_cannonball.html">Multi-Phase Cannonball</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/multibranch_trajectory/multibranch_trajectory.html">Multibranch Trajectory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/racecar/racecar.html">Race car Lap Simulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/reentry/reentry.html">Single-Phase Space Shuttle Reentry</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/ssto_earth/ssto_earth.html">SSTO Earth Launch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/ssto_moon_linear_tangent/ssto_moon_linear_tangent.html">SSTO Lunar Ascent with Linear Tangent Guidance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/ssto_moon_polynomial_controls/ssto_moon_polynomial_controls.html">SSTO Lunar Ascent with Polynomial Controls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/robertson_problem/robertson_problem.html">The Robertson Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/water_rocket/water_rocket.html">Water Rocket</a></li>
+
+<li class="toctree-l2"><a class="reference internal" href="../examples/cart_pole/cart_pole.html">Cart-Pole Optimal Control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/brachistochrone/brachistochrone_tandem_phases.html">Brachistochrone with tandem phases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/implicit_duration/brachistochrone_implicit_duration.html">Boundary Balance</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Feature Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../features/phases/phases_list.html">Phases</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../features/phases/phases.html">Phases of a Trajectory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../features/phases/analytic_phases.html">Analytic Phases in Dymos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../features/phases/segments.html">Segments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../features/phases/variables.html">Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../features/phases/constraints.html">Constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../features/phases/objective.html">Objective</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../features/phases/timeseries.html">Timeseries Outputs</a></li>
+
+<li class="toctree-l2"><a class="reference internal" href="../features/phases/calc_expressions.html">Calculation Expressions</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../features/trajectories/trajectories.html">Organizing Phases into Trajectories</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../features/exploiting_sparsity.html">Exploiting Sparsity for Faster Derivative Calculation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../features/plotting.html">Plotting Timeseries</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Frequently Asked Questions</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../faq/faq.html">Frequently Asked Questions</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../faq/add_ode_output_to_timeseries.html">How do I add an ODE output to the timeseries outputs?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/connect_scalar_parameters_to_ode.html">How do I connect a scalar input to the ODE?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/upstream_analysis.html">How do I connect the outputs of an upstream analysis as inputs to Dymos?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/downstream_analysis.html">How do I connect the outputs of Dymos to a downstream analysis?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/tandem_phases.html">How do I run two phases parallel-in-time?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/use_partial_coloring.html">How can I more efficiently use finite-differenced components in the ODE?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq/debugging.html">How can I debug models when things go wrong?</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Dymos API Reference</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="api.html">Dymos Reference API</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="run_problem_function.html">The run_problem function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="phase_api.html">Phase Options</a></li>
+
+<li class="toctree-l2"><a class="reference internal" href="transcriptions_api.html">The Transcriptions API</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">The Trajectory API</a></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../contributing/contributing.html">Contributing to Dymos</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-launch-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Launch interactive content">
+    <i class="fas fa-rocket"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://colab.research.google.com/github/OpenMDAO/dymos/blob/master/docs/dymos_book/api/trajectory_api.ipynb" target="_blank"
+   class="btn btn-sm dropdown-item"
+   title="Launch on Colab"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  
+    <img alt="Colab logo" src="../_static/images/logo_colab.png">
+  </span>
+<span class="btn__text-container">Colab</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/OpenMDAO/dymos" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/OpenMDAO/dymos/issues/new?title=Issue%20on%20page%20%2Fapi/trajectory_api.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/api/trajectory_api.ipynb" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.ipynb</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>The Trajectory API</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#add-linkage-constraint">add_linkage_constraint</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#add-parameter">add_parameter</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#set-parameter-val">set_parameter_val</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#add-phase">add_phase</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#link-phases">link_phases</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simulate">simulate</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="the-trajectory-api">
+<h1>The Trajectory API<a class="headerlink" href="#the-trajectory-api" title="Link to this heading">#</a></h1>
+<section id="add-linkage-constraint">
+<h2>add_linkage_constraint<a class="headerlink" href="#add-linkage-constraint" title="Link to this heading">#</a></h2>
+<blockquote>
+<div><dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">Trajectory.</span></span><span class="sig-name descname"><span class="pre">add_linkage_constraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phase_a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc_a</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'final'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc_b</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'initial'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sign_a</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">unspecified</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sign_b</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">unspecified</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mult_a</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">unspecified</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mult_b</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">unspecified</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">unspecified</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">equals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linear</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connected</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dymos/trajectory/trajectory.html#Trajectory.add_linkage_constraint"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Explicitly add a single phase linkage constraint.</p>
+<p>Phase linkage constraints are enforced by constraining the following equation:</p>
+<p>mult_a * var_a + mult_b * var_b</p>
+<p>The resulting value of this equation is constrained.  This can satisfy ‘coupling’ or
+‘linkage’ conditions across phase boundaries:  enforcing continuity,
+common initial conditions, or common final conditions.</p>
+<p>With default values, this equation can be used to enforce variable continuity at phase
+boundaries.  For instance, constraining some variable <cite>x</cite> (either a state, control,
+parameter, or output of the ODE) to have the same value at the final point of phase ‘foo’
+and the initial point of phase ‘bar’ is accomplished by:</p>
+<p><code class="docutils literal notranslate"><span class="pre">`</span>
+<span class="pre">add_linkage_constraint('foo',</span> <span class="pre">'bar',</span> <span class="pre">'x',</span> <span class="pre">'x')</span>
+<span class="pre">`</span></code></p>
+<p>We may sometimes want two phases to have the same value of some variable at the start of
+each phase:</p>
+<p><code class="docutils literal notranslate"><span class="pre">`</span>
+<span class="pre">add_linkage_constraint('foo',</span> <span class="pre">'bar',</span> <span class="pre">'x',</span> <span class="pre">'x',</span> <span class="pre">loc_a='initial',</span> <span class="pre">loc_b='initial')</span>
+<span class="pre">`</span></code></p>
+<p>(Here the specification of loc_b is unnecessary but helps in the clarity of whats going on.)</p>
+<p>Or perhaps a phase has cyclic behavior.  We may not know the exact value of some variable
+<cite>x</cite> at the start and end of the phase <cite>foo</cite>, but it must be the same value at each point.</p>
+<p><code class="docutils literal notranslate"><span class="pre">`</span>
+<span class="pre">add_linkage_constraint('foo',</span> <span class="pre">'foo',</span> <span class="pre">'x',</span> <span class="pre">'x')</span>
+<span class="pre">`</span></code></p>
+<p>If <cite>lower</cite>, <cite>upper</cite>, and <cite>equals</cite> are all <cite>None</cite>, then dymos will use <cite>equals=0</cite> by default.
+If the continuity condition is limited by some bounds instead, lower and upper can be used.
+For instance, perhaps the velocity (‘vel’) is allowed to have an impulsive change within
+a certain magnitude between two phases:</p>
+<p><code class="docutils literal notranslate"><span class="pre">`</span>
+<span class="pre">add_linkage_constraint('foo',</span> <span class="pre">'bar',</span> <span class="pre">'vel',</span> <span class="pre">'vel',</span> <span class="pre">lower=-100,</span> <span class="pre">upper=100,</span> <span class="pre">units='m/s')</span>
+<span class="pre">`</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>phase_a</strong><span class="classifier">str</span></dt><dd><p>The first phase in the linkage constraint.</p>
+</dd>
+<dt><strong>phase_b</strong><span class="classifier">str</span></dt><dd><p>The second phase in the linkage constraint.</p>
+</dd>
+<dt><strong>var_a</strong><span class="classifier">str</span></dt><dd><p>The linked variable from the first phase in the linkage constraint.</p>
+</dd>
+<dt><strong>var_b</strong><span class="classifier">str</span></dt><dd><p>The linked variable from the second phase in the linkage constraint.</p>
+</dd>
+<dt><strong>loc_a</strong><span class="classifier">str</span></dt><dd><p>The location of the variable in the first phase of the linkage constraint (one of
+‘initial’ or ‘final’).</p>
+</dd>
+<dt><strong>loc_b</strong><span class="classifier">str</span></dt><dd><p>The location of the variable in the second phase of the linkage constraint (one of
+‘initial’ or ‘final’).</p>
+</dd>
+<dt><strong>sign_a</strong><span class="classifier">float</span></dt><dd><p>The multiplier applied to the variable from the first phase in the linkage constraint.
+This argument is deprecated in favor of mult_a.</p>
+</dd>
+<dt><strong>sign_b</strong><span class="classifier">float</span></dt><dd><p>The multiplier applied to the variable from the second phase in the linkage constraint.
+This argument is deprecated in favor of mult_b.</p>
+</dd>
+<dt><strong>mult_a</strong><span class="classifier">float</span></dt><dd><p>The multiplier applied to the variable from the first phase in the linkage constraint.</p>
+</dd>
+<dt><strong>mult_b</strong><span class="classifier">float</span></dt><dd><p>The multiplier applied to the variable from the second phase in the linkage constraint.</p>
+</dd>
+<dt><strong>units</strong><span class="classifier">str or None or _unspecified</span></dt><dd><p>Units of the linkage. If _unspecified, dymos will use the units from the variable
+in the first phase of the linkage. Units of the two specified variables must be
+compatible.</p>
+</dd>
+<dt><strong>lower</strong><span class="classifier">float or array or None</span></dt><dd><p>The lower bound applied as a constraint on the linkage equation.</p>
+</dd>
+<dt><strong>upper</strong><span class="classifier">float or array or None</span></dt><dd><p>The upper bound applied as a constraint on the linkage equation.</p>
+</dd>
+<dt><strong>equals</strong><span class="classifier">float or array or None</span></dt><dd><p>Specifies a targeted value for an equality constraint on the linkage equation.</p>
+</dd>
+<dt><strong>scaler</strong><span class="classifier">float or array or None</span></dt><dd><p>The scaler of the linkage constraint.</p>
+</dd>
+<dt><strong>adder</strong><span class="classifier">float or array or None</span></dt><dd><p>The adder of the linkage constraint.</p>
+</dd>
+<dt><strong>ref0</strong><span class="classifier">float or array or None</span></dt><dd><p>The zero-reference value of the linkage constraint.</p>
+</dd>
+<dt><strong>ref</strong><span class="classifier">float or array or None</span></dt><dd><p>The unit-reference value of the linkage constraint.</p>
+</dd>
+<dt><strong>linear</strong><span class="classifier">bool</span></dt><dd><p>If True, treat this variable as a linear constraint, otherwise False. Linear
+constraints should only be applied if the variable on each end of the linkage is a
+design variable or a linear function of one.</p>
+</dd>
+<dt><strong>connected</strong><span class="classifier">bool</span></dt><dd><p>If True, this constraint is enforced by direct connection rather than a constraint
+for the optimizer. This is only valid for states and time.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</div></blockquote>
+</section>
+<section id="add-parameter">
+<h2>add_parameter<a class="headerlink" href="#add-parameter" title="Link to this heading">#</a></h2>
+<blockquote>
+<div><dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">Trajectory.</span></span><span class="sig-name descname"><span class="pre">add_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">unspecified</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">unspecified</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">desc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">unspecified</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">unspecified</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">unspecified</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">unspecified</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">unspecified</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">unspecified</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">unspecified</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">unspecified</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">unspecified</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dynamic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">unspecified</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">static_target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">unspecified</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">static_targets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">unspecified</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dymos/trajectory/trajectory.html#Trajectory.add_parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Add a parameter (static control) to the trajectory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>name</strong><span class="classifier">str</span></dt><dd><p>Name of the parameter.</p>
+</dd>
+<dt><strong>units</strong><span class="classifier">str or None or _unspecified</span></dt><dd><p>Units in which the parameter is defined.  If _unspecified, use the units declared
+for the parameter in the ODE.</p>
+</dd>
+<dt><strong>val</strong><span class="classifier">float or ndarray</span></dt><dd><p>Default value of the parameter at all nodes.</p>
+</dd>
+<dt><strong>desc</strong><span class="classifier">str</span></dt><dd><p>A description of the parameter.</p>
+</dd>
+<dt><strong>opt</strong><span class="classifier">bool</span></dt><dd><p>If True the value(s) of this parameter will be design variables in
+the optimization problem. The default is False.</p>
+</dd>
+<dt><strong>targets</strong><span class="classifier">dict or None</span></dt><dd><p>If None, then the parameter will be connected to the controllable parameter
+in the ODE of each phase.  For each phase where no such controllable parameter exists,
+a warning will be issued.  If targets is given as a dict, the dict should provide
+the relevant phase names as keys, each associated with the respective controllable
+parameter as a value.</p>
+</dd>
+<dt><strong>lower</strong><span class="classifier">float or ndarray</span></dt><dd><p>The lower bound of the parameter value.</p>
+</dd>
+<dt><strong>upper</strong><span class="classifier">float or ndarray</span></dt><dd><p>The upper bound of the parameter value.</p>
+</dd>
+<dt><strong>scaler</strong><span class="classifier">float or ndarray</span></dt><dd><p>The scaler of the parameter value for the optimizer.</p>
+</dd>
+<dt><strong>adder</strong><span class="classifier">float or ndarray</span></dt><dd><p>The adder of the parameter value for the optimizer.</p>
+</dd>
+<dt><strong>ref0</strong><span class="classifier">float or ndarray</span></dt><dd><p>The zero-reference value of the parameter for the optimizer.</p>
+</dd>
+<dt><strong>ref</strong><span class="classifier">float or ndarray</span></dt><dd><p>The unit-reference value of the parameter for the optimizer.</p>
+</dd>
+<dt><strong>shape</strong><span class="classifier">Sequence of int</span></dt><dd><p>The shape of the parameter.</p>
+</dd>
+<dt><strong>dynamic</strong><span class="classifier">bool</span></dt><dd><p>True if the targets in the ODE may be dynamic (if the inputs are sized to the number
+of nodes) else False. This argument is deprecated in favor of static_target.</p>
+</dd>
+<dt><strong>static_target</strong><span class="classifier">bool or _unspecified</span></dt><dd><p>True if the targets in the ODE are not shaped with num_nodes as the first dimension
+(meaning they cannot have a unique value at each node).  Otherwise False.</p>
+</dd>
+<dt><strong>static_targets</strong><span class="classifier">bool or Sequence or _unspecified</span></dt><dd><p>True if ALL targets in the ODE are not shaped with num_nodes as the first dimension
+(meaning they cannot have a unique value at each node).  If False, ALL targets are
+expected to be shaped with the first dimension as the number of nodes. If given
+as a Sequence, it provides those targets not shaped with num_nodes. If left _unspecified,
+static targets will be determined automatically.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</div></blockquote>
+</section>
+<section id="set-parameter-val">
+<h2>set_parameter_val<a class="headerlink" href="#set-parameter-val" title="Link to this heading">#</a></h2>
+<blockquote>
+<div><dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">Trajectory.</span></span><span class="sig-name descname"><span class="pre">set_parameter_val</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dymos/trajectory/trajectory.html#Trajectory.set_parameter_val"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Set the parameter values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>name</strong><span class="classifier">str</span></dt><dd><p>Name of the variable. This should be a parameter variable.</p>
+</dd>
+<dt><strong>val</strong><span class="classifier">ndarray or Sequence or None</span></dt><dd><p>Array of state values.</p>
+</dd>
+<dt><strong>units</strong><span class="classifier">str, optional</span></dt><dd><p>The units of the state values specified.
+If None, use the units associated with the target.
+If provided, must be compatible with the target units.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</div></blockquote>
+</section>
+<section id="add-phase">
+<h2>add_phase<a class="headerlink" href="#add-phase" title="Link to this heading">#</a></h2>
+<blockquote>
+<div><dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">Trajectory.</span></span><span class="sig-name descname"><span class="pre">add_phase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dymos/trajectory/trajectory.html#Trajectory.add_phase"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Add a phase to the trajectory.</p>
+<p>Phases will be added to the Trajectory’s <cite>phases</cite> subgroup.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>name</strong><span class="classifier">str</span></dt><dd><p>The name of the phase being added.</p>
+</dd>
+<dt><strong>phase</strong><span class="classifier">dymos Phase object</span></dt><dd><p>The Phase object to be added.</p>
+</dd>
+<dt><strong>**kwargs</strong><span class="classifier">dict</span></dt><dd><p>Additional arguments when adding the phase to the trajectory.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>PhaseBase</dt><dd><p>The Phase object added to the trajectory.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</div></blockquote>
+</section>
+<section id="link-phases">
+<h2>link_phases<a class="headerlink" href="#link-phases" title="Link to this heading">#</a></h2>
+<blockquote>
+<div><dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">Trajectory.</span></span><span class="sig-name descname"><span class="pre">link_phases</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phases</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vars</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">locs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('final',</span> <span class="pre">'initial')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connected</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">unspecified</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linear</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dymos/trajectory/trajectory.html#Trajectory.link_phases"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Specify that phases in the given sequence are to assume continuity of the given variables.</p>
+<p>This method caches the phase linkages, and may be called multiple times to express more
+complex behavior (branching phases, phases only continuous in some variables, etc).</p>
+<p>The location at which the variables should be coupled in the two phases are provided
+with one of two strings:</p>
+<ul class="simple">
+<li><p>‘final’ specifies the value at the end of the phase (at time t_initial + t_duration)</p></li>
+<li><p>‘initial’ specifies the value at the start of the phase (at time t_initial)</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>phases</strong><span class="classifier">sequence of str</span></dt><dd><p>The names of the phases in this trajectory to be sequentially linked.</p>
+</dd>
+<dt><strong>vars</strong><span class="classifier">sequence of str</span></dt><dd><p>The variables in the phases to be linked, or ‘*’.  Providing ‘*’ will link time and all
+states.  Linking control values or rates requires them to be listed explicitly.</p>
+</dd>
+<dt><strong>locs</strong><span class="classifier">tuple of str</span></dt><dd><p>A two-element tuple of a location specification.  For every pair in
+phases, the location specification refers to which location in the first phase is
+connected to which location in the second phase.  If the user wishes to specify
+different locations for different phase pairings, those phase pairings must be made
+in separate calls to link_phases.</p>
+</dd>
+<dt><strong>connected</strong><span class="classifier">bool</span></dt><dd><p>Set to True to directly connect the phases being linked. Otherwise, create constraints
+for the optimizer to solve.</p>
+</dd>
+<dt><strong>units</strong><span class="classifier">str or None or _unspecified</span></dt><dd><p>Units of the linkage.  If _unspecified, dymos will use the units from the variable
+in the first phase of the linkage.  Units of the two specified variables must be
+compatible.</p>
+</dd>
+<dt><strong>scaler</strong><span class="classifier">float or array or None</span></dt><dd><p>The scaler of the linkage constraint.</p>
+</dd>
+<dt><strong>adder</strong><span class="classifier">float or array or None</span></dt><dd><p>The adder of the linkage constraint.</p>
+</dd>
+<dt><strong>ref0</strong><span class="classifier">float or array or None</span></dt><dd><p>The zero-reference value of the linkage constraint.</p>
+</dd>
+<dt><strong>ref</strong><span class="classifier">float or array or None</span></dt><dd><p>The unit-reference value of the linkage constraint.</p>
+</dd>
+<dt><strong>linear</strong><span class="classifier">bool</span></dt><dd><p>If True, treat this variable as a linear constraint, otherwise False.  Linear
+constraints should only be applied if the variable on each end of the linkage is a
+design variable or a linear function of one.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_linkage_constraint</span></code></dt><dd><p>Explicitly add a single phase linkage constraint.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+</div></blockquote>
+</section>
+<section id="simulate">
+<h2>simulate<a class="headerlink" href="#simulate" title="Link to this heading">#</a></h2>
+<blockquote>
+<div><dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">Trajectory.</span></span><span class="sig-name descname"><span class="pre">simulate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">times_per_seg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">unspecified</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">unspecified</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">unspecified</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rtol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">unspecified</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">first_step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">unspecified</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">unspecified</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">record_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">case_prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reset_iter_counts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reports</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cubic'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/dymos/trajectory/trajectory.html#Trajectory.simulate"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Simulate the Trajectory using scipy.integrate.solve_ivp.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>times_per_seg</strong><span class="classifier">int or None</span></dt><dd><p>Number of equally spaced times per segment at which output is requested.  If None,
+output will be provided at all Nodes.</p>
+</dd>
+<dt><strong>method</strong><span class="classifier">str</span></dt><dd><p>The scipy.integrate.solve_ivp integration method.</p>
+</dd>
+<dt><strong>atol</strong><span class="classifier">float</span></dt><dd><p>Absolute convergence tolerance for scipy.integrate.solve_ivp.</p>
+</dd>
+<dt><strong>rtol</strong><span class="classifier">float</span></dt><dd><p>Relative convergence tolerance for scipy.integrate.solve_ivp.</p>
+</dd>
+<dt><strong>first_step</strong><span class="classifier">float</span></dt><dd><p>Initial step size for the integration.</p>
+</dd>
+<dt><strong>max_step</strong><span class="classifier">float</span></dt><dd><p>Maximum step size for the integration.</p>
+</dd>
+<dt><strong>record_file</strong><span class="classifier">str or None</span></dt><dd><p>If a string, the file to which the result of the simulation will be saved.
+If None, no record of the simulation will be saved.</p>
+</dd>
+<dt><strong>case_prefix</strong><span class="classifier">str or None</span></dt><dd><p>Prefix to prepend to coordinates when recording.</p>
+</dd>
+<dt><strong>reset_iter_counts</strong><span class="classifier">bool</span></dt><dd><p>If True and model has been run previously, reset all iteration counters.</p>
+</dd>
+<dt><strong>reports</strong><span class="classifier">bool or None or str or Sequence</span></dt><dd><p>Reports setting for the subproblems run under simualate.</p>
+</dd>
+<dt><strong>interpolant</strong><span class="classifier">str</span></dt><dd><p>The interpolation method to be used for the controls in the simulation phase.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>problem</dt><dd><p>An OpenMDAO Problem in which the simulation is implemented.  This Problem interface
+can be interrogated to obtain timeseries outputs in the same manner as other Phases
+to obtain results at the requested times.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</div></blockquote>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./api"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="transcriptions_api.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">The Transcriptions API</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../contributing/contributing.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Contributing to Dymos</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#add-linkage-constraint">add_linkage_constraint</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#add-parameter">add_parameter</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#set-parameter-val">set_parameter_val</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#add-phase">add_phase</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#link-phases">link_phases</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simulate">simulate</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By The Dymos Development Team
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
