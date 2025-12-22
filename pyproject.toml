@@ -23,9 +23,9 @@ classifiers = [
     "Topic :: Scientific/Engineering",
 ]
 dependencies = [
-    "numpy",
-    "openmdao>=3.36.0",
-    "scipy>=1.11",
+    "numpy>=2.0",
+    "openmdao>=3.38.0",
+    "scipy>=1.13",
 ]
 
 [project.optional-dependencies]
