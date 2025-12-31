@@ -726,9 +726,10 @@ class Birkhoff(TranscriptionBase):
                     if options['shape'] == (1,):
                         src_idxs = src_idxs.ravel()
                         endpoint_src_idxs = endpoint_src_idxs.ravel()
+                    endpoint_src_idxs = (endpoint_src_idxs,)
 
                 connection_info.append((f'ode_all.{tgt}', (src_idxs,)))
-                connection_info.append((f'boundary_vals.{tgt}', (endpoint_src_idxs,)))
+                connection_info.append((f'boundary_vals.{tgt}', endpoint_src_idxs))
 
         return connection_info
 

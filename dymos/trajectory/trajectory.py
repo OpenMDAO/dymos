@@ -1370,8 +1370,12 @@ class Trajectory(om.Group):
                                                   comm=self.comm,
                                                   reports=reports)
 
-        traj_name = self.name if self.name else 'sim_traj'
-        sim_prob.model.add_subsystem(traj_name, sim_traj)
+        sim_traj.name = traj_name = self.name
+        if self.name:
+            sim_prob.model.add_subsystem(traj_name, sim_traj)
+        else:
+            # traj_name = self.name  # if self.name else 'sim_traj'
+            self.sim_prob.model = sim_traj
 
         if record_file is not None:
             rec = om.SqliteRecorder(record_file)
@@ -1389,6 +1393,8 @@ class Trajectory(om.Group):
             warnings.filterwarnings(action='ignore', category=om.UnusedOptionWarning)
             warnings.filterwarnings(action='ignore', category=om.SetupWarning)
             sim_prob.setup(check=False, parent=self)
+            sim_prob.final_setup()
+            # sim_prob.model._get_conn_graph().serve()
 
             # Assign trajectory parameter values
             for name in self.parameter_options:

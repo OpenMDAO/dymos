@@ -258,7 +258,6 @@ class ODEEvaluationGroup(om.Group):
                               src_shape=shape)
             if targets:
                 self.set_input_defaults(name=var_name,
-                                        val=1.0,
                                         units=options['units'])
 
     def _configure_controls(self):

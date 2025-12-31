@@ -102,11 +102,8 @@ def _mpl_timeseries_plots(time_units, var_units, phase_names, phases_node_path,
 
             # get simulation values, if plotting simulation
             if last_simulation_case:
-                # if the phases_node_path is empty, need to pre-pend names with "sim_traj."
-                #   as that is pre-pended in Trajectory.simulate code
-                sim_prefix = "" if phases_node_path else "sim_traj."
-                var_val_simulate = last_simulation_case.outputs[sim_prefix + var_name_full]
-                time_val_simulate = last_simulation_case.outputs[sim_prefix + time_name]
+                var_val_simulate = last_simulation_case.outputs[var_name_full]
+                time_val_simulate = last_simulation_case.outputs[time_name]
                 ax.plot(time_val_simulate, var_val_simulate, linestyle='--', label='simulation',
                         color=color)
 

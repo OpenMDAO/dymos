@@ -60,10 +60,13 @@ class SimulationPhase(Phase):
         # vectors are in `from_phase` are already populated and we don't need to track these values
         # to their ultimate source.
 
-        t_initial = from_phase.get_val('t_initial', units=self.time_options['units'], from_src=False)
+        # to avoid ambiguity on t_initial, access directly from absolute name
+        t_init_name = from_phase._get_conn_graph().get_local_abs_in(self, 't_initial')
+        t_initial = from_phase.get_val(t_init_name, units=self.time_options['units'], from_src=False)
+        # t_initial = from_phase.get_val('t_initial', units=self.time_options['units'], get_remote=True)
         self.set_val('t_initial', t_initial, units=self.time_options['units'])
 
-        t_duration = from_phase.get_val('t_duration', units=self.time_options['units'], from_src=False)
+        t_duration = from_phase.get_val('t_duration', units=self.time_options['units'])
         self.set_val('t_duration', t_duration, units=self.time_options['units'])
 
         avail_io = {meta['prom_name'] for meta in
@@ -71,19 +74,19 @@ class SimulationPhase(Phase):
 
         for name, options in self.state_options.items():
             if f'states:{name}' in avail_io:
-                val = from_phase.get_val(f'states:{name}', units=options['units'], from_src=False)[0, ...]
+                val = from_phase.get_val(f'states:{name}', units=options['units'])[0, ...]
             elif f'initial_states:{name}' in avail_io:
-                val = from_phase.get_val(f'initial_states:{name}', units=options['units'], from_src=False)
+                val = from_phase.get_val(f'initial_states:{name}', units=options['units'])
             else:
                 raise RuntimeError('Unable to find state values in original phase')
             self.set_val(f'initial_states:{name}', val, units=options['units'])
 
         for name, options in self.parameter_options.items():
-            val = from_phase.get_val(f'parameters:{name}', units=options['units'], from_src=False)
+            val = from_phase.get_val(f'parameters:{name}', units=options['units'])
             self.set_val(f'parameters:{name}', val, units=options['units'])
 
         for name, options in self.control_options.items():
-            val = from_phase.get_val(f'controls:{name}', units=options['units'], from_src=False)
+            val = from_phase.get_val(f'controls:{name}', units=options['units'])
             self.set_val(f'controls:{name}', val, units=options['units'])
 
     def add_boundary_constraint(self, name, loc, constraint_name=None, units=None,

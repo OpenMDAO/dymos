@@ -288,8 +288,8 @@ class TestSSTOSimulateRootTrajectory(unittest.TestCase):
                      linestyle='None',
                      label='solution')
 
-        axes[0].plot(exp_out.get_val('sim_traj.phase0.timeseries.x'),
-                     exp_out.get_val('sim_traj.phase0.timeseries.y'),
+        axes[0].plot(exp_out.get_val('phase0.timeseries.x'),
+                     exp_out.get_val('phase0.timeseries.y'),
                      marker=None,
                      linestyle='-',
                      label='simulation')
@@ -304,8 +304,8 @@ class TestSSTOSimulateRootTrajectory(unittest.TestCase):
                      ms=4,
                      linestyle='None')
 
-        axes[1].plot(exp_out.get_val('sim_traj.phase0.timeseries.time'),
-                     exp_out.get_val('sim_traj.phase0.timeseries.theta'),
+        axes[1].plot(exp_out.get_val('phase0.timeseries.time'),
+                     exp_out.get_val('phase0.timeseries.theta'),
                      linestyle='-',
                      marker=None)
 
