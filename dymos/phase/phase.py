@@ -14,20 +14,20 @@ from openmdao.recorders.case import Case
 
 import dymos as dm
 
-from .options import ControlOptionsDictionary, ParameterOptionsDictionary, \
+from dymos.phase.options import ControlOptionsDictionary, ParameterOptionsDictionary, \
     StateOptionsDictionary, TimeOptionsDictionary, ConstraintOptionsDictionary, \
     GridRefinementOptionsDictionary, SimulateOptionsDictionary, \
     TimeseriesOutputOptionsDictionary, PhaseTimeseriesOptionsDictionary
 
-from ..transcriptions.transcription_base import TranscriptionBase
-from ..transcriptions.grid_data import ChebyshevGaussLobattoGrid, GaussLobattoGrid, RadauGrid, UniformGrid, BirkhoffGrid
-from ..transcriptions import ExplicitShooting, GaussLobatto, Radau
-from ..utils.indexing import get_constraint_flat_idxs
-from ..utils.introspection import configure_time_introspection, _configure_constraint_introspection, \
+from dymos.transcriptions.transcription_base import TranscriptionBase
+from dymos.transcriptions.grid_data import ChebyshevGaussLobattoGrid, GaussLobattoGrid, RadauGrid, UniformGrid, BirkhoffGrid
+from dymos.transcriptions import ExplicitShooting, GaussLobatto, Radau
+from dymos.utils.indexing import get_constraint_flat_idxs
+from dymos.utils.introspection import configure_time_introspection, _configure_constraint_introspection, \
     configure_controls_introspection, configure_parameters_introspection, \
     configure_timeseries_output_introspection, classify_var
-from ..utils.misc import _unspecified, create_subprob
-from ..utils.lgl import lgl
+from dymos.utils.misc import _unspecified, create_subprob, is_scalar_or_singleton
+from dymos.utils.lgl import lgl
 
 
 class Phase(om.Group):
@@ -2045,12 +2045,21 @@ class Phase(om.Group):
             nodes = None
         else:
             nodes = 'control_input'
-        if np.isscalar(vals):
+
+        try:
+            vals_shape = vals.shape
+        except AttributeError:
+            vals_shape = None
+        if vals_shape is not None and vals_shape == self.get_val(f'controls:{name}').shape:
+            val = vals
+        elif is_scalar_or_singleton(vals):
             val = vals
         else:
             val = self.interp(name, ys=vals, xs=time_vals, nodes=nodes, kind=interpolation_kind)
+
         if units is None:
             units = control_options['units']
+
         self.set_val(f'controls:{name}', val=val, units=units)
 
     def set_polynomial_control_val(self, name, vals=None, time_vals=None,

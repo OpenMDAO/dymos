@@ -100,9 +100,18 @@ jobs:
         if: ${{ ! matrix.EXCLUDE }}
         uses: actions/checkout@v6
 
+      - name: Create SSH key
+        env:
+          SSH_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}
+          SSH_KNOWN_HOSTS: ${{secrets.SSH_KNOWN_HOSTS}}
+        run: |
+          mkdir -p ~/.ssh/
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          sudo chmod 600 ~/.ssh/id_rsa
+          echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
       - name: 'Setup OpenMDAO pixi Environment'
         id: setup_pixi_environment
-        # uses: OpenMDAO/OpenMDAO/.github/actions/setup_openmdao_pixi@master
         uses: robfalck/OpenMDAO/.github/actions/setup_openmdao_pixi@reusable_ci
         with:
           environment: '${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }}'

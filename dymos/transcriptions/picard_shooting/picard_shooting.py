@@ -837,31 +837,22 @@ class PicardShooting(TranscriptionBase):
             Dict containing the values that need to be set in the phase
 
         """
-        seg_end_idxs = self.grid_data.subset_node_indices['segment_ends']
-        seg_initial_idxs = seg_end_idxs[::2]
-        seg_final_idxs = seg_end_idxs[1::2]
+        seg_end_idxs_in_all = self.grid_data.subset_node_indices['segment_ends']
+        seg_initial_idxs = seg_end_idxs_in_all[::2]
+        seg_final_idxs = seg_end_idxs_in_all[1::2]
 
-        input_data = {}
-        if np.isscalar(vals):
-            input_data[f'states:{name}'] = vals
-            input_data[f'initial_states:{name}'] = vals
-            input_data[f'final_states:{name}'] = vals
+        input_data = super()._phase_set_state_val(phase, name, vals, time_vals, interpolation_kind)
 
-            if phase.state_options[name]['solve_segments'] == 'forward':
-                input_data[f'picard_update_comp.seg_initial_states:{name}'] = vals
-            else:
-                input_data[f'picard_update_comp.seg_final_states:{name}'] = vals
+        x = input_data[f'states:{name}']
+        input_data[f'initial_states:{name}'] = x[0, ...]
+        input_data[f'final_states:{name}'] = x[-1, ...]
+
+        # Having populated states, initial_states, and final-states, now poppulate seg_initial_states
+        # For this transcription the state_input nodes are all nodes, so we don't have to worry
+        # about changing the indexing.
+        if phase.state_options[name]['solve_segments'] == 'forward':
+            input_data[f'picard_update_comp.seg_initial_states:{name}'] = x[seg_initial_idxs, ...]
         else:
-            interp_vals = phase.interp(name, vals, time_vals,
-                                       nodes='all',
-                                       kind=interpolation_kind)
-            input_data[f'states:{name}'] = interp_vals
-            input_data[f'initial_states:{name}'] = interp_vals[0, ...]
-            input_data[f'final_states:{name}'] = interp_vals[-1, ...]
-
-            if phase.state_options[name]['solve_segments'] == 'forward':
-                input_data[f'picard_update_comp.seg_initial_states:{name}'] = interp_vals[seg_initial_idxs, ...]
-            else:
-                input_data[f'picard_update_comp.seg_final_states:{name}'] = interp_vals[seg_final_idxs, ...]
+            input_data[f'picard_update_comp.seg_final_states:{name}'] = x[seg_final_idxs, ...]
 
         return input_data

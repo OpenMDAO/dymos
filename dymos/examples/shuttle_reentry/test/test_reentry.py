@@ -25,7 +25,7 @@ class TestReentry(unittest.TestCase):
 
         if optimizer == 'IPOPT':
             p.driver.opt_settings['max_iter'] = 500
-            p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
+            # p.driver.opt_settings['alpha_for_y'] = 'safer-min-dual-infeas'
             p.driver.opt_settings['print_level'] = 0
             p.driver.opt_settings['nlp_scaling_method'] = 'gradient-based'
             p.driver.opt_settings['tol'] = 1.0E-2
@@ -195,7 +195,7 @@ class TestReentry(unittest.TestCase):
         tx = dm.Birkhoff(num_nodes=60, grid_type='cgl')
         p = self.make_problem(constrained=False, transcription=tx, optimizer='IPOPT')
 
-        p.run_driver()
+        dm.run_problem(p, make_plots=True)
         assert_near_equal(p.get_val('traj.phase0.timeseries.time')[-1],
                           expected_results['unconstrained']['time'],
                           tolerance=1e-2)
