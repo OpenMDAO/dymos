@@ -1394,7 +1394,6 @@ class Trajectory(om.Group):
             warnings.filterwarnings(action='ignore', category=om.SetupWarning)
             sim_prob.setup(check=False, parent=self)
             sim_prob.final_setup()
-            # sim_prob.model._get_conn_graph().serve()
 
             # Assign trajectory parameter values
             for name in self.parameter_options:

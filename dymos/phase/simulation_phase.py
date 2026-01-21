@@ -61,7 +61,7 @@ class SimulationPhase(Phase):
         # to their ultimate source.
 
         # to avoid ambiguity on t_initial, access directly from absolute name
-        t_init_name = from_phase._get_conn_graph().get_local_abs_in(self, 't_initial')
+        t_init_name = self._resolver.absnames('t_initial')[0]
         t_initial = from_phase.get_val(t_init_name, units=self.time_options['units'], from_src=False)
         # t_initial = from_phase.get_val('t_initial', units=self.time_options['units'], get_remote=True)
         self.set_val('t_initial', t_initial, units=self.time_options['units'])

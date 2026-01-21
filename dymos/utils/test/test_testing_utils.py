@@ -52,7 +52,7 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
         t_check, x_check = create_linear_time_series(100, 0.0, 500.0, 0.0, 1000.0)
         rel_tolerance = 0.1
 
-        x_check_5_orig = float(x_check[5])
+        x_check_5_orig = float(x_check.flat[5])
         tolerance = x_check_5_orig * rel_tolerance
 
         x_check[5] = x_check_5_orig + tolerance * 0.9  # should not cause an error since rel error
@@ -82,7 +82,7 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
         # Only use absolute tolerance
         t_ref, x_ref = create_linear_time_series(100, 0.0, 500.0, 0.0, 1000.0)
         t_check, x_check = create_linear_time_series(100, 0.0, 500.0, 0.0, 1000.0)
-        x_check_5_orig = float(x_check[5])
+        x_check_5_orig = float(x_check.flat[5])
 
         abs_tolerance = 10.0
 
@@ -113,7 +113,7 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
         #   also relative tolerance (large values)
         t_ref, x_ref = create_linear_time_series(100, 0.0, 500.0, 0.0, 1000.0)
         t_check, x_check = create_linear_time_series(100, 0.0, 500.0, 0.0, 1000.0)
-        x_check_5_orig = float(x_check[5])
+        x_check_5_orig = float(x_check.flat[5])
 
         abs_tolerance = 10.0
         rel_tolerance = 0.1
@@ -144,7 +144,7 @@ class TestAssertTimeseriesNearEqual(unittest.TestCase):
 
         # for > 100, uses the rel, x_check[15] is ~ 150
         x_check[5] = x_check_5_orig
-        x_check_15_orig = float(x_check[15])
+        x_check_15_orig = float(x_check.flat[15])
         tolerance = x_check_15_orig * rel_tolerance
         # should not cause an error since rel error will be less than tolerance
         x_check[15] = x_check_15_orig + tolerance * 0.9
