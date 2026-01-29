@@ -134,7 +134,7 @@ jobs:
           - NAME: oldest
             OPENMDAO_PIXI_ENVIRONMENT: 'oldest'
             OPENMDAO_INSTALL_FROM: 'pypi'
-            OPENMDAO: '3.38.0'
+            OPENMDAO: '3.39.0'
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.oldest }}
 
     steps:
