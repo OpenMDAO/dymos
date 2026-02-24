@@ -677,7 +677,7 @@ class Trajectory(om.Group):
             raise ValueError(f'{info_str}Linkage units were not specified but the units of {phase_name_a}.{var_a} '
                              f'({units["a"]}) and {phase_name_b}.{var_b} ({units["b"]}) are not equivalent. '
                              f'Units for this linkage constraint must be specified explicitly.')
-        else:
+        elif is_unspecified(linkage_options['units']):
             linkage_options['units'] = units['a']
 
     def _expand_star_linkage_configure(self):
