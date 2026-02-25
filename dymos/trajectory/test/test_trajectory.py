@@ -1658,7 +1658,6 @@ class TestInvalidLinkages(unittest.TestCase):
         lnk_2_output = p.get_val('traj.linkages.ascent:h_final|descent:h_initial')
 
         assert_near_equal(lnk_1_output, lnk_1_manual)
-
         assert_near_equal(lnk_2_output, lnk_2_manual)
 
     def test_linkage_units_connected(self):
@@ -1928,7 +1927,6 @@ class TestInvalidLinkages(unittest.TestCase):
             def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
                 pass
 
-
         class ODE2(om.ExplicitComponent):
 
             def initialize(self):
@@ -1947,8 +1945,6 @@ class TestInvalidLinkages(unittest.TestCase):
             def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
                 pass
 
-
-        #
         def build_model():
 
             traj = dm.Trajectory()
