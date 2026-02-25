@@ -1648,12 +1648,17 @@ class TestInvalidLinkages(unittest.TestCase):
 
         # manual linkage values
         lnk_1_manual = - ascent_h_m[0, ...] + start_h_m[-1, ...]
-        lnk_2_manual = - descent_h_m[0, ...] + ascent_h_m[-1, ...]
+
+        # linkage constraint defined in 'ft'
+        ascent_h_ft = p.get_val('traj.ascent.timeseries.h', units='ft')[[0, -1], ...]
+        descent_h_ft = p.get_val('traj.descent.timeseries.h', units='ft')[[0, -1], ...]
+        lnk_2_manual = - descent_h_ft[0, ...] + ascent_h_ft[-1, ...]
 
         lnk_1_output = p.get_val('traj.linkages.start:h_final|ascent:h_initial')
         lnk_2_output = p.get_val('traj.linkages.ascent:h_final|descent:h_initial')
 
         assert_near_equal(lnk_1_output, lnk_1_manual)
+
         assert_near_equal(lnk_2_output, lnk_2_manual)
 
     def test_linkage_units_connected(self):
@@ -1900,6 +1905,99 @@ class TestInvalidLinkages(unittest.TestCase):
         lnk_2_manual = - descent_h_m[0, ...] + ascent_h_m[-1, ...]
 
         assert_near_equal(lnk_2_manual, 0.0)
+
+    def test_linkage_units_combinations(self):
+        # Tests fix for a bug where the linkage constraint units chose the upstream unit instead of
+        # the unit specified in add_linkage_constraint.
+
+        class ODE1(om.ExplicitComponent):
+
+            def initialize(self):
+                self.options.declare('num_nodes', types=int)
+
+            def setup(self):
+                nn = self.options['num_nodes']
+
+                self.add_input('FF', val=2.0 * np.ones(nn), units='ft')
+                self.add_input('FI', val=3.0 * np.ones(nn), units='ft')
+                self.add_input('IF', val=12.0 * np.ones(nn), units='inch')
+                self.add_input('II', val=24.0 * np.ones(nn), units='inch')
+
+                self.add_output('z', val=1.0 * np.ones(nn), units='ft/s')
+
+            def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
+                pass
+
+
+        class ODE2(om.ExplicitComponent):
+
+            def initialize(self):
+                self.options.declare('num_nodes', types=int)
+
+            def setup(self):
+                nn = self.options['num_nodes']
+
+                self.add_input('FF', val=3.0 * np.ones(nn), units='ft')
+                self.add_input('FI', val=12.0 * np.ones(nn), units='inch')
+                self.add_input('IF', val=2.0 * np.ones(nn), units='ft')
+                self.add_input('II', val=36.0 * np.ones(nn), units='inch')
+
+                self.add_output('z', val=1.0 * np.ones(nn), units='ft/s')
+
+            def compute(self, inputs, outputs, discrete_inputs=None, discrete_outputs=None):
+                pass
+
+
+        #
+        def build_model():
+
+            traj = dm.Trajectory()
+            prob = om.Problem(model=traj)
+
+            phase1 = dm.Phase(ode_class=ODE1, transcription=dm.Radau(num_segments=2, order=1))
+            phase2 = dm.Phase(ode_class=ODE2, transcription=dm.Radau(num_segments=2, order=1))
+            traj.add_phase('p1', phase1)
+            traj.add_phase('p2', phase2)
+
+            phase1.add_state('zt', fix_initial=False, fix_final=False, rate_source='z')
+            phase2.add_state('zt', fix_initial=False, fix_final=False, rate_source='z')
+
+            phase1.add_control('FF', opt=True, units='ft')
+            phase2.add_control('FF', opt=True, units='ft')
+            phase1.add_control('FI', opt=True, units='ft')
+            phase2.add_control('FI', opt=True, units='inch')
+            phase1.add_control('II', opt=True, units='inch')
+            phase2.add_control('II', opt=True, units='inch')
+            phase1.add_control('IF', opt=True, units='inch')
+            phase2.add_control('IF', opt=True, units='ft')
+
+            return prob, traj
+
+        prob, traj = build_model()
+        traj.link_phases(phases=['p1', 'p2'], vars=['FF', 'FI', 'II', 'IF'], units='inch')
+
+        prob.setup()
+
+        prob.model.phases.p1.set_control_val('FF', 3.0, units='ft')
+        prob.model.phases.p2.set_control_val('FF', 2.0, units='ft')
+        prob.model.phases.p1.set_control_val('FI', 3.0, units='ft')
+        prob.model.phases.p2.set_control_val('FI', 24.0, units='inch')
+        prob.model.phases.p1.set_control_val('II', 36.0, units='inch')
+        prob.model.phases.p2.set_control_val('II', 24.0, units='inch')
+        prob.model.phases.p1.set_control_val('IF', 36.0, units='inch')
+        prob.model.phases.p2.set_control_val('IF', 2.0, units='ft')
+
+        prob.run_model()
+
+        conFF = prob.driver.get_constraint_values()['linkages.p1:FF_final|p2:FF_initial'][0]
+        conFI = prob.driver.get_constraint_values()['linkages.p1:FI_final|p2:FI_initial'][0]
+        conII = prob.driver.get_constraint_values()['linkages.p1:II_final|p2:II_initial'][0]
+        conIF = prob.driver.get_constraint_values()['linkages.p1:IF_final|p2:IF_initial'][0]
+
+        assert_near_equal(conFF, 12.0)
+        assert_near_equal(conFI, 12.0)
+        assert_near_equal(conII, 12.0)
+        assert_near_equal(conIF, 12.0)
 
 
 if __name__ == '__main__':  # pragma: no cover
