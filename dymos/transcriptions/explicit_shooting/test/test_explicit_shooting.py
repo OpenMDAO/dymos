@@ -5,10 +5,9 @@ import numpy as np
 
 import openmdao.api as om
 import dymos as dm
-from dymos import options as dymos_options
 
 from openmdao.utils.assert_utils import assert_check_partials, assert_near_equal
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, set_env_vars
 
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
@@ -84,9 +83,8 @@ class Simple1StateODE(om.ExplicitComponent):
 @use_tempdirs
 class TestExplicitShooting(unittest.TestCase):
 
+    @set_env_vars(OPENMDAO_CHECK_ALL_PARTIALS='1')
     def test_1_state_run_model(self):
-
-        dymos_options['include_check_partials'] = True
 
         prob = om.Problem()
 
@@ -115,11 +113,8 @@ class TestExplicitShooting(unittest.TestCase):
 
         assert_check_partials(cpd, rtol=1.0E-5)
 
-        dymos_options['include_check_partials'] = False
-
+    @set_env_vars(OPENMDAO_CHECK_ALL_PARTIALS='1')
     def test_2_states_run_model(self):
-
-        dymos_options['include_check_partials'] = True
 
         prob = om.Problem()
 
@@ -160,11 +155,8 @@ class TestExplicitShooting(unittest.TestCase):
             cpd = prob.check_partials(compact_print=True, method='fd', out_stream=None)
             assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
 
-        dymos_options['include_check_partials'] = False
-
+    @set_env_vars(OPENMDAO_CHECK_ALL_PARTIALS='1')
     def test_brachistochrone_explicit_shooting(self):
-
-        dymos_options['include_check_partials'] = True
 
         input_grid = dm.GaussLobattoGrid(num_segments=3, nodes_per_seg=3, compressed=False)
 
@@ -236,11 +228,8 @@ class TestExplicitShooting(unittest.TestCase):
                                               out_stream=None)
                     assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
 
-        dymos_options['include_check_partials'] = False
-
+    @set_env_vars(OPENMDAO_CHECK_ALL_PARTIALS='1')
     def test_brachistochrone_explicit_shooting_path_constraint(self):
-
-        dymos_options['include_check_partials'] = True
 
         input_grid = dm.GaussLobattoGrid(num_segments=3, nodes_per_seg=3, compressed=True)
 
@@ -306,11 +295,8 @@ class TestExplicitShooting(unittest.TestCase):
                                               includes=['traj0.phases.phase0.integrator'])
                     assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
 
-        dymos_options['include_check_partials'] = False
-
+    @set_env_vars(OPENMDAO_CHECK_ALL_PARTIALS='1')
     def test_brachistochrone_explicit_shooting_path_constraint_polynomial_control(self):
-
-        dymos_options['include_check_partials'] = True
 
         for output_grid_type in ('same', 'more_dense', 'radau', 'uniform'):
             for compressed in (True, False):
@@ -385,11 +371,8 @@ class TestExplicitShooting(unittest.TestCase):
                                                       includes=['traj0.phases.phase0.integrator'])
                             assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
 
-        dymos_options['include_check_partials'] = False
-
+    @set_env_vars(OPENMDAO_CHECK_ALL_PARTIALS='1')
     def test_brachistochrone_explicit_shooting_path_constraint_invalid_renamed(self):
-
-        dymos_options['include_check_partials'] = True
 
         for output_grid_type in ('same', 'more_dense', 'radau', 'uniform'):
             prob = om.Problem()
@@ -432,11 +415,8 @@ class TestExplicitShooting(unittest.TestCase):
                           "Option 'constraint_name' on path constraint y is only valid for "
                           "ODE outputs. The option is being ignored.", [str(w.message) for w in ctx])
 
-        dymos_options['include_check_partials'] = False
-
+    @set_env_vars(OPENMDAO_CHECK_ALL_PARTIALS='1')
     def test_explicit_shooting_timeseries_ode_output(self):
-
-        dymos_options['include_check_partials'] = True
 
         for output_grid_type in ('same', 'more_dense', 'radau', 'uniform'):
             prob = om.Problem()
@@ -505,8 +485,7 @@ class TestExplicitShooting(unittest.TestCase):
                 cpd = prob.check_partials(method='fd', out_stream=None, includes=['phase0.integrator'])
                 assert_check_partials(cpd, atol=1.0E-5, rtol=1.0E-5)
 
-            dymos_options['include_check_partials'] = False
-
+    @set_env_vars(OPENMDAO_CHECK_ALL_PARTIALS='1')
     def test_explicit_shooting_unknown_timeseries(self):
 
         for output_grid_type in ('same', 'more_dense', 'radau', 'uniform'):

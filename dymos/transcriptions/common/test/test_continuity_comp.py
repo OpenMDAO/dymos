@@ -5,7 +5,7 @@ import numpy as np
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, set_env_vars
 
 import dymos as dm
 from dymos.transcriptions.grid_data import GridData
@@ -26,11 +26,11 @@ params_list = itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
 @use_tempdirs
 class TestContinuityComp(unittest.TestCase):
 
+    @set_env_vars(OPENMDAO_CHECK_ALL_PARTIALS='1')
     def test_continuity_comp(self):
         for transcription, compressed in params_list:
             with self.subTest():
 
-                dm.options['include_check_partials'] = True
                 num_seg = 3
 
                 if transcription == 'gauss-lobatto':

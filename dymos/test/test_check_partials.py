@@ -367,14 +367,12 @@ class TestCheckPartials(unittest.TestCase):
 
         return cpd
 
+    @set_env_vars(OPENMDAO_CHECK_ALL_PARTIALS='1')
     def test_check_partials_yes(self):
         """
         Run check_partials on a series of dymos problems and verify that partials information
         is displayed for core Dymos components when DYMOS_CHECK_PARTIALS == 'True'.
         """
-        cp_save = dm.options['include_check_partials']
-        dm.options['include_check_partials'] = True
-
         cases = [self.brach_explicit_partials,
                  self.balanced_field_partials_radau,
                  self.min_time_climb_partials_gl]
@@ -383,27 +381,25 @@ class TestCheckPartials(unittest.TestCase):
         for c in cases:
             partials.update(c())
 
-        dm.options['include_check_partials'] = cp_save
-
         assert len(partials.keys()) > 0
 
-    @set_env_vars(CI='0')  # Make sure _no_check_partials isn't disabled
+    @set_env_vars(OPENMDAO_CHECK_ALL_PARTIALS='0')
     def test_check_partials_no(self):
         """
         Run check_partials on a series of dymos problems and verify that partials information
         is not displayed for core Dymos components when DYMOS_CHECK_PARTIALS == 'False'.
         """
-        with dm.options.temporary(include_check_partials=False):
-            cases = [self.brach_explicit_partials,
-                     self.balanced_field_partials_radau,
-                     self.min_time_climb_partials_gl]
+        cases = [self.brach_explicit_partials,
+                 self.balanced_field_partials_radau,
+                 self.min_time_climb_partials_gl]
 
-            partials = {}
-            for c in cases:
-                partials.update(c())
+        partials = {}
+        for c in cases:
+            partials.update(c())
 
-            for pathname in set(partials.keys()):
-                self.assertTrue('ode' in pathname or 'rhs' in pathname)
+        for pathname in set(partials.keys()):
+            print(pathname)
+            self.assertTrue('ode' in pathname or 'rhs' in pathname)
 
 
 if __name__ == '__main__':  # pragma: no cover

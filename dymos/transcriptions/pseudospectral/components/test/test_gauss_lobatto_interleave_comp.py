@@ -4,6 +4,7 @@ import numpy as np
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import set_env_vars
 from dymos.utils.testing_utils import assert_check_partials
 
 import dymos as dm
@@ -14,7 +15,6 @@ from dymos.transcriptions.grid_data import GridData
 class TestGaussLobattoInterleaveComp(unittest.TestCase):
 
     def setUp(self):
-        dm.options['include_check_partials'] = True
 
         self.grid_data = gd = dm.GaussLobattoGrid(num_segments=3, segment_ends=np.array([0., 2., 4., 10.0]),
                                                   nodes_per_seg=[3, 3, 3])
@@ -74,9 +74,6 @@ class TestGaussLobattoInterleaveComp(unittest.TestCase):
 
         self.p.run_model()
 
-    def tearDown(self):
-        dm.options['include_check_partials'] = False
-
     def test_results(self):
 
         u_disc = self.p.get_val('state_disc:u')
@@ -99,8 +96,9 @@ class TestGaussLobattoInterleaveComp(unittest.TestCase):
         assert_near_equal(v_all[self.grid_data.subset_node_indices['col'], ...],
                           v_col)
 
+    @set_env_vars(OPENMDAO_CHECK_ALL_PARTIALS='1')
     def test_partials(self):
-        cpd = self.p.check_partials(compact_print=True, method='cs', out_stream=None)
+        cpd = self.p.check_partials(compact_print=False, method='cs', out_stream=None)
         assert_check_partials(cpd)
 
 

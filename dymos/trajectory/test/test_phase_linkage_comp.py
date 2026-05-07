@@ -4,7 +4,7 @@ import numpy as np
 from numpy.testing import assert_almost_equal
 
 import openmdao.api as om
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, set_env_vars
 
 import dymos as dm
 from dymos.trajectory.phase_linkage_comp import PhaseLinkageComp
@@ -16,7 +16,6 @@ from dymos.utils.testing_utils import assert_check_partials
 class TestPhaseLinkageComp(unittest.TestCase):
 
     def setUp(self):
-        dm.options['include_check_partials'] = True
         self.p = om.Problem(model=om.Group())
 
         ivp = self.p.model.add_subsystem('ivc', subsys=om.IndepVarComp(), promotes_outputs=['*'])
@@ -103,9 +102,6 @@ class TestPhaseLinkageComp(unittest.TestCase):
 
         self.p.run_model()
 
-    def tearDown(self):
-        dm.options['include_check_partials'] = False
-
     def test_results(self):
 
         assert_almost_equal(-self.p['phase1:x'][0, ...] + self.p['phase0:x'][-1, ...],
@@ -117,6 +113,7 @@ class TestPhaseLinkageComp(unittest.TestCase):
         assert_almost_equal(-self.p['phase1:v'][0, ...] + self.p['phase0:v'][-1, ...],
                             self.p['linkage_comp.phase0:v_final|phase1:v_initial'])
 
+    @set_env_vars(OPENMDAO_CHECK_ALL_PARTIALS='1')
     def test_partials(self):
         cpd = self.p.check_partials(out_stream=None)
         assert_check_partials(cpd)

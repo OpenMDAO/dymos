@@ -6,7 +6,6 @@ import openmdao.api as om
 
 from dymos.transcriptions.grid_data import GridData
 from dymos.utils.misc import get_rate_units
-# from dymos._options import options as dymos_options
 from dymos.utils.birkhoff import birkhoff_matrix
 
 
@@ -26,7 +25,7 @@ class PicardUpdateComp(om.ExplicitComponent):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # self._no_check_partials = not dymos_options['include_check_partials']
+        # self._no_check_partials = True
 
     def initialize(self):
         """

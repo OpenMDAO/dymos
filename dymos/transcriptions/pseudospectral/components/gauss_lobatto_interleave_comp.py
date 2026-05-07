@@ -2,7 +2,6 @@ import numpy as np
 import openmdao.api as om
 
 from ...grid_data import GridData
-from ...._options import options as dymos_options
 
 
 class GaussLobattoInterleaveComp(om.ExplicitComponent):
@@ -20,7 +19,7 @@ class GaussLobattoInterleaveComp(om.ExplicitComponent):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._no_check_partials = not dymos_options['include_check_partials']
+        self._no_check_partials = True
 
     def initialize(self):
         """

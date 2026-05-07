@@ -12,7 +12,6 @@ from dymos.utils.misc import get_rate_units, CoerceDesvar, reshape_val
 from dymos.utils.lgl import lgl
 from dymos.utils.lagrange import lagrange_matrices
 from dymos.utils.indexing import get_desvar_indices
-from dymos._options import options as dymos_options
 
 
 class ControlInterpComp(om.ExplicitComponent):
@@ -52,7 +51,7 @@ class ControlInterpComp(om.ExplicitComponent):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._no_check_partials = not dymos_options['include_check_partials']
+        self._no_check_partials = True
 
     def initialize(self):
         """

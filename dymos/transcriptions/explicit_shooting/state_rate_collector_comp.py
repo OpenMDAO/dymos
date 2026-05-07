@@ -3,7 +3,6 @@ import numpy as np
 import openmdao.api as om
 
 from dymos.utils.misc import get_rate_units
-from ..._options import options as dymos_options
 
 
 class StateRateCollectorComp(om.ExplicitComponent):
@@ -29,7 +28,7 @@ class StateRateCollectorComp(om.ExplicitComponent):
 
         self._vec_size = vec_size
 
-        self._no_check_partials = not dymos_options['include_check_partials']
+        self._no_check_partials = True
 
     def initialize(self):
         """

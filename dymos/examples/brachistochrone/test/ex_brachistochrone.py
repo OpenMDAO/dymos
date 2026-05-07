@@ -125,7 +125,6 @@ def brachistochrone_min_time(transcription='gauss-lobatto', num_segments=8, tran
 
 if __name__ == '__main__':
 
-    with dm.options.temporary(include_check_partials=True):
-        p = brachistochrone_min_time(transcription='birkhoff', num_segments=1, run_driver=True,
-                                     transcription_order=19, compressed=False, optimizer='SLSQP',
-                                     solve_segments=False, force_alloc_complex=True)
+    p = brachistochrone_min_time(transcription='birkhoff', num_segments=1, run_driver=True,
+                                    transcription_order=19, compressed=False, optimizer='SLSQP',
+                                    solve_segments=False, force_alloc_complex=True)

@@ -3,7 +3,6 @@ from scipy.integrate import solve_ivp
 
 import openmdao.api as om
 
-from ..._options import options as dymos_options
 
 from .ode_evaluation_group import ODEEvaluationGroup
 from dymos.utils.misc import create_subprob
@@ -75,7 +74,7 @@ class ODEIntegrationComp(om.ExplicitComponent):
         self._totals_of_names = []
         self._totals_wrt_names = []
 
-        self._no_check_partials = not dymos_options['include_check_partials']
+        self._no_check_partials = True
         self._num_control_input_nodes = input_grid_data.subset_num_nodes['control_input']
 
         self._calc_exprs = {} if calc_exprs is None else calc_exprs

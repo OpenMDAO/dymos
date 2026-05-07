@@ -4,6 +4,7 @@ import numpy as np
 
 import openmdao.api as om
 from openmdao.utils.assert_utils import assert_near_equal
+from openmdao.utils.testing_utils import set_env_vars
 from dymos.utils.testing_utils import assert_check_partials
 
 import dymos as dm
@@ -14,7 +15,6 @@ from dymos.transcriptions.grid_data import GridData
 class TestControlEndpointDefectComp(unittest.TestCase):
 
     def setUp(self):
-        dm.options['include_check_partials'] = True
 
         gd = dm.RadauGrid(num_segments=2, segment_ends=np.array([0., 2., 4.,]), nodes_per_seg=4)
 
@@ -48,9 +48,6 @@ class TestControlEndpointDefectComp(unittest.TestCase):
 
         self.p.run_model()
 
-    def tearDown(self):
-        dm.options['include_check_partials'] = False
-
     def test_results(self):
 
         u_coefs = np.polyfit(self.gd.node_ptau[-4:-1], self.p['controls:u'][-4:-1], deg=2)
@@ -61,6 +58,7 @@ class TestControlEndpointDefectComp(unittest.TestCase):
                           np.ravel(u_given - u_interp),
                           tolerance=1.0E-9)
 
+    @set_env_vars(OPENMDAO_CHECK_ALL_PARTIALS='1')
     def test_partials(self):
         cpd = self.p.check_partials(compact_print=False, method='cs', out_stream=None)
         assert_check_partials(cpd)

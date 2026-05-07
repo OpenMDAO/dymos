@@ -4,6 +4,7 @@ import unittest
 import numpy as np
 from numpy.testing import assert_almost_equal
 import openmdao.api as om
+from openmdao.utils.testing_utils import set_env_vars
 from dymos.utils.testing_utils import assert_check_partials
 
 import dymos as dm
@@ -71,12 +72,7 @@ def f2_d(t):
 
 class TestControlRateComp(unittest.TestCase):
 
-    def setUp(self):
-        dm.options['include_check_partials'] = True
-
-    def tearDown(self):
-        dm.options['include_check_partials'] = False
-
+    @set_env_vars(OPENMDAO_CHECK_ALL_PARTIALS='1')
     def test_control_interp_scalar(self):
         param_list = itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
                                        [False, True],  # compressed
@@ -250,6 +246,7 @@ class TestControlRateComp(unittest.TestCase):
                                        out_stream=None)
                 assert_check_partials(cpd)
 
+    @set_env_vars(OPENMDAO_CHECK_ALL_PARTIALS='1')
     def test_control_interp_scalar_10_seg(self):
         param_list = itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
                                        [False, True],  # compressed
@@ -423,6 +420,7 @@ class TestControlRateComp(unittest.TestCase):
                                        out_stream=None)
                 assert_check_partials(cpd)
 
+    @set_env_vars(OPENMDAO_CHECK_ALL_PARTIALS='1')
     def test_control_interp_vector(self, transcription='gauss-lobatto', compressed=True):
         param_list = itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
                                        [True, False],  # compressed
@@ -574,6 +572,7 @@ class TestControlRateComp(unittest.TestCase):
 
                 assert_check_partials(cpd)
 
+    @set_env_vars(OPENMDAO_CHECK_ALL_PARTIALS='1')
     def test_control_interp_matrix_3x1(self, transcription='gauss-lobatto', compressed=True):
         param_list = itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
                                        [True, False],  # compressed
@@ -684,6 +683,7 @@ class TestControlRateComp(unittest.TestCase):
 
                 assert_check_partials(cpd)
 
+    @set_env_vars(OPENMDAO_CHECK_ALL_PARTIALS='1')
     def test_control_interp_matrix_2x2(self):
         param_list = itertools.product(['gauss-lobatto', 'radau-ps'],  # transcription
                                        [True, False],  # compressed

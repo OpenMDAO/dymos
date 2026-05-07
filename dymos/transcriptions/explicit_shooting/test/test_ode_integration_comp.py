@@ -3,10 +3,10 @@ import unittest
 import numpy as np
 import openmdao.api as om
 import dymos as dm
-from dymos import options as dymos_options
 from dymos.utils.misc import om_version
 
 from openmdao.utils.assert_utils import assert_check_partials, assert_near_equal
+from openmdao.utils.testing_utils import set_env_vars
 from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 from dymos.transcriptions.explicit_shooting.ode_integration_comp import ODEIntegrationComp
 
@@ -17,10 +17,10 @@ from dymos.utils.testing_utils import SimpleODE
 
 class TestODEIntegrationComp(unittest.TestCase):
 
+    @set_env_vars(OPENMDAO_CHECK_ALL_PARTIALS='1')
     @unittest.skipIf(om_version()[0] >= (3, 36, 0) and om_version()[0] < (3, 37, 0),
                      reason='Test skipped due to an issue in OpenMDAO 3.36.x')
     def test_integrate_scalar_ode(self):
-        dymos_options['include_check_partials'] = True
 
         for ogd_eq_igd in (True, False):
             with self.subTest('input_grid_data = output_grid_data'
@@ -78,16 +78,13 @@ class TestODEIntegrationComp(unittest.TestCase):
 
                 assert_near_equal(x, expected, tolerance=1.0E-5)
 
-                cpd = prob.check_partials(compact_print=True)
+                cpd = prob.check_partials(compact_print=True, out_stream=None)
                 assert_check_partials(cpd, atol=1.0E-4, rtol=1.0E-5)
 
-        dymos_options['include_check_partials'] = False
-
+    @set_env_vars(OPENMDAO_CHECK_ALL_PARTIALS='1')
     @unittest.skipIf(om_version()[0] >= (3, 36, 0) and om_version()[0] < (3, 37, 0),
                      reason='Test skipped due to an issue in OpenMDAO 3.36.x')
     def test_integrate_with_controls(self):
-
-        dymos_options['include_check_partials'] = True
 
         gd = dm.GaussLobattoGrid(num_segments=5, nodes_per_seg=3, compressed=True)
 
@@ -161,14 +158,13 @@ class TestODEIntegrationComp(unittest.TestCase):
         assert_near_equal(v[-1, ...], 9.9, tolerance=0.1)
 
         with np.printoptions(linewidth=1024):
-            cpd = p.check_partials(compact_print=False, method='fd')
+            cpd = p.check_partials(compact_print=False, method='fd', out_stream=None)
             assert_check_partials(cpd, atol=1.0E-4, rtol=1.0E-4)
 
+    @set_env_vars(OPENMDAO_CHECK_ALL_PARTIALS='1')
     @unittest.skipIf(om_version()[0] >= (3, 36, 0) and om_version()[0] < (3, 37, 0),
                      reason='Test skipped due to an issue in OpenMDAO 3.36.x')
     def test_integrate_with_polynomial_controls(self):
-
-        dymos_options['include_check_partials'] = True
 
         gd = dm.GaussLobattoGrid(num_segments=5, nodes_per_seg=3, compressed=True)
 
@@ -245,10 +241,8 @@ class TestODEIntegrationComp(unittest.TestCase):
         assert_near_equal(v[-1, ...], 9.9, tolerance=0.1)
 
         with np.printoptions(linewidth=1024):
-            cpd = p.check_partials(compact_print=False, method='fd')
+            cpd = p.check_partials(compact_print=False, method='fd', out_stream=None)
             assert_check_partials(cpd, atol=1.0E-4, rtol=1.0E-4)
-
-        dymos_options['include_check_partials'] = False
 
 
 if __name__ == '__main__':  # pragma: no cover

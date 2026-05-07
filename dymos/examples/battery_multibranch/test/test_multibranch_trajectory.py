@@ -17,11 +17,6 @@ optimizer = os.environ.get('DYMOS_DEFAULT_OPT', 'SLSQP')
 
 @use_tempdirs
 class TestBatteryBranchingPhases(unittest.TestCase):
-    def setUp(self):
-        dm.options['include_check_partials'] = True
-
-    def tearDown(self):
-        dm.options['include_check_partials'] = False
 
     @require_pyoptsparse(optimizer='SLSQP')
     def test_optimizer_defects(self):

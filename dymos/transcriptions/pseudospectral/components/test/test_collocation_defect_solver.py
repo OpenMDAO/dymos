@@ -5,7 +5,7 @@ from numpy.testing import assert_almost_equal
 
 import openmdao.api as om
 from openmdao.utils.general_utils import env_truthy
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, set_env_vars
 
 
 # Modify class so we can run it standalone.
@@ -22,12 +22,6 @@ class TestCollocationBalanceIndex(unittest.TestCase):
     """
     Test that the indices used in the StateIndependentsComp are as expected.
     """
-
-    def setUp(self):
-        dm.options['include_check_partials'] = True
-
-    def tearDown(self):
-        dm.options['include_check_partials'] = False
 
     def test_3_lgl(self):
         """
@@ -266,9 +260,6 @@ class TestCollocationBalanceIndex(unittest.TestCase):
 @use_tempdirs
 class TestCollocationBalanceApplyNL(unittest.TestCase):
 
-    def tearDown(self):
-        dm.options['include_check_partials'] = False
-
     def make_prob(self, transcription, num_segments, transcription_order, compressed):
 
         p = om.Problem(model=om.Group())
@@ -319,7 +310,6 @@ class TestCollocationBalanceApplyNL(unittest.TestCase):
         return p
 
     def test_apply_nonlinear_gl(self):
-        dm.options['include_check_partials'] = True
         p = self.make_prob(transcription='gauss-lobatto', num_segments=3, transcription_order=3,
                            compressed=True)
 
@@ -336,7 +326,6 @@ class TestCollocationBalanceApplyNL(unittest.TestCase):
 
     @unittest.skipIf(_DYMOS_2, 'Test invalid for updated Radau transcription')
     def test_apply_nonlinear_radau(self):
-        dm.options['include_check_partials'] = True
         p = self.make_prob(transcription='radau-ps', num_segments=3, transcription_order=3,
                            compressed=True)
 
@@ -351,8 +340,8 @@ class TestCollocationBalanceApplyNL(unittest.TestCase):
         assert_almost_equal(resids['states:x'], expected)
         assert_almost_equal(resids['states:v'], expected)
 
+    @set_env_vars(OPENMDAO_CHECK_ALL_PARTIALS='1')
     def test_partials_gl(self):
-        dm.options['include_check_partials'] = True
         p = self.make_prob(transcription='gauss-lobatto', num_segments=3, transcription_order=3,
                            compressed=True)
 
@@ -371,9 +360,9 @@ class TestCollocationBalanceApplyNL(unittest.TestCase):
         data = cpd['traj0.phases.phase0.indep_states']
         assert_partials(data)
 
+    @set_env_vars(OPENMDAO_CHECK_ALL_PARTIALS='1')
     @unittest.skipIf(_DYMOS_2, 'Test invalid for updated Radau transcription')
     def test_partials_radau(self):
-        dm.options['include_check_partials'] = True
         p = self.make_prob(transcription='radau-ps', num_segments=3, transcription_order=3,
                            compressed=True)
 

@@ -5,7 +5,6 @@ import numpy as np
 
 from openmdao.core.explicitcomponent import ExplicitComponent
 from dymos.utils.misc import is_none_or_unspecified
-from dymos._options import options as dymos_options
 
 
 class ParameterComp(ExplicitComponent):
@@ -34,7 +33,7 @@ class ParameterComp(ExplicitComponent):
         super().__init__(**kwargs)
         self.time_options = time_options
 
-        self._no_check_partials = not dymos_options['include_check_partials']
+        self._no_check_partials = True
 
     def setup(self):
         """
