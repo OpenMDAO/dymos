@@ -3,7 +3,6 @@ import numpy as np
 
 from openmdao.core.explicitcomponent import ExplicitComponent
 from dymos.transcriptions.grid_data import GridData
-from dymos._options import options as dymos_options
 
 
 class StatesComp(ExplicitComponent):
@@ -33,7 +32,7 @@ class StatesComp(ExplicitComponent):
         """
         super().__init__(**kwargs)
 
-        self._no_check_partials = not dymos_options['include_check_partials']
+        self._no_check_partials = True
 
     def initialize(self):
         """

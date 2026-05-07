@@ -4,7 +4,7 @@ import dymos as dm
 import unittest
 
 from openmdao.utils.assert_utils import assert_near_equal
-from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
+from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse, set_env_vars_context
 from dymos.examples.moon_landing import MoonLandingProblemODE
 
 
@@ -52,13 +52,13 @@ class TestMoonLandingProblem(unittest.TestCase):
 
     def test_problem_lgl(self):
 
-        with dm.options.temporary(include_check_partials=True):
+        with set_env_vars_context(OPENMDAO_CHECK_ALL_PARTIALS='1'):
             self.make_problem(grid_type='lgl')
             dm.run_problem(self.p, simulate=True, simulate_kwargs={'times_per_seg': 100},
                            make_plots=True)
 
             with np.printoptions(linewidth=1024):
-                self.p.check_partials(compact_print=True, method='cs')
+                self.p.check_partials(compact_print=True, method='cs', out_stream=None)
 
         h = self.p.get_val('traj.phase.timeseries.h')
         v = self.p.get_val('traj.phase.timeseries.v')

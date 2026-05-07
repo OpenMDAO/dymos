@@ -4,6 +4,7 @@ import numpy as np
 from numpy.testing import assert_almost_equal
 
 import openmdao.api as om
+from openmdao.utils.testing_utils import set_env_vars
 from dymos.utils.testing_utils import assert_check_partials
 
 import dymos as dm
@@ -18,8 +19,6 @@ CollocationComp = CompWrapperConfig(CollocationComp)
 class TestCollocationComp(unittest.TestCase):
 
     def setUp(self):
-        dm.options['include_check_partials'] = True
-        transcription = 'gauss-lobatto'
 
         gd = dm.GaussLobattoGrid(num_segments=4,
                                  segment_ends=np.array([0., 2., 4., 5., 12.]),
@@ -78,9 +77,6 @@ class TestCollocationComp(unittest.TestCase):
 
         self.p.run_model()
 
-    def tearDown(self):
-        dm.options['include_check_partials'] = False
-
     def test_results(self):
         dt_dstau = self.p['dt_dstau']
 
@@ -91,6 +87,7 @@ class TestCollocationComp(unittest.TestCase):
                             dt_dstau[:, np.newaxis, np.newaxis] *
                             (self.p['f_approx:v']-self.p['f_computed:v']))
 
+    @set_env_vars(OPENMDAO_CHECK_ALL_PARTIALS='1')
     def test_partials(self):
         np.set_printoptions(linewidth=1024)
         cpd = self.p.check_partials(compact_print=False, method='fd', out_stream=None)

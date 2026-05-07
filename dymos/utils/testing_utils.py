@@ -16,7 +16,7 @@ def assert_check_partials(data, atol=1.0E-6, rtol=1.0E-6):
     Wrap OpenMDAO's assert_check_partials with a dymos-specific message.
 
     Calls OpenMDAO's assert_check_partials but verifies that the dictionary of assertion data is
-    not empty due to dymos.options['include_check_partials'] being False.
+    not empty due to OPENMDAO_CHECK_ALL_PARTIALS being "falsey".
 
     Parameters
     ----------
@@ -38,7 +38,7 @@ def assert_check_partials(data, atol=1.0E-6, rtol=1.0E-6):
         Relative error. Default is 1e-6.
     """
     assert len(data) >= 1, "No check partials data found.  Is " \
-                           "dymos.options['include_check_partials'] set to True?"
+                           "environment variable OPENMDAO_CHECK_ALL_PARTIALS set to '1'?"
     _om_assert_utils.assert_check_partials(data, atol, rtol)
 
 

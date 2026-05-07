@@ -16,7 +16,9 @@ def _removed_option(name, value):
 
 
 options.declare('include_check_partials', default=_icp_default, types=bool,
-                desc='If True, include dymos components when checking partials.')
+                desc='If True, include dymos components when checking partials.',
+                deprecation='Option `include_check_partials is deprecated. '
+                'Use OPENMDAO_CHECK_ALL_PARTIALS to enable checking of all dymos component partials.')
 
 options.declare('plots', default='bokeh', values=['matplotlib', 'bokeh'],
                 desc='The plot library used to generate output plots for Dymos.')

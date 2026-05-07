@@ -5,7 +5,6 @@ import scipy.sparse as sp
 
 from openmdao.utils.units import unit_conversion
 
-from dymos._options import options as dymos_options
 from dymos.transcriptions.grid_data import GridData
 from dymos.utils.misc import get_rate_units
 
@@ -32,7 +31,7 @@ class RadauDefectComp(om.ExplicitComponent):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._no_check_partials = not dymos_options['include_check_partials']
+        self._no_check_partials = True
 
         # When a state has another state as its rate source, we have to explicitly convert
         # from the units of that other state to the units being expected by the current state.

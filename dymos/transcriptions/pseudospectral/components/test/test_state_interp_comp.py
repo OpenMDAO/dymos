@@ -3,6 +3,7 @@ import unittest
 import numpy as np
 from numpy.testing import assert_almost_equal
 import openmdao.api as om
+from openmdao.utils.testing_utils import set_env_vars
 from dymos.utils.testing_utils import assert_check_partials
 
 from dymos.transcriptions.pseudospectral.components import StateInterpComp
@@ -40,12 +41,7 @@ def f_v(t):
 
 class TestStateInterpComp(unittest.TestCase):
 
-    def setUp(self):
-        dm.options['include_check_partials'] = True
-
-    def tearDown(self):
-        dm.options['include_check_partials'] = False
-
+    @set_env_vars(OPENMDAO_CHECK_ALL_PARTIALS='1')
     def test_state_interp_comp_lobatto(self):
 
         segends = np.array([0.0, 3.0, 10.0])
@@ -155,6 +151,7 @@ class TestStateInterpComp(unittest.TestCase):
         cpd = p.check_partials(compact_print=True, method='cs', out_stream=None)
         assert_check_partials(cpd, atol=5.0E-5)
 
+    @set_env_vars(OPENMDAO_CHECK_ALL_PARTIALS='1')
     def test_state_interp_comp_lobatto_vectorized(self):
 
         segends = np.array([0.0, 3.0, 10.0])
@@ -262,6 +259,7 @@ class TestStateInterpComp(unittest.TestCase):
         cpd = p.check_partials(compact_print=True, method='cs', out_stream=None)
         assert_check_partials(cpd, atol=5.0E-5)
 
+    @set_env_vars(OPENMDAO_CHECK_ALL_PARTIALS='1')
     def test_state_interp_comp_lobatto_vectorized_different_orders(self):
 
         segends = np.array([0.0, 3.0, 10.0])
@@ -320,6 +318,7 @@ class TestStateInterpComp(unittest.TestCase):
         cpd = p.check_partials(compact_print=True, method='cs', out_stream=None)
         assert_check_partials(cpd, atol=5.0E-5)
 
+    @set_env_vars(OPENMDAO_CHECK_ALL_PARTIALS='1')
     def test_state_interp_comp_radau(self):
 
         gd = GridData(num_segments=1,

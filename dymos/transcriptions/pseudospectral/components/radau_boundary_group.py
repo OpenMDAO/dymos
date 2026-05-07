@@ -1,7 +1,6 @@
 import numpy as np
 import openmdao.api as om
 
-from dymos._options import options as dymos_options
 from dymos.utils.ode_utils import _make_ode_system
 
 
@@ -26,7 +25,7 @@ class RadauBoundaryMuxComp(om.ExplicitComponent):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._io_names = {}
-        self._no_check_partials = not dymos_options['include_check_partials']
+        self._no_check_partials = True
 
     def configure_io(self, state_options):
         """
@@ -95,7 +94,7 @@ class RadauBoundaryGroup(om.Group):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._no_check_partials = not dymos_options['include_check_partials']
+        self._no_check_partials = True
 
     def initialize(self):
         """

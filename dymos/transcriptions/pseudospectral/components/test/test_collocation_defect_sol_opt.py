@@ -4,7 +4,7 @@ import numpy as np
 from numpy.testing import assert_almost_equal
 
 import openmdao.api as om
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, set_env_vars
 
 import dymos as dm
 from dymos.transcriptions.grid_data import GridData
@@ -20,12 +20,6 @@ StateIndependentsComp = CompWrapperConfig(StateIndependentsComp)
 
 @use_tempdirs
 class TestCollocationCompSolOpt(unittest.TestCase):
-
-    def setUp(self):
-        dm.options['include_check_partials'] = True
-
-    def tearDown(self):
-        dm.options['include_check_partials'] = False
 
     def _make_state_idx_map(self, state_name, options, grid_data, state_idx_map):
         """
@@ -189,6 +183,7 @@ class TestCollocationCompSolOpt(unittest.TestCase):
                             dt_dstau[:, np.newaxis, np.newaxis] *
                             (p['f_approx:v']-p['f_computed:v']))
 
+    @set_env_vars(OPENMDAO_CHECK_ALL_PARTIALS='1')
     def test_partials(self):
         np.set_printoptions(linewidth=1024, edgeitems=1e1000)
 

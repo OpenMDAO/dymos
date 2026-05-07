@@ -4,6 +4,7 @@ import numpy as np
 from numpy.testing import assert_almost_equal
 
 import openmdao.api as om
+from openmdao.utils.testing_utils import set_env_vars
 from dymos.utils.testing_utils import assert_check_partials
 
 import dymos as dm
@@ -29,7 +30,6 @@ CollocationComp = CompWrapperConfig(BirkhoffDefectComp, [_PhaseStub()])
 class TestCollocationComp(unittest.TestCase):
 
     def make_problem(self, grid_type='lgl'):
-        dm.options['include_check_partials'] = True
 
         gd = BirkhoffGrid(num_nodes=21, grid_type=grid_type)
         n = gd.subset_num_nodes['col']
@@ -105,9 +105,6 @@ class TestCollocationComp(unittest.TestCase):
 
         self.p.run_model()
 
-    def tearDown(self):
-        dm.options['include_check_partials'] = False
-
     def test_results(self):
         for grid_type in ('lgl', 'cgl'):
             with self.subTest(msg=grid_type):
@@ -117,6 +114,7 @@ class TestCollocationComp(unittest.TestCase):
                 assert_almost_equal(self.p['defect_comp.state_defects:y'], 0.0)
                 assert_almost_equal(self.p['defect_comp.state_rate_defects:y'], 0.0)
 
+    @set_env_vars(OPENMDAO_CHECK_ALL_PARTIALS='1')
     def test_partials(self):
         for grid_type in ('lgl', 'cgl'):
             with self.subTest(msg=grid_type):

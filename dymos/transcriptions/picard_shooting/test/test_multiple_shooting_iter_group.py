@@ -7,7 +7,7 @@ import openmdao.api as om
 
 import dymos
 from openmdao.utils.assert_utils import assert_check_partials, assert_near_equal
-from openmdao.utils.testing_utils import use_tempdirs
+from openmdao.utils.testing_utils import use_tempdirs, set_env_vars
 
 from dymos.utils.misc import GroupWrapperConfig
 from dymos.utils.testing_utils import PhaseStub, SimpleODE
@@ -126,6 +126,7 @@ class LorenzAttractorODE(om.JaxExplicitComponent):
 @use_tempdirs
 class TestMultipleShootingIterGroup(unittest.TestCase):
 
+    @set_env_vars(OPENMDAO_CHECK_ALL_PARTIALS='1')
     def test_multiple_shooting_iter_group(self):
         for direction in ['forward', 'backward']:
             for grid_type in [GaussLobattoGrid, ChebyshevGaussLobattoGrid]:
@@ -134,7 +135,6 @@ class TestMultipleShootingIterGroup(unittest.TestCase):
                     for nl_solver in [om.NonlinearBlockGS(use_aitken=True, maxiter=100, iprint=0),
                                       om.NewtonSolver(solve_subsystems=True, maxiter=100, iprint=0)]:
                         with self.subTest(msg=f'{direction=} grid={grid_data}'):
-                            with dymos.options.temporary(include_check_partials=True):
 
                                 state_options = {'x': StateOptionsDictionary()}
 

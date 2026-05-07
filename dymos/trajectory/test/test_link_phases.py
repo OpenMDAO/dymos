@@ -32,7 +32,6 @@ class TestPhaseLinkageComp(unittest.TestCase):
 
     @staticmethod
     def make_problem(link_all_vars=False, connected=True):
-        dm.options['include_check_partials'] = True
         p = om.Problem(model=om.Group())
         p.driver = om.ScipyOptimizeDriver()
         p.driver.options['optimizer'] = 'SLSQP'

@@ -3,7 +3,6 @@ import openmdao.api as om
 from scipy import sparse as sp
 
 from ...transcriptions.grid_data import GridData
-from ..._options import options as dymos_options
 from ...utils.lagrange import lagrange_matrices
 
 
@@ -20,7 +19,7 @@ class TimeseriesOutputComp(om.ExplicitComponent):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self._no_check_partials = not dymos_options['include_check_partials']
+        self._no_check_partials = True
 
         # _vars keeps track of the name of each output and maps to its metadata;
         # a tuple of (input_name, name, shape, rate)
