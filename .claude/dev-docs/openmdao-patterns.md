@@ -13,7 +13,7 @@ confusion during dymos development. Read this before working on connection/promo
 path through subsystems. When a group uses `promotes=['*']`, its children's inputs and
 outputs are promoted to the group's level.
 
-**Example — GaussLobattoNew:**
+**Example — RadauNew:**
 
 `ode_iter_group` is added with `promotes=['*']`. Inside it, `ode_interp_group` promotes
 everything, and inside that, `ode` is a subsystem. The `ode` component's output `xdot` is
@@ -100,20 +100,6 @@ the standard case and works as expected at any group level.
 A component output marked `distributed=True` is split across MPI ranks. Each rank owns
 a contiguous slice of `io_size` elements, where `io_size = nn // n_ranks`.
 
-**Critical:** When you call `self.connect()` **inside a group**, OpenMDAO validates
-`src_indices` against the **local (per-rank) size**, not the global size. If
-`max(src_indices) >= local_size`, you get:
-
-```
-index N is out of bounds for source dimension of size M
-```
-
-even though `N < global_size`.
-
-**Fix:** Move the connection to the **phase level** (or any level above the group
-containing the distributed source). At the phase level, OpenMDAO uses the global size
-for validation.
-
 ```python
 # WRONG -- inside RadauIterGroup (self.connect):
 self.connect('ode_all.x0dot', 'f_ode:x0',
@@ -187,11 +173,14 @@ OpenMDAO performs two phases of initialization:
 
 1. **`setup()`** — builds the system tree: adds subsystems, declares I/O.
    Shape/unit information is not available. Use `add_subsystem`, `add_input`,
-   `add_output`, `add_design_var`, `declare_partials`.
+   `add_output`, `add_design_var`, `declare_partials`. This occurs in a top-down
+   manner starting at the root model and proceeding to the leaf nodes (Components).
 
 2. **`configure()`** — called after the first setup pass resolves shapes/units.
    Use `connect`, `promotes`, `set_input_defaults`. Also safe to add additional
-   I/O here (deferred I/O).
+   I/O here (deferred I/O). This proceeds "bottom up", starting at the leaf nodes
+   and proceeding to the root. Note that components don't have a configure method
+   because it would be executed immediately after setup.
 
 In dymos, `setup_*` methods use `add_subsystem`; `configure_*` methods use
 `connect`, `promotes`, and deferred I/O like `configure_io()`.
@@ -217,31 +206,6 @@ This often surfaces as a hidden duplicate when a connection is made in two place
 
 ---
 
-## DYMOS_2 Path Differences
-
-When `DYMOS_2=1`:
-- `dm.GaussLobatto` → `GaussLobattoNew`; ODE runs at all `n_all` nodes
-- `dm.Radau` → `RadauNew`; ODE runs at all `n_all` nodes
-
-| Variable | DYMOS_2=0 path | DYMOS_2=1 path |
-|----------|----------------|----------------|
-| ODE output (GL) | `traj.phase0.rhs_col.{comp}.{var}` (n=n_col) OR `traj.phase0.rhs_disc.{comp}.{var}` (n=n_disc) | `traj.phase0.ode.{comp}.{var}` (n=n_all) |
-| ODE output (Radau) | `traj.phase0.rhs_all.{var}` | `traj.phase0.ode_all.{var}` |
-
-For tests that must work with both `DYMOS_2=0` and `DYMOS_2=1`, check the env var:
-
-```python
-import os
-if os.environ.get('DYMOS_2') == '1':
-    path = f'traj.phase0.ode.{comp}.{var}'
-    expected_size = n_all   # e.g. 30 for 3 segments × order=10
-else:
-    path = f'traj.phase0.rhs_col.{comp}.{var}'
-    expected_size = n_col
-```
-
----
-
 ## MPI / Distributed Component Hang
 
 When one MPI rank raises an exception during `setup()`, the other ranks continue
@@ -252,5 +216,4 @@ will resolve itself.
 The vanderpol distributed ODE (`VanderpolODE` with `distrib=True`) is the canonical
 example: it uses `evenly_distrib_idxs(comm.size, num_nodes)` so each rank owns
 `num_nodes // n_ranks` elements. With `num_nodes=120` and 2 ranks, each rank owns 60
-nodes. Global col indices go up to 118, which exceeds 60 → group-level connection fails
-→ hang.
+nodes.

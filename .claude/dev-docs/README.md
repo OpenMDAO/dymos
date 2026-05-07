@@ -14,8 +14,6 @@ Update the relevant doc **after** making a discovery or fixing a non-obvious bug
 
 ## Quick Reference: Which doc to read
 
-- Editing `gauss_lobatto_new.py` or `gauss_lobatto_iter_group.py` → **transcriptions.md** (GaussLobattoNew section)
-- Editing `radau_new.py` or `radau_iter_group.py` → **transcriptions.md** (RadauNew section)
 - Working with `grid_data.py` or node indexing → **grid-data.md**
 - Confused about a promote/connect behavior, `get_val` path, or distributed ODE → **openmdao-patterns.md**
 - Adding a new constraint or objective → **transcriptions.md** (`_get_response_src` / `_get_constraint_kwargs` sections)
