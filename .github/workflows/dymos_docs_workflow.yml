@@ -44,7 +44,7 @@ jobs:
             DYMOS_2: False
             PEP517: True
             PUBLISH_DOCS: True
-            EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
+            EXCLUDE: ${{ github.event_name == 'workflow_dispatch' }}
 
           # # baseline versions except no MPI/PETSc
           # - NAME: no_mpi
@@ -125,12 +125,7 @@ jobs:
           echo "============================================================="
           echo "Install Dymos"
           echo "============================================================="
-          if [[  "${{ inputs.use_pypi }}" == "true" ]]; then
-            echo "-----------------------------------------------------------"
-            echo "Installing from PyPI"
-            echo "-----------------------------------------------------------"
-            python -m pip install dymos --no-deps
-          elif [[ "${{ matrix.PEP517 }}" == "true" ]]; then
+          if [[ "${{ matrix.PEP517 }}" == "true" ]]; then
             pip wheel --no-deps --use-pep517 .
             WHEEL=$(find dymos-*.whl)
             echo "-----------------------------------------------------------"
@@ -138,7 +133,7 @@ jobs:
             echo "-----------------------------------------------------------"
             python -m pip install "$WHEEL"
           else
-            python -m pip install .  --no-deps
+            python -m pip install . --no-deps
           fi
 
       - name: Install optional dependencies
