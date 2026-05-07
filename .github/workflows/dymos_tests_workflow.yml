@@ -141,7 +141,8 @@ jobs:
             OPENMDAO_PIXI_ENVIRONMENT: 'py313'
             OPENMDAO_INSTALL_FROM: 'github'
             OPENMDAO: ''
-            DYMOS_2 : True
+            DYMOS_2 : False
+            SKIP_COVERAGE: True
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
 
           # oldest supported versions
@@ -277,14 +278,14 @@ jobs:
         id: run_tests
         if: ${{ ! matrix.EXCLUDE }}
         env:
-          DYMOS_CHECK_PARTIALS: True
+          OPENMDAO_CHECK_ALL_PARTIALS: True
         continue-on-error: true
         run: |
           eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
           echo "============================================================="
           echo "Run Tests"
           echo "Environment:"
-          echo "   DYMOS_CHECK_PARTIALS: $DYMOS_CHECK_PARTIALS"
+          echo "   OPENMDAO_CHECK_ALL_PARTIALS: $OPENMDAO_CHECK_ALL_PARTIALS"
           echo "============================================================="
           testflo -n 1 docs/dymos_book/test --pre_announce || HAS_ERRORS=true
           testflo -n 1 joss/test --pre_announce || HAS_ERRORS=true
@@ -403,7 +404,7 @@ jobs:
         id: run_dymos_pixi_tests
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.dymos_pixi }}
         env:
-          DYMOS_CHECK_PARTIALS: True
+          OPENMDAO_CHECK_ALL_PARTIALS: True
         continue-on-error: true
         run: |
           echo "============================================================="

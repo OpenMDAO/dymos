@@ -223,3 +223,4 @@ dev-local = { features = ["test", "docs", "notebooks", "numba", "opt", "mpi", "d
 oldest = { features = ["test", "oldest", "mpi"], solve-group = "oldest" }
 
 [tool.pixi.tasks]
+install-openmdao-github-master = { cmd = "pip install --no-deps git+https://github.com/OpenMDAO/OpenMDAO@master", description = "Install the Github master version of OpenMDAO." }

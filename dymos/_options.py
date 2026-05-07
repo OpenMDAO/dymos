@@ -1,12 +1,7 @@
-import os
-
 from openmdao.api import OptionsDictionary
 
 
 options = OptionsDictionary()
-
-_env_check_partials = os.environ.get('DYMOS_CHECK_PARTIALS', '0')
-_icp_default = _env_check_partials.lower() in ('1', 'yes', 'true')
 
 
 def _removed_option(name, value):
@@ -14,11 +9,6 @@ def _removed_option(name, value):
         raise ValueError(f'Option {name} has been replaced by '
                          'Phase.timeseries_options["use_prefix"].')
 
-
-options.declare('include_check_partials', default=_icp_default, types=bool,
-                desc='If True, include dymos components when checking partials.',
-                deprecation='Option `include_check_partials is deprecated. '
-                'Use OPENMDAO_CHECK_ALL_PARTIALS to enable checking of all dymos component partials.')
 
 options.declare('plots', default='bokeh', values=['matplotlib', 'bokeh'],
                 desc='The plot library used to generate output plots for Dymos.')
