@@ -8,10 +8,7 @@ from dymos.phase import Phase, AnalyticPhase
 from dymos.transcriptions import GaussLobatto, ExplicitShooting, Analytic, \
     Birkhoff, PicardShooting
 
-if _env_truthy('DYMOS_2'):
-    from dymos.transcriptions import RadauNew as Radau
-else:
-    from dymos.transcriptions import Radau
+from dymos.transcriptions import Radau
 
 from dymos.transcriptions.grid_data import GaussLobattoGrid, ChebyshevGaussLobattoGrid, \
     RadauGrid, UniformGrid, BirkhoffGrid

@@ -227,10 +227,7 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
                     time_phase_all = p[f'phase0.timeseries.{time_name}_phase'].ravel()
 
-                    if env_truthy('DYMOS_2'):
-                        ode_name = 'ode_all'
-                    else:
-                        ode_name = 'rhs_all'
+                    ode_name = 'rhs_all'
 
                     assert_near_equal(p[f'phase0.{ode_name}.time_phase'][-1], 1.8016, tolerance=1.0E-3)
 
@@ -375,10 +372,7 @@ class TestPhaseTimeTargets(unittest.TestCase):
 
         time_phase_all = p['phase0.t_phase']
 
-        if env_truthy('DYMOS_2'):
-            ode_name = 'ode_all'
-        else:
-            ode_name = 'rhs_all'
+        ode_name = 'rhs_all'
 
         assert_near_equal(p[f'phase0.{ode_name}.time_phase'][-1], 1.8016, tolerance=1.0E-3)
 
