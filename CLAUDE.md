@@ -35,4 +35,4 @@ when making non-obvious discoveries.
   by transcription type, and common usage patterns.
 - `.claude/dev-docs/openmdao-patterns.md` — promoted paths, `connect` vs `promotes`,
   `src_indices` for distributed components, `src_shape`, duplicate connection errors,
-  DYMOS_2 path differences, MPI hang diagnosis.
+  MPI hang diagnosis.

@@ -114,7 +114,6 @@ jobs:
             OPENMDAO_PIXI_ENVIRONMENT: 'py313'
             OPENMDAO_INSTALL_FROM: 'pypi'
             OPENMDAO: ''
-            DYMOS_2: False
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
 
           # test PEP517 wheel build (no coverage)
@@ -122,7 +121,6 @@ jobs:
             OPENMDAO_PIXI_ENVIRONMENT: 'py313'
             OPENMDAO_INSTALL_FROM: 'pypi'
             OPENMDAO: ''
-            DYMOS_2: False
             PEP517: True
             SKIP_COVERAGE: True
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.pep517 }}
@@ -132,16 +130,14 @@ jobs:
             OPENMDAO_PIXI_ENVIRONMENT: 'default'
             OPENMDAO_INSTALL_FROM: 'pypi'
             OPENMDAO: ''
-            DYMOS_2 : False
             SKIP_COVERAGE: True
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
 
           # latest versions dymos 2 testing
-          - NAME: latest_dymos_2
+          - NAME: latest
             OPENMDAO_PIXI_ENVIRONMENT: 'py313'
             OPENMDAO_INSTALL_FROM: 'github'
             OPENMDAO: ''
-            DYMOS_2 : False
             SKIP_COVERAGE: True
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
 
@@ -220,17 +216,6 @@ jobs:
           echo "Pre-install playwright dependencies to avoid 'Playwright Host validation warning'"
           pip install playwright
           playwright install --with-deps
-
-      - name: Set Environment for Dymos 2
-        if: matrix.DYMOS_2
-        shell: bash -l {0}
-        run: |
-          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
-          echo "============================================================="
-          echo "Setting environement variable DYMOS_2=1"
-          echo "============================================================="
-          export "$DYMOS_2"=1
-          echo "$DYMOS_2=1" >> $"GITHUB_ENV"
 
       - name: Perform linting with Ruff
         if: ${{ ! matrix.EXCLUDE && matrix.NAME == 'baseline' }}

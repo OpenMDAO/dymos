@@ -74,10 +74,7 @@ class TestParameterConnections(unittest.TestCase):
 
         expected = np.broadcast_to(np.array([[1, 2], [3, 4]]),
                                    (nn, 2, 2))
-        if env_truthy('DYMOS_2'):
-            assert_near_equal(np.reshape(p.get_val('phase0.ode_all.sum.m'), (-1, 2, 2)), expected)
-        else:
-            assert_near_equal(np.reshape(p.get_val('phase0.rhs_all.sum.m'), (-1, 2, 2)), expected)
+        assert_near_equal(np.reshape(p.get_val('phase0.rhs_all.sum.m'), (-1, 2, 2)), expected)
 
     @require_pyoptsparse(optimizer='SLSQP')
     def test_static_parameter_connections_radau(self):
@@ -134,10 +131,7 @@ class TestParameterConnections(unittest.TestCase):
         p.run_model()
 
         expected = np.array([[1, 2], [3, 4]])
-        if env_truthy('DYMOS_2'):
-            assert_near_equal(np.reshape(p.get_val('phase0.ode_all.sum.m'), (2, 2)), expected)
-        else:
-            assert_near_equal(np.reshape(p.get_val('phase0.rhs_all.sum.m'), (2, 2)), expected)
+        assert_near_equal(np.reshape(p.get_val('phase0.rhs_all.sum.m'), (2, 2)), expected)
 
     @require_pyoptsparse(optimizer='SLSQP')
     def test_dynamic_parameter_connections_gl(self):
