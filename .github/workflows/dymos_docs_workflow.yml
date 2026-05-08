@@ -108,7 +108,7 @@ jobs:
 
       - name: 'Setup OpenMDAO pixi Environment'
         id: setup_pixi_environment
-        uses: robfalck/OpenMDAO/.github/actions/setup_openmdao_pixi@reusable_ci
+        uses: OpenMDAO/OpenMDAO/.github/actions/setup_openmdao_pixi@reusable_ci
         with:
           environment: '${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }}'
           openmdao_install_from: '${{ matrix.OPENMDAO_INSTALL_FROM }}'
