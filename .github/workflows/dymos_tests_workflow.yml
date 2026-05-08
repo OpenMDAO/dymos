@@ -87,6 +87,12 @@ on:
         required: false
         default: true
 
+      dymos_pixi_openmdao_github:
+        type: boolean
+        description: "Include 'dev-local + OpenMDAO from GitHub master' in test_dymos_pixi job"
+        required: false
+        default: true
+
 concurrency:
   # Cancel any existing CI runs if we push to this branch
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -335,32 +341,63 @@ jobs:
 
   test_dymos_pixi:
     # Test dymos-native pixi environments defined in pyproject.toml using the frozen pixi.lock.
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runs-on }}
 
     defaults:
       run:
-        shell: bash -l {0}
+        shell: bash
 
     timeout-minutes: 90
 
     strategy:
       fail-fast: false
       matrix:
-        pixi-env: [oldest, default, dev]
+        include:
+          # default env on all three platforms
+          - pixi-env: default
+            runs-on: ubuntu-latest
+            EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi }}
+          - pixi-env: default
+            runs-on: macos-latest
+            EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi }}
+          - pixi-env: default
+            runs-on: windows-latest
+            EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi }}
+          # remaining envs on Linux only
+          - pixi-env: oldest
+            runs-on: ubuntu-latest
+            EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi }}
+          - pixi-env: dev
+            runs-on: ubuntu-latest
+            EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi }}
+          # dev-local with OpenMDAO installed from GitHub master
+          - pixi-env: dev-local
+            runs-on: ubuntu-latest
+            install_openmdao_github: true
+            EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi_openmdao_github }}
 
     steps:
       - name: Checkout code
-        if: ${{ github.event_name != 'workflow_dispatch' || inputs.dymos_pixi }}
+        if: ${{ !matrix.EXCLUDE }}
         uses: actions/checkout@v6
 
       - name: Setup pixi
-        if: ${{ github.event_name != 'workflow_dispatch' || inputs.dymos_pixi }}
+        if: ${{ !matrix.EXCLUDE }}
         uses: prefix-dev/setup-pixi@v0.8.0
         with:
           environments: ${{ matrix.pixi-env }}
 
+      - name: Install OpenMDAO from GitHub master
+        if: ${{ !matrix.EXCLUDE && matrix.install_openmdao_github }}
+        run: |
+          echo "============================================================="
+          echo "Install OpenMDAO from GitHub master"
+          echo "============================================================="
+          pixi run -e ${{ matrix.pixi-env }} --manifest-path $GITHUB_WORKSPACE/pyproject.toml \
+            install-openmdao-github-master
+
       - name: Check MPI and PETSc
-        if: ${{ github.event_name != 'workflow_dispatch' || inputs.dymos_pixi }}
+        if: ${{ !matrix.EXCLUDE }}
         continue-on-error: true
         run: |
           if pixi run -e ${{ matrix.pixi-env }} python -c "import mpi4py, petsc4py" 2>/dev/null; then
@@ -387,20 +424,31 @@ jobs:
 
       - name: Run tests
         id: run_dymos_pixi_tests
-        if: ${{ github.event_name != 'workflow_dispatch' || inputs.dymos_pixi }}
+        if: ${{ !matrix.EXCLUDE }}
         env:
           OPENMDAO_CHECK_ALL_PARTIALS: True
         continue-on-error: true
         run: |
+          eval "$(pixi shell-hook -e ${{ matrix.pixi-env }} --manifest-path $GITHUB_WORKSPACE/pyproject.toml)"
           echo "============================================================="
           echo "Run Tests (pixi environment: ${{ matrix.pixi-env }})"
           echo "============================================================="
+          cd $GITHUB_WORKSPACE
+          testflo -n 1 docs/dymos_book/test --pre_announce || HAS_ERRORS=true
+          testflo -n 1 joss/test --pre_announce || HAS_ERRORS=true
+          testflo -b benchmark --pre_announce || HAS_ERRORS=true
+          # Run the readme test from the checked out directory.
+          testflo -n 1 ./dymos/test/test_readme.py --pre_announce || HAS_ERRORS=true
           cd $HOME
-          pixi run -e ${{ matrix.pixi-env }} --manifest-path $GITHUB_WORKSPACE/pyproject.toml \
-            testflo dymos -n 4 --pre_announce --show_skipped --durations 20
+          testflo dymos -n 4 --pre_announce --show_skipped --durations 20 || HAS_ERRORS=true
+
+          if [ "$HAS_ERRORS" = true ]; then
+            echo "One or more commands failed"
+            exit 1
+          fi
 
       - name: Fail the workflow if tests failed
-        if: ${{ (github.event_name != 'workflow_dispatch' || inputs.dymos_pixi) && steps.run_dymos_pixi_tests.outcome != 'success' }}
+        if: ${{ !matrix.EXCLUDE && steps.run_dymos_pixi_tests.outcome != 'success' }}
         run: |
           echo "Tests failed"
           exit 1
