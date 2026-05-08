@@ -1,7 +1,6 @@
 import unittest
 
 import openmdao.api as om
-from openmdao.utils.general_utils import set_pyoptsparse_opt
 from openmdao.utils.assert_utils import assert_near_equal
 from openmdao.utils.testing_utils import use_tempdirs, require_pyoptsparse
 import dymos as dm
@@ -12,16 +11,9 @@ def _run_balanced_field_length_problem(tx=dm.GaussLobatto, timeseries=True, sim=
                                        make_plots=False):
     p = om.Problem()
 
-    _, optimizer = set_pyoptsparse_opt('IPOPT', fallback=True)
-
-    p.driver = om.pyOptSparseDriver()
+    p.driver = om.pyOptSparseDriver(optimizer='IPOPT', print_results=True)
     p.driver.declare_coloring()
-
-    # Use IPOPT if available, with fallback to SLSQP
-    p.driver.options['optimizer'] = optimizer
-    p.driver.options['print_results'] = False
-    if optimizer == 'IPOPT':
-        p.driver.opt_settings['print_level'] = 0
+    p.driver.opt_settings['print_level'] = 0
 
     # First Phase: Brake release to V1 - both engines operable
     br_to_v1 = dm.Phase(ode_class=BalancedFieldODEComp,
