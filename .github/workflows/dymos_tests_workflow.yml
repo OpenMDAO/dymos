@@ -27,48 +27,6 @@ on:
         required: false
         default: true
 
-      no_pyoptsparse:
-        type: boolean
-        description: "Include 'no_pyoptsparse' in test matrix"
-        required: false
-        default: true
-
-      numpy2_no_pyoptsparse:
-        type: boolean
-        description: "Include 'numpy2_no_pyoptsparse' in test matrix"
-        required: false
-        default: true
-
-      no_snopt:
-        type: boolean
-        description: "Include 'no_snopt' in test matrix"
-        required: false
-        default: true
-
-      no_mpi:
-        type: boolean
-        description: "Include 'no_mpi' Baseline in test matrix"
-        required: false
-        default: true
-
-      latest:
-        type: boolean
-        description: "Include 'latest' in test matrix"
-        required: false
-        default: true
-
-      python313:
-        type: boolean
-        description: "Include 'python313' in test matrix"
-        required: false
-        default: true
-
-      oldest:
-        type: boolean
-        description: "Include 'oldest' in test matrix"
-        required: false
-        default: true
-
       pep517:
         type: boolean
         description: "Include 'pep517' in test matrix"
@@ -83,7 +41,7 @@ on:
 
       dymos_pixi:
         type: boolean
-        description: "Include 'dymos_pixi' matrix in test_dymos_pixi job"
+        description: "Include tests of dymos' local pixi environment job"
         required: false
         default: true
 
@@ -126,7 +84,7 @@ jobs:
             OPENMDAO_PIXI_ENVIRONMENT: 'py313'
             OPENMDAO_INSTALL_FROM: 'pypi'
             OPENMDAO: ''
-            EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
+            EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.baseline }}
 
           # test PEP517 wheel build (no coverage)
           - NAME: pep517
@@ -136,30 +94,6 @@ jobs:
             PEP517: True
             SKIP_COVERAGE: True
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.pep517 }}
-
-          # baseline versions except no MPI/PETSc
-          - NAME: no_mpi
-            OPENMDAO_PIXI_ENVIRONMENT: 'default'
-            OPENMDAO_INSTALL_FROM: 'pypi'
-            OPENMDAO: ''
-            SKIP_COVERAGE: True
-            EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
-
-          # latest versions dymos 2 testing
-          - NAME: latest
-            OPENMDAO_PIXI_ENVIRONMENT: 'py313'
-            OPENMDAO_INSTALL_FROM: 'github'
-            OPENMDAO: ''
-            SKIP_COVERAGE: True
-            EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
-
-          # oldest supported versions
-          - NAME: oldest
-            OPENMDAO_PIXI_ENVIRONMENT: 'oldest'
-            OPENMDAO_INSTALL_FROM: 'pypi'
-            OPENMDAO: '3.39.0'
-            SKIP_COVERAGE: True
-            EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.oldest }}
 
     steps:
       - name: Display run details
