@@ -21,65 +21,65 @@ on:
         required: false
         default: ""
 
-      # baseline:
-      #   type: boolean
-      #   description: "Include 'baseline' in test matrix"
-      #   required: false
-      #   default: true
+      baseline:
+        type: boolean
+        description: "Include 'baseline' in test matrix"
+        required: false
+        default: true
 
-      # no_pyoptsparse:
-      #   type: boolean
-      #   description: "Include 'no_pyoptsparse' in test matrix"
-      #   required: false
-      #   default: true
+      no_pyoptsparse:
+        type: boolean
+        description: "Include 'no_pyoptsparse' in test matrix"
+        required: false
+        default: true
 
-      # numpy2_no_pyoptsparse:
-      #   type: boolean
-      #   description: "Include 'numpy2_no_pyoptsparse' in test matrix"
-      #   required: false
-      #   default: true
+      numpy2_no_pyoptsparse:
+        type: boolean
+        description: "Include 'numpy2_no_pyoptsparse' in test matrix"
+        required: false
+        default: true
 
-      # no_snopt:
-      #   type: boolean
-      #   description: "Include 'no_snopt' in test matrix"
-      #   required: false
-      #   default: true
+      no_snopt:
+        type: boolean
+        description: "Include 'no_snopt' in test matrix"
+        required: false
+        default: true
 
-      # no_mpi:
-      #   type: boolean
-      #   description: "Include 'no_mpi' Baseline in test matrix"
-      #   required: false
-      #   default: true
+      no_mpi:
+        type: boolean
+        description: "Include 'no_mpi' Baseline in test matrix"
+        required: false
+        default: true
 
-      # latest:
-      #   type: boolean
-      #   description: "Include 'latest' in test matrix"
-      #   required: false
-      #   default: true
+      latest:
+        type: boolean
+        description: "Include 'latest' in test matrix"
+        required: false
+        default: true
 
-      # python313:
-      #   type: boolean
-      #   description: "Include 'python313' in test matrix"
-      #   required: false
-      #   default: true
+      python313:
+        type: boolean
+        description: "Include 'python313' in test matrix"
+        required: false
+        default: true
 
-      # oldest:
-      #   type: boolean
-      #   description: "Include 'oldest' in test matrix"
-      #   required: false
-      #   default: true
+      oldest:
+        type: boolean
+        description: "Include 'oldest' in test matrix"
+        required: false
+        default: true
 
-      # pep517:
-      #   type: boolean
-      #   description: "Include 'pep517' in test matrix"
-      #   required: false
-      #   default: true
+      pep517:
+        type: boolean
+        description: "Include 'pep517' in test matrix"
+        required: false
+        default: true
 
-      # use_pypi:
-      #   type: boolean
-      #   description: 'Run tests against the published PyPI version of Dymos'
-      #   required: false
-      #   default: false
+      use_pypi:
+        type: boolean
+        description: 'Run tests against the published PyPI version of Dymos'
+        required: false
+        default: false
 
       dymos_pixi:
         type: boolean
@@ -88,10 +88,10 @@ on:
         default: true
 
       dymos_pixi_openmdao_github:
-        type: boolean
-        description: "Include 'dev-local + OpenMDAO from GitHub master' in test_dymos_pixi job"
+        type: string
+        description: "OpenMDAO ref to install from GitHub in the dev-local test (branch, tag, or commit hash). Leave empty to skip."
         required: false
-        default: true
+        default: 'master'
 
       save_pixi_lock:
         type: boolean
@@ -376,15 +376,15 @@ jobs:
           - pixi-env: dev
             runs-on: ubuntu-latest
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi }}
-          # dev-local with OpenMDAO installed from GitHub master
+          # dev-local with OpenMDAO installed from GitHub
           - pixi-env: dev-local
             runs-on: ubuntu-latest
             install_openmdao_github: true
-            EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi_openmdao_github }}
+            EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && inputs.dymos_pixi_openmdao_github == '' }}
           - pixi-env: dev-local
             runs-on: macos-latest
             install_openmdao_github: true
-            EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi_openmdao_github }}
+            EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && inputs.dymos_pixi_openmdao_github == '' }}
 
     steps:
       - name: Checkout code
@@ -393,7 +393,7 @@ jobs:
 
       - name: Upload pixi.lock artifact
         if: ${{ !matrix.EXCLUDE && github.event_name == 'workflow_dispatch' && inputs.save_pixi_lock }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pixi-lock-${{ matrix.pixi-env }}-${{ matrix.runs-on }}
           path: pixi.lock
@@ -401,18 +401,19 @@ jobs:
 
       - name: Setup pixi
         if: ${{ !matrix.EXCLUDE }}
-        uses: prefix-dev/setup-pixi@v0.8.0
+        uses: prefix-dev/setup-pixi@v0.9.5
         with:
           environments: ${{ matrix.pixi-env }}
 
-      - name: Install OpenMDAO from GitHub master
+      - name: Install OpenMDAO from GitHub
         if: ${{ !matrix.EXCLUDE && matrix.install_openmdao_github }}
         run: |
+          eval "$(pixi shell-hook -e ${{ matrix.pixi-env }} --manifest-path $GITHUB_WORKSPACE/pyproject.toml)"
+          OPENMDAO_REF="${{ inputs.dymos_pixi_openmdao_github || 'master' }}"
           echo "============================================================="
-          echo "Install OpenMDAO from GitHub master"
+          echo "Install OpenMDAO from GitHub ref: $OPENMDAO_REF"
           echo "============================================================="
-          pixi run -e ${{ matrix.pixi-env }} --manifest-path $GITHUB_WORKSPACE/pyproject.toml \
-            install-openmdao-github-master
+          pip install --no-deps git+https://github.com/OpenMDAO/OpenMDAO@${OPENMDAO_REF}
 
       - name: Check MPI and PETSc
         if: ${{ !matrix.EXCLUDE }}
