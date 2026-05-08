@@ -93,6 +93,12 @@ on:
         required: false
         default: true
 
+      save_pixi_lock:
+        type: boolean
+        description: "Upload pixi.lock as a 1-day artifact for each test_dymos_pixi matrix entry"
+        required: false
+        default: false
+
 concurrency:
   # Cancel any existing CI runs if we push to this branch
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -384,6 +390,14 @@ jobs:
       - name: Checkout code
         if: ${{ !matrix.EXCLUDE }}
         uses: actions/checkout@v6
+
+      - name: Upload pixi.lock artifact
+        if: ${{ !matrix.EXCLUDE && github.event_name == 'workflow_dispatch' && inputs.save_pixi_lock }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pixi-lock-${{ matrix.pixi-env }}-${{ matrix.runs-on }}
+          path: pixi.lock
+          retention-days: 1
 
       - name: Setup pixi
         if: ${{ !matrix.EXCLUDE }}
