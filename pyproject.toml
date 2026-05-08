@@ -198,6 +198,9 @@ idna = "*"
 [tool.pixi.feature.numba.dependencies]
 numba = "*"
 
+[tool.pixi.feature.actionlint.dependencies]
+actionlint = "*"
+
 [tool.pixi.feature.oldest.dependencies]
 python = "3.11.*"
 numpy = "2.0.*"
@@ -224,8 +227,8 @@ openmdao = "==3.39.0"
 
 [tool.pixi.environments]
 default = { features = ["test", "opt", "mpi", "default-env"], solve-group = "default" }
-dev = { features = ["test", "docs", "notebooks", "numba", "opt", "mpi", "default-env"], solve-group = "default" }
-dev-local = { features = ["test", "docs", "notebooks", "numba", "opt", "mpi", "dev-local"], solve-group = "dev_local" }
+dev = { features = ["test", "docs", "notebooks", "numba", "opt", "mpi", "actionlint", "default-env"], solve-group = "default" }
+dev-local = { features = ["test", "docs", "notebooks", "numba", "opt", "mpi", "actionlint", "dev-local"], solve-group = "dev_local" }
 oldest = { features = ["test", "oldest", "mpi", "oldest-env"], solve-group = "oldest" }
 
 [tool.pixi.tasks]
