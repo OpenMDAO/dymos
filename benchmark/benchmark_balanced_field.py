@@ -14,6 +14,7 @@ def _run_balanced_field_length_problem(tx=dm.GaussLobatto, timeseries=True, sim=
     p.driver = om.pyOptSparseDriver(optimizer='IPOPT', print_results=True)
     p.driver.declare_coloring()
     p.driver.opt_settings['print_level'] = 0
+    p.driver.opt_settings['max_iter'] = 500
 
     # First Phase: Brake release to V1 - both engines operable
     br_to_v1 = dm.Phase(ode_class=BalancedFieldODEComp,
@@ -259,4 +260,5 @@ class BenchmarkBalancedFieldLength(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    print('wat')
     _run_balanced_field_length_problem(make_plots=True)
