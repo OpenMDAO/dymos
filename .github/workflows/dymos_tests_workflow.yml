@@ -375,6 +375,10 @@ jobs:
             runs-on: ubuntu-latest
             install_openmdao_github: true
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi_openmdao_github }}
+          - pixi-env: dev-local
+            runs-on: macos-latest
+            install_openmdao_github: true
+            EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi_openmdao_github }}
 
     steps:
       - name: Checkout code
