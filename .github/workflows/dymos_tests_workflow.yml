@@ -339,6 +339,12 @@ jobs:
         with:
           environments: ${{ matrix.pixi-env }}
 
+      - name: Install Dymos
+        if: ${{ !matrix.EXCLUDE }}
+        run: |
+          eval "$(pixi shell-hook -e ${{ matrix.pixi-env }} --manifest-path $GITHUB_WORKSPACE/pixi.toml)"
+          pip install --no-deps -e $GITHUB_WORKSPACE
+
       - name: Install OpenMDAO from GitHub
         if: ${{ !matrix.EXCLUDE && matrix.install_openmdao_github }}
         run: |
