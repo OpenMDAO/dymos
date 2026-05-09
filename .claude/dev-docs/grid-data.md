@@ -25,7 +25,7 @@ It is passed to every component that needs node index information.
 | Attribute | Shape | Description |
 |-----------|-------|-------------|
 | `node_ptau` | `(num_nodes,)` | Node positions in phase tau (global [-1, 1]) |
-| `node_dptau_dstau` | `(num_nodes,)` | d(ptau)/d(stau) at each node (time scaling factor) |
+| `node_dptau_dstau` | `(num_nodes,)` | d(phase tau)/d(segment tau) at each node (time scaling factor) |
 | `segment_indices` | `(num_segments, 2)` | Start and end (exclusive) node index for each segment |
 | `transcription_order` | `(num_segments,)` | Transcription order for each segment |
 

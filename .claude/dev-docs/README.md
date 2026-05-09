@@ -16,4 +16,3 @@ Update the relevant doc **after** making a discovery or fixing a non-obvious bug
 
 - Working with `grid_data.py` or node indexing → **grid-data.md**
 - Confused about a promote/connect behavior, `get_val` path, or distributed ODE → **openmdao-patterns.md**
-- Adding a new constraint or objective → **transcriptions.md** (`_get_response_src` / `_get_constraint_kwargs` sections)
