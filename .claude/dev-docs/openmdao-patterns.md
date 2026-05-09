@@ -13,33 +13,6 @@ confusion during dymos development. Read this before working on connection/promo
 path through subsystems. When a group uses `promotes=['*']`, its children's inputs and
 outputs are promoted to the group's level.
 
-**Example — RadauNew:**
-
-`ode_iter_group` is added with `promotes=['*']`. Inside it, `ode_interp_group` promotes
-everything, and inside that, `ode` is a subsystem. The `ode` component's output `xdot` is
-promoted through both inner groups to the phase level. So from outside the phase:
-
-```python
-# Correct promoted path:
-p.get_val('traj.phase0.ode.xdot_comp.xdot')
-
-# WRONG (absolute path, not promoted):
-p.get_val('traj.phase0.ode_iter_group.ode_interp_group.ode.xdot_comp.xdot')
-```
-
-**Example — RadauNew:**
-
-`ode_iter_group` promotes everything. Inside it, `ode_all` is a subsystem (not promoted).
-`ode_all`'s output `x0dot` is promoted to the phase level:
-
-```python
-# Correct:
-p.get_val('traj.phase0.ode_all.x0dot')
-
-# WRONG:
-p.get_val('traj.phase0.ode_iter_group.ode_all.x0dot')
-```
-
 ### `traj.phases.phase0` vs `traj.phase0`
 
 The absolute path to a phase subsystem under a trajectory is `traj.phases.phase0`
@@ -94,25 +67,6 @@ self.promotes('defects', inputs=('dt_dstau',),
 
 `src_indices` is validated against the **global size** of the source variable. This is
 the standard case and works as expected at any group level.
-
-### Distributed sources
-
-A component output marked `distributed=True` is split across MPI ranks. Each rank owns
-a contiguous slice of `io_size` elements, where `io_size = nn // n_ranks`.
-
-```python
-# WRONG -- inside RadauIterGroup (self.connect):
-self.connect('ode_all.x0dot', 'f_ode:x0',
-             src_indices=om.slicer[col_idxs, ...])
-# → fails if ode_all is distributed and max(col_idxs) >= local_size
-
-# CORRECT -- at the phase level (phase.connect):
-phase.connect('ode_all.x0dot', 'f_ode:x0',
-              src_indices=om.slicer[col_idxs, ...])
-```
-
-This is why `RadauNew.configure_defects()` makes the `ode_all → f_ode` connection
-at the phase level, not inside `RadauIterGroup`.
 
 ### `flat_src_indices=True`
 
@@ -199,10 +153,6 @@ Input 'X' is already connected to 'Y'.
 This often surfaces as a hidden duplicate when a connection is made in two places
 (e.g., once inside a sub-group's `configure_io` and again in the transcription's
 `configure_defects`). Always check for existing connections when adding new ones.
-
-**Known case in dymos:** `f_ode:{name}` in RadauNew is connected by
-`RadauNew.configure_defects()`. Do not also connect it inside
-`RadauIterGroup.configure_io()`.
 
 ---
 
