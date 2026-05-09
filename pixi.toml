@@ -10,9 +10,6 @@ networkx = ">=3.3"
 packaging = ">=25.0"
 requests = ">=2.32.5"
 
-[feature.dymos-editable.pypi-dependencies]
-dymos = { path = ".", editable = true }
-
 [feature.opt.dependencies]
 pyoptsparse = ">=2.14.0"
 cyipopt = "*"
@@ -92,10 +89,10 @@ openmdao = ">=3.39.0"
 openmdao = "==3.39.0"
 
 [environments]
-default = { features = ["test", "opt", "mpi", "default-env", "dymos-editable"], solve-group = "default" }
-dev = { features = ["test", "docs", "notebooks", "numba", "opt", "mpi", "actionlint", "default-env", "dymos-editable"], solve-group = "default" }
+default = { features = ["test", "opt", "mpi", "default-env"], solve-group = "default" }
+dev = { features = ["test", "docs", "notebooks", "numba", "opt", "mpi", "actionlint", "default-env"], solve-group = "default" }
 dev-local = { features = ["test", "docs", "notebooks", "numba", "opt", "mpi", "actionlint", "dev-local"], solve-group = "dev_local" }
-oldest = { features = ["test", "oldest", "mpi", "oldest-env", "dymos-editable"], solve-group = "oldest" }
+oldest = { features = ["test", "oldest", "mpi", "oldest-env"], solve-group = "oldest" }
 
 [tasks]
 install-openmdao-github-master = { cmd = "pip install --no-deps git+https://github.com/OpenMDAO/OpenMDAO@master", description = "Install the Github master version of OpenMDAO." }
