@@ -39,7 +39,7 @@ class LintJupyterOutputsTestCase(unittest.TestCase):
 
         for file in _get_files():
             with self.subTest(file):
-                with open(file) as f:
+                with open(file, mode='r', encoding='utf-8') as f:
                     json_data = json.load(f)
                     for i in json_data['cells']:
                         if 'execution_count' in i and i['execution_count'] is not None:
@@ -90,7 +90,7 @@ class LintJupyterOutputsTestCase(unittest.TestCase):
         mpi_header.extend(header)
 
         for file in _get_files():
-            with open(file) as f:
+            with open(file, mode='r', encoding='utf-8') as f:
 
                 # This one is exempt from these lint rules.
                 # if 'getting_started.ipynb'  in file:
@@ -134,7 +134,7 @@ class LintJupyterOutputsTestCase(unittest.TestCase):
         Make sure any code cells with asserts are hidden.
         """
         for file in _get_files():
-            with open(file) as f:
+            with open(file, mode='r', encoding='utf-8') as f:
                 json_data = json.load(f)
                 blocks = json_data['cells']
                 for block in blocks[1:]:
