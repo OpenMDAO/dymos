@@ -264,14 +264,14 @@ class TestLoadCase(unittest.TestCase):
                           q.model.phase0.interp(xs=time_q_unique, ys=theta_q_unique, nodes='all'),
                           tolerance=1.0E-2)
 
-        assert_near_equal(x_p[0, ...], x0_q, tolerance=1.0E-5)
-        assert_near_equal(x_p[-1, ...], xf_q, tolerance=1.0E-5)
+        self.assertTrue(np.allclose(x_p[0, ...], x0_q))
+        self.assertTrue(np.allclose(x_p[-1, ...], xf_q))
 
-        assert_near_equal(y_p[0, ...], y0_q, tolerance=1.0E-5)
-        assert_near_equal(y_p[-1, ...], yf_q, tolerance=1.0E-5)
+        self.assertTrue(np.allclose(y_p[0, ...], y0_q))
+        self.assertTrue(np.allclose(y_p[-1, ...], yf_q))
 
-        assert_near_equal(v_p[0, ...], v0_q, tolerance=1.0E-5)
-        assert_near_equal(v_p[-1, ...], vf_q, tolerance=1.0E-5)
+        self.assertTrue(np.allclose(v_p[0, ...], v0_q))
+        self.assertTrue(np.allclose(v_p[-1, ...], vf_q))
 
     def test_load_case_warn_fix_final_states(self):
         import openmdao.api as om

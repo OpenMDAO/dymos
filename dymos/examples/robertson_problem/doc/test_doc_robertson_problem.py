@@ -33,7 +33,7 @@ class TestRobertsonProblemForDocs(unittest.TestCase):
 
         phase = traj.add_phase('phase0',
                                dm.Phase(ode_class=RobertsonODE,
-                                        transcription=dm.ExplicitShooting(num_segments=10, method='LSODA')
+                                        transcription=dm.ExplicitShooting(num_segments=12, method='LSODA')
                                         ))
         #
         # Set the variables
@@ -97,16 +97,16 @@ class TestRobertsonProblemForDocs(unittest.TestCase):
         assert_near_equal(p.get_val('traj.phase0.timeseries.y0')[-1], 9.18571144e-06, tolerance=1E-4)
         assert_near_equal(p.get_val('traj.phase0.timeseries.z0')[-1], 0.2841592, tolerance=1E-4)
 
-        t_sim = p.get_val('traj.phase0.timeseries.time')
+        # t_sim = p.get_val('traj.phase0.timeseries.time')
 
-        states = ['x0', 'y0', 'z0']
-        fig, axes = plt.subplots(len(states), 1)
-        for i, state in enumerate(states):
-            axes[i].plot(t_sim, p.get_val(f'traj.phase0.timeseries.{state}'), 'o')
-            axes[i].set_ylabel(state[0])
-        axes[-1].set_xlabel('time (s)')
-        plt.tight_layout()
-        plt.show()
+        # states = ['x0', 'y0', 'z0']
+        # fig, axes = plt.subplots(len(states), 1)
+        # for i, state in enumerate(states):
+        #     axes[i].plot(t_sim, p.get_val(f'traj.phase0.timeseries.{state}'), 'o')
+        #     axes[i].set_ylabel(state[0])
+        # axes[-1].set_xlabel('time (s)')
+        # plt.tight_layout()
+        # plt.show()
 
 
 if __name__ == "__main__":
