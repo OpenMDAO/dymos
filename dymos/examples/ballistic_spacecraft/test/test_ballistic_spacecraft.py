@@ -188,7 +188,7 @@ class TestBallisticSpacecraft(unittest.TestCase):
                 self.assertTrue(result.success)
 
                 # Assert the result is near a Hohmann transfer
-                self.assertTrue(175. < jnp.degrees(angular_distance) < 185., msg=f'{angular_distance}')
+                self.assertTrue(175. < np.degrees(angular_distance) < 185., msg=f'{angular_distance}')
 
 
 if __name__ == '__main__':

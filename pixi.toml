@@ -10,6 +10,9 @@ networkx = ">=3.3"
 packaging = ">=25.0"
 requests = ">=2.32.5"
 
+[pypi-dependencies]
+jax = "*"
+
 [feature.opt.dependencies]
 pyoptsparse = ">=2.14.0"
 cyipopt = "*"
