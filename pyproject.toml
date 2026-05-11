@@ -82,6 +82,10 @@ include = [
     "/dymos",
 ]
 
+##############################
+# ruff settings
+##############################
+
 [tool.ruff]
 line-length = 100
 indent-width = 4
@@ -132,3 +136,118 @@ convention = "numpy"
 "**/dymos_book/**" = ["E402", "E501"]
 # Ignore Test classifiers
 "test_*.py" = ["D", "E", "F"]
+
+##############################
+# pixi settings
+##############################
+
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+platforms = ["linux-64", "osx-arm64", "win-64"]
+
+[tool.pixi.dependencies]
+python = ">=3.11"
+pip = "*"
+compilers = ">=1.8.0,<2"
+networkx = ">=3.3"
+packaging = ">=25.0"
+requests = ">=2.32.5"
+
+[tool.pixi.pypi-dependencies]
+openmdao = ">=3.39.0"
+jax = "*"
+
+[tool.pixi.feature.opt.dependencies]
+pyoptsparse = ">=2.14.0"
+cyipopt = "*"
+
+[tool.pixi.feature.mpi.target.linux-64.dependencies]
+openmpi = "*"
+mpi4py = "*"
+petsc = "*"
+petsc4py = "*"
+
+[tool.pixi.feature.mpi.target.osx-64.dependencies]
+openmpi = "*"
+mpi4py = "*"
+petsc = "*"
+petsc4py = "*"
+
+[tool.pixi.feature.mpi.target.osx-arm64.dependencies]
+openmpi = "*"
+mpi4py = "*"
+petsc = "*"
+petsc4py = "*"
+
+[tool.pixi.feature.test.dependencies]
+pre-commit = "*"
+ruff = "*"
+coverage = ">=7.6.0"
+numpydoc = "*"
+matplotlib = "*"
+
+[tool.pixi.feature.test.pypi-dependencies]
+testflo = "*"
+
+[tool.pixi.feature.docs.dependencies]
+jupyter-book = ">=1.0.3,<2"
+matplotlib = "*"
+numpydoc = "*"
+sphinx-sitemap = "*"
+jinja2 = "*"
+tqdm = "*"
+
+[tool.pixi.feature.docs.pypi-dependencies]
+jax = "*"
+
+[tool.pixi.feature.notebooks.dependencies]
+ipympl = "*"
+notebook = "*"
+idna = "*"
+
+[tool.pixi.feature.numba.dependencies]
+numba = "*"
+
+[tool.pixi.feature.actionlint.dependencies]
+actionlint = "*"
+
+[tool.pixi.feature.local-test.dependencies]
+python = ">=3.11"
+pip = "*"
+compilers = ">=1.8.0,<2"
+networkx = ">=3.3"
+packaging = ">=25.0"
+requests = ">=2.32.5"
+
+[tool.pixi.feature.local-test.pypi-dependencies]
+jax = "*"
+
+[tool.pixi.feature.oldest.dependencies]
+python = "3.11.*"
+numpy = "2.0.*"
+scipy = "1.13.*"
+
+[tool.pixi.feature.oldest.pypi-dependencies]
+openmdao = "==3.39.0"
+
+[tool.pixi.feature.dev-local.dependencies]
+swig = "*"
+ninja = "*"
+meson-python = "*"
+
+[tool.pixi.feature.dev-local.tasks]
+install-local-openmdao = { cmd = "pip uninstall -y openmdao && python -c \"import pathlib, site, shutil; site_pkgs = pathlib.Path(site.getsitepackages()[0]); [shutil.rmtree(p, ignore_errors=True) for p in site_pkgs.glob('openmdao*')]\" && pip install --no-deps -e $OPENMDAO_SRC", description = "Install openmdao from local source in editable mode (dev-local only). Requires OPENMDAO_SRC environment variable (e.g., OPENMDAO_SRC=~/Codes/openmdao.git)." }
+install-local-pyoptsparse = { cmd = "pip uninstall -y pyoptsparse && python -c \"import pathlib, site, shutil; site_pkgs = pathlib.Path(site.getsitepackages()[0]); [shutil.rmtree(p, ignore_errors=True) for p in site_pkgs.glob('pyoptsparse*')]\" && pip install --no-build-isolation -e $PYOPTSPARSE_SRC", description = "Install pyoptsparse from local source in editable mode (dev-local only). Requires PYOPTSPARSE_SRC environment variable (e.g., PYOPTSPARSE_SRC=~/Codes/pyoptsparse.git)." }
+install-unopy = { cmd = "pip install --no-build-isolation unopy", description = "Install unopy with isolation disabled to allow access to system libraries during build (dev-local only)." }
+
+[tool.pixi.feature.oldest-env.pypi-dependencies]
+openmdao = "==3.39.0"
+
+[tool.pixi.environments]
+default = { features = ["test", "opt", "mpi"], solve-group = "default" }
+dev = { features = ["test", "docs", "notebooks", "numba", "opt", "mpi", "actionlint"], solve-group = "default" }
+dev-local = { features = ["test", "docs", "notebooks", "numba", "opt", "mpi", "actionlint", "dev-local", "local-test"], no-default-feature = true, solve-group = "dev_local" }
+oldest = { features = ["test", "oldest", "mpi", "oldest-env"], solve-group = "oldest" }
+
+[tool.pixi.tasks]
+install-openmdao-github-master = { cmd = "pip install --no-deps git+https://github.com/OpenMDAO/OpenMDAO@master", description = "Install the Github master version of OpenMDAO." }
