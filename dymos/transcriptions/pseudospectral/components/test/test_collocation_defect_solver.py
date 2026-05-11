@@ -14,9 +14,6 @@ from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneOD
 from dymos.examples.brachistochrone.test.ex_brachistochrone import brachistochrone_min_time as brach
 
 
-_DYMOS_2 = env_truthy('DYMOS_2')
-
-
 @use_tempdirs
 class TestCollocationBalanceIndex(unittest.TestCase):
     """
@@ -136,7 +133,6 @@ class TestCollocationBalanceIndex(unittest.TestCase):
         self.assertSetEqual(set(state_indeps_comp.state_idx_map['x']['solver']), {1, 2, 4, 5})
         self.assertSetEqual(set(state_indeps_comp.state_idx_map['x']['indep']), {0, 3})
 
-    @unittest.skipIf(_DYMOS_2, 'Test invalid for updated Radau transcription')
     def test_3_radau(self):
         """
         Test one 3rd order radau segment indices
@@ -156,7 +152,6 @@ class TestCollocationBalanceIndex(unittest.TestCase):
         self.assertSetEqual(set(state_indeps_comp.state_idx_map['x']['solver']), {1, 2, 3})
         self.assertSetEqual(set(state_indeps_comp.state_idx_map['x']['indep']), {0})
 
-    @unittest.skipIf(_DYMOS_2, 'Test invalid for updated Radau transcription')
     def test_5_radau(self):
         """
         Test one 5th order radau segment indices
@@ -176,7 +171,6 @@ class TestCollocationBalanceIndex(unittest.TestCase):
         self.assertSetEqual(set(state_indeps_comp.state_idx_map['x']['solver']), {1, 2, 3, 4, 5})
         self.assertSetEqual(set(state_indeps_comp.state_idx_map['x']['indep']), {0})
 
-    @unittest.skipIf(_DYMOS_2, 'Test invalid for updated Radau transcription')
     def test_3_radau_compressed(self):
         """
         Test one 3rd order radau segment indices
@@ -196,7 +190,6 @@ class TestCollocationBalanceIndex(unittest.TestCase):
         self.assertSetEqual(set(state_indeps_comp.state_idx_map['x']['solver']), {1, 2, 3, 4, 5, 6})
         self.assertSetEqual(set(state_indeps_comp.state_idx_map['x']['indep']), {0})
 
-    @unittest.skipIf(_DYMOS_2, 'Test invalid for updated Radau transcription')
     def test_5_radau_compressed(self):
         """
         Test two 5th order radau segment indices
@@ -216,7 +209,6 @@ class TestCollocationBalanceIndex(unittest.TestCase):
         self.assertSetEqual(set(state_indeps_comp.state_idx_map['x']['solver']), {1, 2, 3, 4, 5, 6, 7, 8, 9, 10})
         self.assertSetEqual(set(state_indeps_comp.state_idx_map['x']['indep']), {0})
 
-    @unittest.skipIf(_DYMOS_2, 'Test invalid for updated Radau transcription')
     def test_3_radau_uncompressed(self):
         """
         Test one 3rd order radau segment indices
@@ -236,7 +228,6 @@ class TestCollocationBalanceIndex(unittest.TestCase):
         self.assertSetEqual(set(state_indeps_comp.state_idx_map['x']['solver']), {1, 2, 3, 5, 6, 7})
         self.assertSetEqual(set(state_indeps_comp.state_idx_map['x']['indep']), {0, 4})
 
-    @unittest.skipIf(_DYMOS_2, 'Test invalid for updated Radau transcription')
     def test_5_radau_uncompressed(self):
         """
         Test two 5th order radau segment indices
@@ -324,7 +315,6 @@ class TestCollocationBalanceApplyNL(unittest.TestCase):
         assert_almost_equal(resids['states:x'], expected)
         assert_almost_equal(resids['states:v'], expected)
 
-    @unittest.skipIf(_DYMOS_2, 'Test invalid for updated Radau transcription')
     def test_apply_nonlinear_radau(self):
         p = self.make_prob(transcription='radau-ps', num_segments=3, transcription_order=3,
                            compressed=True)
@@ -361,7 +351,6 @@ class TestCollocationBalanceApplyNL(unittest.TestCase):
         assert_partials(data)
 
     @set_env_vars(OPENMDAO_CHECK_ALL_PARTIALS='1')
-    @unittest.skipIf(_DYMOS_2, 'Test invalid for updated Radau transcription')
     def test_partials_radau(self):
         p = self.make_prob(transcription='radau-ps', num_segments=3, transcription_order=3,
                            compressed=True)

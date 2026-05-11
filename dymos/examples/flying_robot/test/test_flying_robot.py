@@ -9,12 +9,12 @@ import dymos as dm
 from dymos.examples.flying_robot.flying_robot_ode import FlyingRobotODE
 
 
-@require_pyoptsparse(optimizer='SLSQP')
+@require_pyoptsparse(optimizer='IPOPT')
 def flying_robot_direct_collocation(transcription='gauss-lobatto', compressed=True):
 
     p = om.Problem(model=om.Group())
     p.driver = om.pyOptSparseDriver()
-    p.driver.options['optimizer'] = 'SLSQP'
+    p.driver.options['optimizer'] = 'IPOPT'
     p.driver.declare_coloring()
 
     if transcription == 'gauss-lobatto':

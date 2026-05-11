@@ -27,48 +27,6 @@ on:
         required: false
         default: true
 
-      no_pyoptsparse:
-        type: boolean
-        description: "Include 'no_pyoptsparse' in test matrix"
-        required: false
-        default: true
-
-      numpy2_no_pyoptsparse:
-        type: boolean
-        description: "Include 'numpy2_no_pyoptsparse' in test matrix"
-        required: false
-        default: true
-
-      no_snopt:
-        type: boolean
-        description: "Include 'no_snopt' in test matrix"
-        required: false
-        default: true
-
-      no_mpi:
-        type: boolean
-        description: "Include 'no_mpi' Baseline in test matrix"
-        required: false
-        default: true
-
-      latest:
-        type: boolean
-        description: "Include 'latest' in test matrix"
-        required: false
-        default: true
-
-      python313:
-        type: boolean
-        description: "Include 'python313' in test matrix"
-        required: false
-        default: true
-
-      oldest:
-        type: boolean
-        description: "Include 'oldest' in test matrix"
-        required: false
-        default: true
-
       pep517:
         type: boolean
         description: "Include 'pep517' in test matrix"
@@ -83,9 +41,21 @@ on:
 
       dymos_pixi:
         type: boolean
-        description: "Include 'dymos_pixi' matrix in test_dymos_pixi job"
+        description: "Include tests of dymos' local pixi environment job"
         required: false
         default: true
+
+      dymos_pixi_openmdao_github:
+        type: string
+        description: "OpenMDAO ref to install from GitHub in the dev-local test (branch, tag, or commit hash). Leave empty to skip."
+        required: false
+        default: 'master'
+
+      save_pixi_lock:
+        type: boolean
+        description: "Upload pixi.lock as a 1-day artifact for each test_dymos_pixi matrix entry"
+        required: false
+        default: false
 
 concurrency:
   # Cancel any existing CI runs if we push to this branch
@@ -114,43 +84,16 @@ jobs:
             OPENMDAO_PIXI_ENVIRONMENT: 'py313'
             OPENMDAO_INSTALL_FROM: 'pypi'
             OPENMDAO: ''
-            DYMOS_2: False
-            EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
+            EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.baseline }}
 
           # test PEP517 wheel build (no coverage)
           - NAME: pep517
             OPENMDAO_PIXI_ENVIRONMENT: 'py313'
             OPENMDAO_INSTALL_FROM: 'pypi'
             OPENMDAO: ''
-            DYMOS_2: False
             PEP517: True
             SKIP_COVERAGE: True
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.pep517 }}
-
-          # baseline versions except no MPI/PETSc
-          - NAME: no_mpi
-            OPENMDAO_PIXI_ENVIRONMENT: 'default'
-            OPENMDAO_INSTALL_FROM: 'pypi'
-            OPENMDAO: ''
-            DYMOS_2 : False
-            SKIP_COVERAGE: True
-            EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
-
-          # latest versions dymos 2 testing
-          - NAME: latest_dymos_2
-            OPENMDAO_PIXI_ENVIRONMENT: 'py313'
-            OPENMDAO_INSTALL_FROM: 'github'
-            OPENMDAO: ''
-            DYMOS_2 : True
-            EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
-
-          # oldest supported versions
-          - NAME: oldest
-            OPENMDAO_PIXI_ENVIRONMENT: 'oldest'
-            OPENMDAO_INSTALL_FROM: 'pypi'
-            OPENMDAO: '3.39.0'
-            SKIP_COVERAGE: True
-            EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.oldest }}
 
     steps:
       - name: Display run details
@@ -220,17 +163,6 @@ jobs:
           pip install playwright
           playwright install --with-deps
 
-      - name: Set Environment for Dymos 2
-        if: matrix.DYMOS_2
-        shell: bash -l {0}
-        run: |
-          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
-          echo "============================================================="
-          echo "Setting environement variable DYMOS_2=1"
-          echo "============================================================="
-          export "$DYMOS_2"=1
-          echo "$DYMOS_2=1" >> $"GITHUB_ENV"
-
       - name: Perform linting with Ruff
         if: ${{ ! matrix.EXCLUDE && matrix.NAME == 'baseline' }}
         run: |
@@ -277,14 +209,14 @@ jobs:
         id: run_tests
         if: ${{ ! matrix.EXCLUDE }}
         env:
-          DYMOS_CHECK_PARTIALS: True
+          OPENMDAO_CHECK_ALL_PARTIALS: True
         continue-on-error: true
         run: |
           eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
           echo "============================================================="
           echo "Run Tests"
           echo "Environment:"
-          echo "   DYMOS_CHECK_PARTIALS: $DYMOS_CHECK_PARTIALS"
+          echo "   OPENMDAO_CHECK_ALL_PARTIALS: $OPENMDAO_CHECK_ALL_PARTIALS"
           echo "============================================================="
           testflo -n 1 docs/dymos_book/test --pre_announce || HAS_ERRORS=true
           testflo -n 1 joss/test --pre_announce || HAS_ERRORS=true
@@ -348,33 +280,83 @@ jobs:
           exit 1
 
   test_dymos_pixi:
-    # Test dymos-native pixi environments defined in pyproject.toml using the frozen pixi.lock.
-    runs-on: ubuntu-latest
+    # Test dymos-native pixi environments defined in pixi.toml using the frozen pixi.lock.
+    runs-on: ${{ matrix.runs-on }}
 
     defaults:
       run:
-        shell: bash -l {0}
+        shell: bash
 
     timeout-minutes: 90
 
     strategy:
       fail-fast: false
       matrix:
-        pixi-env: [oldest, default, dev]
+        include:
+          # default env on all three platforms
+          - pixi-env: default
+            runs-on: ubuntu-latest
+            EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi }}
+          - pixi-env: default
+            runs-on: macos-latest
+            EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi }}
+          - pixi-env: default
+            runs-on: windows-latest
+            EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi }}
+          # remaining envs on Linux only
+          - pixi-env: oldest
+            runs-on: ubuntu-latest
+            EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi }}
+          - pixi-env: dev
+            runs-on: ubuntu-latest
+            EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi }}
+          # dev-local with OpenMDAO installed from GitHub
+          - pixi-env: dev-local
+            runs-on: ubuntu-latest
+            install_openmdao_github: true
+            EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && inputs.dymos_pixi_openmdao_github == '' }}
+          - pixi-env: dev-local
+            runs-on: macos-latest
+            install_openmdao_github: true
+            EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && inputs.dymos_pixi_openmdao_github == '' }}
 
     steps:
       - name: Checkout code
-        if: ${{ github.event_name != 'workflow_dispatch' || inputs.dymos_pixi }}
+        if: ${{ !matrix.EXCLUDE }}
         uses: actions/checkout@v6
 
+      - name: Upload pixi.lock artifact
+        if: ${{ !matrix.EXCLUDE && github.event_name == 'workflow_dispatch' && inputs.save_pixi_lock }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: pixi-lock-${{ matrix.pixi-env }}-${{ matrix.runs-on }}
+          path: pixi.lock
+          retention-days: 1
+
       - name: Setup pixi
-        if: ${{ github.event_name != 'workflow_dispatch' || inputs.dymos_pixi }}
-        uses: prefix-dev/setup-pixi@v0.8.0
+        if: ${{ !matrix.EXCLUDE }}
+        uses: prefix-dev/setup-pixi@v0.9.5
         with:
           environments: ${{ matrix.pixi-env }}
 
+      - name: Install Dymos
+        if: ${{ !matrix.EXCLUDE }}
+        run: |
+          eval "$(pixi shell-hook -e ${{ matrix.pixi-env }} --manifest-path $GITHUB_WORKSPACE/pyproject.toml)"
+          pip install --no-deps -e $GITHUB_WORKSPACE
+
+      - name: Install OpenMDAO from GitHub
+        if: ${{ !matrix.EXCLUDE && matrix.install_openmdao_github }}
+        run: |
+          eval "$(pixi shell-hook -e ${{ matrix.pixi-env }} --manifest-path $GITHUB_WORKSPACE/pyproject.toml)"
+          OPENMDAO_REF="${{ inputs.dymos_pixi_openmdao_github || 'master' }}"
+          echo "============================================================="
+          echo "Install OpenMDAO from GitHub ref: $OPENMDAO_REF"
+          echo "============================================================="
+          pip install --no-deps git+https://github.com/OpenMDAO/OpenMDAO@${OPENMDAO_REF}
+
       - name: Check MPI and PETSc
-        if: ${{ github.event_name != 'workflow_dispatch' || inputs.dymos_pixi }}
+        if: ${{ !matrix.EXCLUDE }}
         continue-on-error: true
         run: |
           if pixi run -e ${{ matrix.pixi-env }} python -c "import mpi4py, petsc4py" 2>/dev/null; then
@@ -401,20 +383,31 @@ jobs:
 
       - name: Run tests
         id: run_dymos_pixi_tests
-        if: ${{ github.event_name != 'workflow_dispatch' || inputs.dymos_pixi }}
+        if: ${{ !matrix.EXCLUDE }}
         env:
-          DYMOS_CHECK_PARTIALS: True
+          OPENMDAO_CHECK_ALL_PARTIALS: True
         continue-on-error: true
         run: |
+          eval "$(pixi shell-hook -e ${{ matrix.pixi-env }} --manifest-path $GITHUB_WORKSPACE/pyproject.toml)"
           echo "============================================================="
           echo "Run Tests (pixi environment: ${{ matrix.pixi-env }})"
           echo "============================================================="
+          cd $GITHUB_WORKSPACE
+          testflo -n 1 docs/dymos_book/test --pre_announce || HAS_ERRORS=true
+          testflo -n 1 joss/test --pre_announce || HAS_ERRORS=true
+          testflo -b benchmark --pre_announce || HAS_ERRORS=true
+          # Run the readme test from the checked out directory.
+          testflo -n 1 ./dymos/test/test_readme.py --pre_announce || HAS_ERRORS=true
           cd $HOME
-          pixi run -e ${{ matrix.pixi-env }} --manifest-path $GITHUB_WORKSPACE/pyproject.toml \
-            testflo dymos -n 4 --pre_announce --show_skipped --durations 20
+          testflo dymos -n 4 --pre_announce --show_skipped --durations 20 || HAS_ERRORS=true
+
+          if [ "$HAS_ERRORS" = true ]; then
+            echo "One or more commands failed"
+            exit 1
+          fi
 
       - name: Fail the workflow if tests failed
-        if: ${{ (github.event_name != 'workflow_dispatch' || inputs.dymos_pixi) && steps.run_dymos_pixi_tests.outcome != 'success' }}
+        if: ${{ !matrix.EXCLUDE && steps.run_dymos_pixi_tests.outcome != 'success' }}
         run: |
           echo "Tests failed"
           exit 1

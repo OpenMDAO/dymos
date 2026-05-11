@@ -97,9 +97,6 @@ class TestBallisticSpacecraft(unittest.TestCase):
 
         txs = {'birkhoff': dm.Birkhoff(num_nodes=20)}
 
-        if env_truthy('DYMOS_2'):
-            txs['radau'] = dm.Radau(num_segments=5, order=5)
-
         for tx_name, tx in txs.items():
 
             with self.subTest(f'{tx_name}'):
@@ -191,7 +188,7 @@ class TestBallisticSpacecraft(unittest.TestCase):
                 self.assertTrue(result.success)
 
                 # Assert the result is near a Hohmann transfer
-                self.assertTrue(175. < jnp.degrees(angular_distance) < 185., msg=f'{angular_distance}')
+                self.assertTrue(175. < np.degrees(angular_distance) < 185., msg=f'{angular_distance}')
 
 
 if __name__ == '__main__':

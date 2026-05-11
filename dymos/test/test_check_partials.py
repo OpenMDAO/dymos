@@ -371,7 +371,7 @@ class TestCheckPartials(unittest.TestCase):
     def test_check_partials_yes(self):
         """
         Run check_partials on a series of dymos problems and verify that partials information
-        is displayed for core Dymos components when DYMOS_CHECK_PARTIALS == 'True'.
+        is displayed for core Dymos components when OPENMDAO_CHECK_ALL_PARTIALS == 'True'.
         """
         cases = [self.brach_explicit_partials,
                  self.balanced_field_partials_radau,
@@ -387,7 +387,7 @@ class TestCheckPartials(unittest.TestCase):
     def test_check_partials_no(self):
         """
         Run check_partials on a series of dymos problems and verify that partials information
-        is not displayed for core Dymos components when DYMOS_CHECK_PARTIALS == 'False'.
+        is not displayed for core Dymos components when OPENMDAO_CHECK_ALL_PARTIALS == 'False'.
         """
         cases = [self.brach_explicit_partials,
                  self.balanced_field_partials_radau,
