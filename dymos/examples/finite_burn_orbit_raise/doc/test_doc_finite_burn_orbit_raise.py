@@ -39,7 +39,7 @@ class TestFiniteBurnOrbitRaise(unittest.TestCase):
         # First Phase (burn)
 
         burn1 = dm.Phase(ode_class=FiniteBurnODE,
-                         transcription=dm.GaussLobatto(num_segments=5, order=3, compressed=False))
+                         transcription=dm.Radau(num_segments=5, order=3, compressed=False))
 
         burn1 = traj.add_phase('burn1', burn1)
 
@@ -61,7 +61,7 @@ class TestFiniteBurnOrbitRaise(unittest.TestCase):
                           lower=-30, upper=30)
         # Second Phase (Coast)
         coast = dm.Phase(ode_class=FiniteBurnODE,
-                         transcription=dm.GaussLobatto(num_segments=5, order=3, compressed=False))
+                         transcription=dm.Radau(num_segments=5, order=3, compressed=False))
 
         coast.set_time_options(initial_bounds=(0.5, 20), duration_bounds=(.5, 50), duration_ref=50,
                                units='TU')
@@ -82,7 +82,7 @@ class TestFiniteBurnOrbitRaise(unittest.TestCase):
 
         # Third Phase (burn)
         burn2 = dm.Phase(ode_class=FiniteBurnODE,
-                         transcription=dm.GaussLobatto(num_segments=5, order=3, compressed=False))
+                         transcription=dm.Radau(num_segments=5, order=3, compressed=False))
 
         traj.add_phase('coast', coast)
         traj.add_phase('burn2', burn2)
@@ -187,15 +187,15 @@ class TestFiniteBurnOrbitRaise(unittest.TestCase):
         ax_xy.set_xlim(-4.5, 4.5)
         ax_xy.set_ylim(-4.5, 4.5)
 
-        ax_xy.set_xlabel('x ($R_e$)')
-        ax_xy.set_ylabel('y ($R_e$)')
+        ax_xy.set_xlabel(r'x ($R_e$)')
+        ax_xy.set_ylabel(r'y ($R_e$)')
 
-        ax_u1.set_xlabel('time ($TU$)')
-        ax_u1.set_ylabel('$u_1$ ($deg$)')
+        ax_u1.set_xlabel(r'time ($TU$)')
+        ax_u1.set_ylabel(r'$u_1$ ($deg$)')
         ax_u1.grid(True)
 
         ax_deltav.set_xlabel('time ($TU$)')
-        ax_deltav.set_ylabel('${\Delta}v$ ($DU/TU$)')  # nopep8: W605
+        ax_deltav.set_ylabel(r'${\Delta}v$ ($DU/TU$)')
         ax_deltav.grid(True)
 
         t_sol = dict((phs, p.get_val('traj.{0}.timeseries.time'.format(phs)))
