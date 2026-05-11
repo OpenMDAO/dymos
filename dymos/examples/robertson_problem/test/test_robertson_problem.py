@@ -15,7 +15,7 @@ from dymos.examples.robertson_problem.robertson_ode import RobertsonODE
 
 
 @use_tempdirs
-class TestRobertsonProblemForDocs(unittest.TestCase):
+class TestRobertsonProblem(unittest.TestCase):
 
     def robertson_problem(self, t_final=1.0):
 
@@ -62,7 +62,7 @@ class TestRobertsonProblemForDocs(unittest.TestCase):
 
     @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
     @unittest.skipIf(sys.platform == 'win32', "LSODA accuracy issues with explicit shooting on Windows")
-    def test_robertson_problem_for_docs(self):
+    def test_robertson_problem(self):
 
         import openmdao.api as om
         from dymos.utils.testing_utils import assert_check_partials
