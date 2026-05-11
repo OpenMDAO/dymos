@@ -8,7 +8,7 @@ from openmdao.utils.testing_utils import use_tempdirs, set_env_vars_context
 import numpy as np
 import openmdao.api as om
 import dymos as dm
-from dymos.examples.brachistochrone.doc.brachistochrone_ode import BrachistochroneODE
+from dymos.examples.brachistochrone.brachistochrone_ode import BrachistochroneODE
 
 
 @use_tempdirs

@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 # plt.switch_backend('Agg')  # disable plotting to the screen
 
-from dymos.examples.oscillator.doc.oscillator_ode import OscillatorODE
+from dymos.examples.oscillator.oscillator_ode import OscillatorODE
 
 NUM_SEG = 1
 ORDER = 5
