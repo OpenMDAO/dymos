@@ -342,13 +342,13 @@ jobs:
       - name: Install Dymos
         if: ${{ !matrix.EXCLUDE }}
         run: |
-          eval "$(pixi shell-hook -e ${{ matrix.pixi-env }} --manifest-path $GITHUB_WORKSPACE/pixi.toml)"
+          eval "$(pixi shell-hook -e ${{ matrix.pixi-env }} --manifest-path $GITHUB_WORKSPACE/pyproject.toml)"
           pip install --no-deps -e $GITHUB_WORKSPACE
 
       - name: Install OpenMDAO from GitHub
         if: ${{ !matrix.EXCLUDE && matrix.install_openmdao_github }}
         run: |
-          eval "$(pixi shell-hook -e ${{ matrix.pixi-env }} --manifest-path $GITHUB_WORKSPACE/pixi.toml)"
+          eval "$(pixi shell-hook -e ${{ matrix.pixi-env }} --manifest-path $GITHUB_WORKSPACE/pyproject.toml)"
           OPENMDAO_REF="${{ inputs.dymos_pixi_openmdao_github || 'master' }}"
           echo "============================================================="
           echo "Install OpenMDAO from GitHub ref: $OPENMDAO_REF"
@@ -388,7 +388,7 @@ jobs:
           OPENMDAO_CHECK_ALL_PARTIALS: True
         continue-on-error: true
         run: |
-          eval "$(pixi shell-hook -e ${{ matrix.pixi-env }} --manifest-path $GITHUB_WORKSPACE/pixi.toml)"
+          eval "$(pixi shell-hook -e ${{ matrix.pixi-env }} --manifest-path $GITHUB_WORKSPACE/pyproject.toml)"
           echo "============================================================="
           echo "Run Tests (pixi environment: ${{ matrix.pixi-env }})"
           echo "============================================================="
