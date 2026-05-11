@@ -1,4 +1,5 @@
 import unittest
+import sys
 
 try:
     import matplotlib
@@ -60,6 +61,7 @@ class TestRobertsonProblemForDocs(unittest.TestCase):
         return p
 
     @unittest.skipIf(matplotlib is None, "This test requires matplotlib")
+    @unittest.skipIf(sys.platform == 'win32', "LSODA accuracy issues with explicit shooting on Windows")
     def test_robertson_problem_for_docs(self):
 
         import openmdao.api as om
