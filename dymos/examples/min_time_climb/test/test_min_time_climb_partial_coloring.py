@@ -21,7 +21,7 @@ class TestMinTimeClimbForDocs(unittest.TestCase):
         from openmdao.utils.assert_utils import assert_near_equal
 
         import dymos as dm
-        from dymos.examples.min_time_climb.doc.min_time_climb_ode_partial_coloring import MinTimeClimbODE
+        from dymos.examples.min_time_climb.test.min_time_climb_ode_partial_coloring import MinTimeClimbODE
 
         #
         # Instantiate the problem and configure the optimization driver
