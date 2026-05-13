@@ -1,50 +1,58 @@
 from copy import deepcopy
+
 import numpy as np
 
 import openmdao.api as om
 
 from ..transcription_base import TranscriptionBase
-from ..common import TimeComp, TimeseriesOutputComp
-from .components import BirkhoffIterGroup, BirkhoffBoundaryGroup
+from ..common import TimeComp, TimeseriesOutputComp, ControlInterpComp
+from .components.radau_iter_group import RadauIterGroup
+from .components.radau_boundary_group import RadauBoundaryGroup
 
-from ..grid_data import BirkhoffGrid
+from ..grid_data import RadauGrid
 from dymos.utils.misc import get_rate_units, _format_phase_constraint_alias
 from dymos.utils.introspection import get_promoted_vars, get_source_metadata
 from dymos.utils.indexing import get_constraint_flat_idxs, get_src_indices_by_row
 
 
-class Birkhoff(TranscriptionBase):
+class RadauNew(TranscriptionBase):
     """
-    Birkhoff Pseudospectral Transcription.
+    Radau Pseudospectral Transcription.
 
     Parameters
     ----------
     **kwargs : dict
         Dictionary of optional arguments.
 
-    References
+    Attributes
     ----------
-    I. M. Ross, "A Universeal Birkhoff Theory for Fast Trajectory Optimization"
-    https://arxiv.org/abs/2308.01400v2
+    _rhs_source : str
+        The path providing an ODE for the phase that can be interrogated
+        for shape and unit information.
     """
 
     def __init__(self, **kwargs):
-        super(Birkhoff, self).__init__(**kwargs)
-        self._rhs_source = 'ode_iter_group.ode_all'
-        self._has_boundary_ode = True
+        super().__init__(**kwargs)
+        self._rhs_source = 'ode_iter_group.rhs_all'
+        self._has_boundary_ode = False
         self._has_initial_final_states = True
+        self._has_control_boundary_outputs = True
 
     def initialize(self):
         """
         Declare transcription options.
         """
-        self.options.declare('num_nodes', types=(int, np.integer), default=3,
-                             desc='The number of nodes in the grid')
+        self.options.declare('segment_nonlinear_solver', default=om.NewtonSolver(maxiter=100, solve_subsystems=True, iprint=0),
+                             desc='Nonlinear solver used to resolve Picard iteration on each segment.',
+                             recordable=False)
 
-        self.options.declare('grid_type', values=('cgl', 'lgl'), default='cgl',
-                             desc='Specifies which type of grid is to be used. '
-                                  'Options are Chebyshev-Gauss-Lobatto ("cgl") '
-                                  'and Legendre-Gauss-Lobatto ("lgl")')
+        self.options.declare('segment_linear_solver', default=om.DirectSolver(),
+                             desc='Linear solver used to linearize the Picard iteration subsystem on each segment.',
+                             recordable=False)
+
+        self.options.declare('grid', types=(RadauGrid, str),
+                             allow_none=True, default=None,
+                             desc='The grid distribution used to layout the control input and interpolation nodes.')
 
         self.options.declare(name='solve_segments', default=False,
                              values=(False, 'forward', 'backward'),
@@ -62,12 +70,14 @@ class Birkhoff(TranscriptionBase):
         """
         Set up the GridData object for the Transcription.
         """
-        self.grid_data = BirkhoffGrid(num_nodes=self.options['num_nodes'],
-                                      grid_type=self.options['grid_type'])
+        self.grid_data = RadauGrid(num_segments=self.options['num_segments'],
+                                   nodes_per_seg=np.asarray(self.options['order']) + 1,
+                                   segment_ends=self.options['segment_ends'],
+                                   compressed=self.options['compressed'])
 
     def _get_refinement_error_transcription(self):
         new_tx = deepcopy(self)
-        new_tx.options['num_nodes'] = np.asarray(self.options['num_nodes'], dtype=int) + 5
+        new_tx.options['order'] = np.asarray(self.options['order'], dtype=int) + 1
         return new_tx
 
     def setup_time(self, phase):
@@ -81,7 +91,7 @@ class Birkhoff(TranscriptionBase):
         """
         grid_data = self.grid_data
 
-        super(Birkhoff, self).setup_time(phase)
+        super().setup_time(phase)
 
         time_comp = TimeComp(num_nodes=grid_data.num_nodes, node_ptau=grid_data.node_ptau,
                              node_dptau_dstau=grid_data.node_dptau_dstau,
@@ -104,7 +114,7 @@ class Birkhoff(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        super(Birkhoff, self).configure_time(phase)
+        super().configure_time(phase)
         phase.time.configure_io()
         options = phase.time_options
         ode = phase._get_subsystem(self._rhs_source)
@@ -112,12 +122,14 @@ class Birkhoff(TranscriptionBase):
 
         # The tuples here are (name, user_specified_targets, dynamic)
         for name, targets in [('t', options['targets']),
-                              ('t_phase', options['time_phase_targets']),
-                              ('dt_dstau', options['dt_dstau_targets'])]:
+                              ('t_phase', options['time_phase_targets'])]:
             if targets:
                 src_idxs = self.grid_data.subset_node_indices['all']
-                phase.connect(name, [f'ode_all.{t}' for t in targets], src_indices=src_idxs,
+                phase.connect(name, [f'rhs_all.{t}' for t in targets], src_indices=src_idxs,
                               flat_src_indices=True)
+                if self._has_boundary_ode:
+                    src_idxs = om.slicer[[0, -1], ...]
+                    phase.connect(name, [f'boundary_vals.{t}' for t in targets], src_indices=src_idxs)
 
         for name, targets in [('t_initial', options['t_initial_targets']),
                               ('t_duration', options['t_duration_targets']),
@@ -128,29 +140,23 @@ class Birkhoff(TranscriptionBase):
                 if shape == (1,):
                     src_idxs = endpoint_src_idxs = None
                     flat_src_idxs = None
-                    src_shape = None
                 else:
                     src_idxs = np.zeros(self.grid_data.subset_num_nodes['all'], dtype=int)
-                    endpoint_src_idxs = np.zeros(2, dtype=int)
                     flat_src_idxs = True
-                    src_shape = (1,)
 
-                phase.promotes('ode_all', inputs=[(t, name)], src_indices=src_idxs,
-                               flat_src_indices=flat_src_idxs, src_shape=src_shape)
+                phase.connect(f'{name}_val', f'rhs_all.{t}', src_indices=src_idxs,
+                              flat_src_indices=flat_src_idxs)
 
-                phase.promotes('boundary_vals', inputs=[(t, name)], src_indices=endpoint_src_idxs,
-                               flat_src_indices=flat_src_idxs, src_shape=src_shape)
-            if targets:
-                phase.set_input_defaults(name=name,
-                                         val=np.ones((1,)),
-                                         units=options['units'])
+                if self._has_boundary_ode:
+                    phase.connect(f'{name}_val', f'boundary_vals.{t}', src_indices=endpoint_src_idxs,
+                                flat_src_indices=flat_src_idxs)
 
     def setup_states(self, phase):
         """
         Set up the states for this transcription.
 
-        In the Birkhoff transcription, everything typically done in this
-        method is instead done by the BirkhoffIterGroup.
+        In the Radau2 transcription, everything typically done in this
+        method is instead done by the RadauIterGroup.
 
         Parameters
         ----------
@@ -169,6 +175,35 @@ class Birkhoff(TranscriptionBase):
             elif options['input_initial']:
                 self.any_connected_opt_segs = True
 
+    def setup_controls(self, phase):
+        """
+        Set up the control group.
+
+        Parameters
+        ----------
+        phase : dymos.Phase
+            The phase object to which this transcription instance applies.
+        """
+        phase._check_control_options()
+
+        if phase.control_options:
+            gd = self.grid_data
+            control_options = phase.control_options
+            time_units = phase.time_options['units']
+
+            phase.add_subsystem('control_comp',
+                                subsys=ControlInterpComp(time_units=time_units,
+                                                         grid_data=gd,
+                                                         control_options=control_options,
+                                                         compute_continuity=True,
+                                                         enforce_continuity=True),
+                                promotes_inputs=['*controls*'],
+                                promotes_outputs=['control_values:*', 'control_rates:*',
+                                                  'control_boundary_values:*',
+                                                  'control_boundary_rates:*'])
+
+            phase.connect('t_duration_val', 'control_comp.t_duration')
+
     def configure_controls(self, phase):
         """
         Configure the inputs/outputs for the controls.
@@ -181,32 +216,32 @@ class Birkhoff(TranscriptionBase):
         super().configure_controls(phase)
 
         if phase.control_options:
-            phase.control_comp.configure_io()
-            phase.promotes('control_comp',
-                           any=['*controls:*', 'control_values:*', 'control_rates:*', 'control_boundary*'])
+            phase._get_subsystem('control_comp').configure_io()
 
             phase.connect('dt_dstau', 'control_comp.dt_dstau')
 
         for name, options in phase.control_options.items():
             if options['targets']:
                 phase.connect(f'control_values:{name}',
-                              [f'ode_all.{t}' for t in options['targets']])
-                phase.connect(f'control_boundary_values:{name}',
-                              [f'boundary_vals.{t}' for t in options['targets']])
+                              [f'rhs_all.{t}' for t in options['targets']])
+                
+                if self._has_boundary_ode:
+                    phase.connect(f'control_boundary_values:{name}',
+                                [f'boundary_vals.{t}' for t in options['targets']])
 
             if options['rate_targets']:
                 phase.connect(f'control_rates:{name}_rate',
-                              [f'ode_all.{t}' for t in options['rate_targets']])
-                phase.connect(f'control_boundary_rates:{name}_rate',
-                              [f'boundary_vals.{t}' for t in options['rate_targets']],
-                              src_indices=om.slicer[[0, -1], ...])
+                              [f'rhs_all.{t}' for t in options['rate_targets']])
+                if self._has_boundary_ode:
+                    phase.connect(f'control_boundary_rates:{name}_rate',
+                                [f'boundary_vals.{t}' for t in options['rate_targets']])
 
             if options['rate2_targets']:
                 phase.connect(f'control_rates:{name}_rate2',
-                              [f'ode_all.{t}' for t in options['rate2_targets']])
-                phase.connect(f'control_boundary_rates:{name}_rate2',
-                              [f'boundary_vals.{t}' for t in options['rate2_targets']],
-                              src_indices=om.slicer[[0, -1], ...])
+                              [f'rhs_all.{t}' for t in options['rate2_targets']])
+                if self._has_boundary_ode:
+                    phase.connect(f'control_boundary_rates:{name}_rate2',
+                                [f'boundary_vals.{t}' for t in options['rate2_targets']])
 
     def setup_ode(self, phase):
         """
@@ -223,20 +258,21 @@ class Birkhoff(TranscriptionBase):
         ode_init_kwargs = phase.options['ode_init_kwargs']
 
         phase.add_subsystem('ode_iter_group',
-                            subsys=BirkhoffIterGroup(grid_data=grid_data, state_options=phase.state_options,
-                                                     time_options=phase.time_options,
-                                                     parameter_options=phase.parameter_options,
-                                                     ode_class=ODEClass,
-                                                     ode_init_kwargs=ode_init_kwargs,
-                                                     calc_exprs=phase._calc_exprs),
+                            subsys=RadauIterGroup(grid_data=grid_data, state_options=phase.state_options,
+                                                  time_options=phase.time_options,
+                                                  ode_class=ODEClass,
+                                                  ode_init_kwargs=ode_init_kwargs,
+                                                  calc_exprs=phase._calc_exprs,
+                                                  parameter_options=phase.parameter_options),
                             promotes=['*'])
-
-        phase.add_subsystem('boundary_vals',
-                            subsys=BirkhoffBoundaryGroup(ode_class=ODEClass,
-                                                         ode_init_kwargs=ode_init_kwargs,
-                                                         calc_exprs=phase._calc_exprs,
-                                                         parameter_options=phase.parameter_options),
-                            promotes_inputs=['initial_states:*', 'final_states:*'])
+        
+        if self._has_boundary_ode:
+            phase.add_subsystem('boundary_vals',
+                                subsys=RadauBoundaryGroup(ode_class=ODEClass,
+                                                        ode_init_kwargs=ode_init_kwargs,
+                                                        calc_exprs=phase._calc_exprs,
+                                                        parameter_options=phase.parameter_options),
+                                promotes_inputs=['initial_states:*', 'final_states:*'])
 
     def configure_ode(self, phase):
         """
@@ -247,12 +283,13 @@ class Birkhoff(TranscriptionBase):
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        phase._get_subsystem('boundary_vals').configure_io(phase)
+        if self._has_boundary_ode:
+            phase._get_subsystem('boundary_vals').configure_io(phase)
         phase._get_subsystem('ode_iter_group').configure_io(phase)
 
     def setup_defects(self, phase):
         """
-        Create the continuity_comp to house the defects.
+        Pass setup_defects for this transcription.
 
         Parameters
         ----------
@@ -263,24 +300,58 @@ class Birkhoff(TranscriptionBase):
 
     def configure_defects(self, phase):
         """
-        Connect the collocation constraints.
+        Configure the continuity_comp and connect the collocation constraints.
+
+        In RadauNew, this is handled in the RadauIterGroup.configure_io method for ODE rate sources.
+        Non-ODE rate sources are connected here at the phase level.
 
         Parameters
         ----------
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
-        num_nodes = self.grid_data.subset_num_nodes['all']
-        for name, options in phase.state_options.items():
-            rate_source_type = phase.classify_var(options['rate_source'])
-            rate_src_path = self._get_rate_source_path(name, phase)
-            if rate_src_path.startswith('parameter_vals:'):
-                src_idxs = om.slicer[np.zeros(num_nodes, dtype=int), ...]
-            else:
-                src_idxs = None
+        # Connect non-ODE rate sources to f_ode inputs in ode_iter_group
+        gd = self.grid_data
+        ncn = gd.subset_num_nodes['col']
+        col_idxs = gd.subset_node_indices['col']
 
-            if rate_source_type not in ('state', 'ode'):
-                phase.connect(rate_src_path, f'f_computed:{name}', src_indices=src_idxs)
+        for name in phase.state_options:
+            rate_source_var = phase.state_options[name]['rate_source']
+            var_type = phase.classify_var(rate_source_var)
+
+            # Skip ODE rate sources (already handled in RadauIterGroup.configure_io)
+            # and skip state rate sources (handled internally by defect comp)
+            if var_type in ('ode', 'state'):
+                continue
+
+            # Connect non-ODE, non-state rate sources at the phase level
+            # Use promoted connection since ode_iter_group promotes all outputs
+            if var_type == 'control':
+                phase.connect(f'control_values:{rate_source_var}',
+                             f'f_ode:{name}',
+                             src_indices=om.slicer[col_idxs, ...])
+            elif var_type == 'control_rate':
+                control_name = rate_source_var[:-5]
+                phase.connect(f'control_rates:{control_name}_rate',
+                             f'f_ode:{name}',
+                             src_indices=om.slicer[col_idxs, ...])
+            elif var_type == 'control_rate2':
+                control_name = rate_source_var[:-6]
+                phase.connect(f'control_rates:{control_name}_rate2',
+                             f'f_ode:{name}',
+                             src_indices=om.slicer[col_idxs, ...])
+            elif var_type == 'parameter':
+                phase.connect(f'parameter_vals:{rate_source_var}',
+                             f'f_ode:{name}',
+                             src_indices=om.slicer[[0] * ncn, ...])
+            elif var_type == 't':
+                phase.connect('t',
+                             f'f_ode:{name}',
+                             src_indices=om.slicer[col_idxs, ...])
+            elif var_type == 't_phase':
+                phase.connect('t_phase',
+                             f'f_ode:{name}',
+                             src_indices=om.slicer[col_idxs, ...])
 
     def setup_solvers(self, phase):
         """
@@ -306,7 +377,11 @@ class Birkhoff(TranscriptionBase):
             and whether a solver is required.
         """
         ode_iter_group = phase._get_subsystem('ode_iter_group')
-        req_solvers = {'implicit outputs': ode_iter_group._implicit_outputs}
+        req_solvers = {'implicit outputs': False}
+
+        if self.any_solved_segs:
+            ode_iter_group.nonlinear_solver = deepcopy(self.options['segment_nonlinear_solver'])
+            ode_iter_group.linear_solver = deepcopy(self.options['segment_linear_solver'])
 
         if requires_solvers is not None:
             req_solvers.update(requires_solvers)
@@ -315,13 +390,16 @@ class Birkhoff(TranscriptionBase):
 
     def configure_timeseries_outputs(self, phase):
         """
-        Create connections from time series to all post-introspection sources.
+        Create connections post-introspection sources to timeseries.
 
         Parameters
         ----------
         phase : dymos.Phase
             The phase object to which this transcription instance applies.
         """
+        gd = self.grid_data
+        nsin = gd.subset_num_nodes['state_input']
+        state_options = phase.state_options
         for timeseries_name, timeseries_options in phase._timeseries.items():
             timeseries_comp = phase._get_subsystem(timeseries_name)
             ts_inputs_to_promote = []
@@ -331,11 +409,14 @@ class Birkhoff(TranscriptionBase):
                 if src.startswith('states:'):
                     state_name = src.split(':')[-1]
                     ts_inputs_to_promote.append((input_name, f'states:{state_name}'))
+                    src_shape = (nsin,) + state_options[state_name]['shape']
+                    phase.promotes(timeseries_name,
+                                   inputs=[(input_name, f'states:{state_name}')],
+                                   src_shape=src_shape, src_indices=src_idxs)
                 else:
                     phase.connect(src_name=src,
                                   tgt_name=f'{timeseries_name}.{input_name}',
                                   src_indices=src_idxs)
-            phase.promotes(timeseries_name, inputs=ts_inputs_to_promote)
 
     def setup_timeseries_outputs(self, phase):
         """
@@ -411,30 +492,46 @@ class Birkhoff(TranscriptionBase):
                                    f'time, and may only be used in a single boundary or path constraint.')
             constraint_kwargs['indices'] = flat_idxs
         elif var_type == 'state':
-            # For states, Birkhoff uses initial_states:{var} and final_states:{var}
             if constraint_type in ('initial', 'final'):
                 constraint_kwargs['indices'] = flat_idxs
-            elif constraint_type == 'final':
-                constraint_kwargs['indices'] = flat_idxs
             else:
-                # Path
                 path_idxs = []
                 for i in range(num_nodes):
                     path_idxs.extend(size * i + flat_idxs)
 
                 constraint_kwargs['indices'] = path_idxs
         else:
+            # Controls and control rates now use 2-element boundary arrays as their source
+            # (control_boundary_values / control_boundary_rates, shape (2,)+shape).
+            # ODE outputs with no boundary ODE use the timeseries (shape (num_nodes,)+shape).
+            uses_timeseries = (var_type not in ('control', 'control_rate', 'control_rate2')
+                               and not self._has_boundary_ode)
+
             if constraint_type == 'initial':
                 constraint_kwargs['indices'] = flat_idxs
             elif constraint_type == 'final':
-                constraint_kwargs['indices'] = size + flat_idxs
+                if uses_timeseries:
+                    constraint_kwargs['indices'] = size * (num_nodes - 1) + flat_idxs
+                else:
+                    constraint_kwargs['indices'] = size + flat_idxs
             else:
-                # Path
-                path_idxs = []
-                for i in range(num_nodes):
-                    path_idxs.extend(size * i + flat_idxs)
-
-                constraint_kwargs['indices'] = path_idxs
+                # Path constraint
+                nn = num_nodes
+                if uses_timeseries:
+                    # Both boundary and path constraints share the same timeseries source, so
+                    # filter overlapping indices to avoid duplicate constraints.
+                    flat_idxs_set = set(flat_idxs)
+                    idxs_not_in_initial = list(flat_idxs_set - idxs_in_initial)
+                    idxs_not_in_final = list(flat_idxs_set - idxs_in_final)
+                    idxs_not_in_final = (size * (num_nodes - 1) + np.asarray(idxs_not_in_final)).tolist()
+                    intermediate_idxs = (size * np.arange(1, num_nodes - 1)[:, None]
+                                         + flat_idxs).ravel().tolist()
+                    constraint_kwargs['indices'] = idxs_not_in_initial + intermediate_idxs + idxs_not_in_final
+                else:
+                    path_idxs = []
+                    for i in range(nn):
+                        path_idxs.extend(size * i + flat_idxs)
+                    constraint_kwargs['indices'] = path_idxs
 
         con_path = constraint_kwargs.pop('constraint_path')
         con_name = constraint_kwargs.pop('constraint_name')
@@ -448,7 +545,7 @@ class Birkhoff(TranscriptionBase):
 
         return con_path, constraint_kwargs
 
-    def _get_response_src(self, var, loc, phase, ode_outputs=None):
+    def _get_response_src(self, var, loc, phase, ode_outputs=None, response_name=None):
         """
         Return the path to the variable that will be used as a response..
 
@@ -462,6 +559,8 @@ class Birkhoff(TranscriptionBase):
             Phase object containing in which the objective resides.
         ode_outputs : dict or None
             A dictionary of ODE outputs as returned by get_promoted_vars.
+        response_name : dict or None
+            The name of the variable used for the response for disambiuation.
 
         Returns
         -------
@@ -480,52 +579,118 @@ class Birkhoff(TranscriptionBase):
         if ode_outputs is None:
             ode_outputs = get_promoted_vars(phase._get_subsystem(self._rhs_source), 'output')
 
-        if var_type == 't':
-            shape = (1,)
-            units = time_units
-            linear = True
-            constraint_path = 't'
-        elif var_type == 't_phase':
-            shape = (1,)
-            units = time_units
-            linear = True
-            constraint_path = 't_phase'
-        elif var_type == 'state':
-            shape = phase.state_options[var]['shape']
-            units = phase.state_options[var]['units']
-            linear = False
-            constraint_path = f'boundary_vals.{var}'
-        elif var_type == 'control':
-            shape = phase.control_options[var]['shape']
-            units = phase.control_options[var]['units']
-            linear = False
-            constraint_path = f'control_values:{var}'
-        elif var_type == 'parameter':
-            shape = phase.parameter_options[var]['shape']
-            units = phase.parameter_options[var]['units']
-            linear = True
-            constraint_path = f'parameter_vals:{var}'
-        elif var_type in ('control_rate', 'control_rate2'):
-            control_var = var[:-5] if var_type == 'control_rate' else var[:-6]
-            shape = phase.control_options[control_var]['shape']
-            control_units = phase.control_options[control_var]['units']
-            d = 2 if var_type == 'control_rate2' else 1
-            control_rate_units = get_rate_units(control_units, time_units, deriv=d)
-            units = control_rate_units
-            linear = False
-            if loc == 'path':
-                constraint_path = f'control_rates:{var}'
+            if var_type == 't':
+                shape = (1,)
+                units = time_units
+                linear = False
+                constraint_path = 't'
+            elif var_type == 't_phase':
+                shape = (1,)
+                units = time_units
+                linear = False
+                constraint_path = 't_phase'
+            elif var_type == 'state':
+                shape = phase.state_options[var]['shape']
+                units = phase.state_options[var]['units']
+                linear = False
+                if loc == 'path':
+                    constraint_path = f'states:{var}'
+                elif loc == 'initial':
+                    constraint_path = f'initial_states:{var}'
+                elif loc == 'final':
+                    constraint_path = f'final_states:{var}'
+            elif var_type == 'control':
+                shape = phase.control_options[var]['shape']
+                units = phase.control_options[var]['units']
+                linear = False
+                if loc == 'path':
+                    constraint_path = f'control_values:{var}'
+                else:
+                    constraint_path = f'control_boundary_values:{var}'
+            elif var_type == 'parameter':
+                shape = phase.parameter_options[var]['shape']
+                units = phase.parameter_options[var]['units']
+                linear = True
+                constraint_path = f'parameter_vals:{var}'
+            elif var_type in ('control_rate', 'control_rate2'):
+                control_var = var[:-5] if var_type == 'control_rate' else var[:-6]
+                shape = phase.control_options[control_var]['shape']
+                control_units = phase.control_options[control_var]['units']
+                d = 2 if var_type == 'control_rate2' else 1
+                control_rate_units = get_rate_units(control_units, time_units, deriv=d)
+                units = control_rate_units
+                linear = False
+                if loc == 'path':
+                    constraint_path = f'control_rates:{var}'
+                else:
+                    constraint_path = f'control_boundary_rates:{var}'
             else:
-                constraint_path = f'control_boundary_rates:{var}'
-        else:
-            # Failed to find variable, assume it is in the ODE. This requires introspection.
-            constraint_path = f'boundary_vals.{var}'
-            meta = get_source_metadata(ode_outputs, var, user_units=None, user_shape=None)
-            shape = meta['shape']
-            units = meta['units']
-            linear = False
+                # Failed to find variable, assume it is in the ODE. This requires introspection.
+                if self._has_boundary_ode and loc != 'path':
+                    constraint_path = f'boundary_vals.{var}'
+                else:
+                    constraint_path = f'rhs_all.{var}'
+                meta = get_source_metadata(ode_outputs, var, user_units=None, user_shape=None)
+                shape = meta['shape']
+                units = meta['units']
+                linear = False
 
-        return constraint_path, shape, units, linear
+            return constraint_path, shape, units, linear
+        else:
+            if var_type == 't':
+                shape = (1,)
+                units = time_units
+                linear = False
+                constraint_path = 't'
+            elif var_type == 't_phase':
+                shape = (1,)
+                units = time_units
+                linear = False
+                constraint_path = 't_phase'
+            elif var_type == 'state':
+                shape = phase.state_options[var]['shape']
+                units = phase.state_options[var]['units']
+                linear = False
+                if loc == 'path':
+                    constraint_path = f'states:{var}'
+                elif loc == 'initial':
+                    constraint_path = f'initial_states:{var}'
+                elif loc == 'final':
+                    constraint_path = f'final_states:{var}'
+            elif var_type == 'control':
+                shape = phase.control_options[var]['shape']
+                units = phase.control_options[var]['units']
+                linear = False
+                if loc == 'path':
+                    constraint_path = f'control_values:{var}'
+                else:
+                    constraint_path = f'control_boundary_values:{var}'
+            elif var_type == 'parameter':
+                shape = phase.parameter_options[var]['shape']
+                units = phase.parameter_options[var]['units']
+                linear = True
+                constraint_path = f'parameter_vals:{var}'
+            elif var_type in ('control_rate', 'control_rate2'):
+                control_var = var[:-5] if var_type == 'control_rate' else var[:-6]
+                shape = phase.control_options[control_var]['shape']
+                control_units = phase.control_options[control_var]['units']
+                d = 2 if var_type == 'control_rate2' else 1
+                control_rate_units = get_rate_units(control_units, time_units, deriv=d)
+                units = control_rate_units
+                linear = False
+                if loc == 'path':
+                    constraint_path = f'control_rates:{var}'
+                else:
+                    constraint_path = f'control_boundary_rates:{var}'
+            else:
+                # Failed to find variable, assume it is in the ODE. This requires introspection.
+                constraint_path = f'rhs_all.{var}'
+                meta = get_source_metadata(ode_outputs, var, user_units=None, user_shape=None)
+                shape = meta['shape']
+                units = meta['units']
+                linear = False
+
+            return constraint_path, shape, units, linear
 
     def _get_num_timeseries_nodes(self):
         """
@@ -584,7 +749,7 @@ class Birkhoff(TranscriptionBase):
             rate_path = f'parameter_vals:{var}'
         else:
             # Failed to find variable, assume it is in the ODE
-            rate_path = f'ode_all.{var}'
+            rate_path = f'rhs_all.{var}'
 
         return rate_path
 
@@ -676,7 +841,7 @@ class Birkhoff(TranscriptionBase):
             src_shape = phase.parameter_options[var]['shape']
         else:
             # Failed to find variable, assume it is in the ODE
-            path = f'ode_all.{var}'
+            path = f'rhs_all.{var}'
             meta = get_source_metadata(ode_outputs, src=var)
             src_shape = meta['shape']
             src_units = meta['units']
@@ -728,8 +893,9 @@ class Birkhoff(TranscriptionBase):
                         endpoint_src_idxs = endpoint_src_idxs.ravel()
                     endpoint_src_idxs = (endpoint_src_idxs,)
 
-                connection_info.append((f'ode_all.{tgt}', (src_idxs,)))
-                connection_info.append((f'boundary_vals.{tgt}', endpoint_src_idxs))
+                connection_info.append((f'rhs_all.{tgt}', (src_idxs,)))
+                if self._has_boundary_ode:
+                    connection_info.append((f'boundary_vals.{tgt}', endpoint_src_idxs))
 
         return connection_info
 
@@ -750,6 +916,7 @@ class Birkhoff(TranscriptionBase):
             True if any control value continuity is required to be enforced.
         any_control_rate_continuity : bool
             True if any control rate continuity is required to be enforced.
+
         """
         num_seg = self.grid_data.num_segments
         compressed = self.grid_data.compressed
@@ -765,7 +932,7 @@ class Birkhoff(TranscriptionBase):
 
     def _phase_set_state_val(self, phase, name, vals, time_vals, interpolation_kind):
         """
-        Interpolate the provided input and return the variables that need to be set along with their appropriate value.
+        Provide variable names and values when phase.set_state_vals is called.
 
         Parameters
         ----------
@@ -797,25 +964,6 @@ class Birkhoff(TranscriptionBase):
         input_data[f'initial_states:{name}'] = state_vals[0, ...]
         input_data[f'final_states:{name}'] = state_vals[-1, ...]
 
-        # Birkhoff also should provide a guess for state_rates if possible
-        if time_vals is not None:
-            gd = self.grid_data
-            num_state_input_nodes = gd.subset_num_nodes['state_input']
-            state_shape = phase.state_options[name]['shape']
-            _, D = self.grid_data.phase_lagrange_matrices('state_input', 'state_input', sparse=True)
-            dt_dtau = (time_vals[-1] - time_vals[0]) / 2
-            state_size = np.prod(state_shape)
-            u_flat = np.reshape(state_vals, (num_state_input_nodes, state_size))
-
-            rate_flat = D.dot(u_flat) / dt_dtau
-            rate = np.reshape(rate_flat, (num_state_input_nodes,) + state_shape)
-
-            # Concatenate along time axis
-            input_data[f'state_rates:{name}'] = rate
-        else:
-            # Only try to provide a guess at the rate if corresponding times are also specified.
-            input_data[f'state_rates:{name}'] = np.zeros_like(state_vals)
-
         return input_data
 
     def _get_linkage_source_ode(self, promoted=False):
@@ -823,7 +971,7 @@ class Birkhoff(TranscriptionBase):
         Return the path of the ODE system providing sources for linkage constraints.
 
         Nominally this is the _rhs_source but will need to be overridden in transcriptions
-        with boundary ODEs or ODEs that are in a promoted path.
+        with ODEs that are in a promoted path.
 
         Parameters
         ----------
@@ -831,7 +979,10 @@ class Birkhoff(TranscriptionBase):
             If True, return the promoted name of the system from the context of the Phase.
             Otherwise, return the full path of the system from the context of the Phase.
         """
-        if promoted:
-            return 'boundary_ode'
+        if self._has_boundary_ode:
+            if promoted:
+                return 'boundary_vals'
+            else:
+                return 'boundary_vals.boundary_ode'
         else:
-            return 'boundary_vals.boundary_ode'
+            return super()._get_linkage_source_ode(promoted)

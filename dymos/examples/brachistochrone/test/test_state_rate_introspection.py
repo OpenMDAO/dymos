@@ -810,12 +810,12 @@ class TestIntegrateTimeParamAndState(unittest.TestCase):
         int_time_phase_sol = p.get_val('traj.phase0.timeseries.int_time_phase')
         int_int_one_sol = p.get_val('traj.phase0.timeseries.int_int_one')
 
-        time_sim = p.get_val(f'traj.phase0.timeseries.{time_name}')
-        time_phase_sim = p.get_val(f'traj.phase0.timeseries.{time_name}_phase')
-        int_one_sim = p.get_val('traj.phase0.timeseries.int_one')
-        int_time_sim = p.get_val('traj.phase0.timeseries.int_time')
-        int_time_phase_sim = p.get_val('traj.phase0.timeseries.int_time_phase')
-        int_int_one_sim = p.get_val('traj.phase0.timeseries.int_int_one')
+        time_sim = traj.sim_prob.get_val(f'traj.phase0.timeseries.{time_name}')
+        time_phase_sim = traj.sim_prob.get_val(f'traj.phase0.timeseries.{time_name}_phase')
+        int_one_sim = traj.sim_prob.get_val('traj.phase0.timeseries.int_one')
+        int_time_sim = traj.sim_prob.get_val('traj.phase0.timeseries.int_time')
+        int_time_phase_sim = traj.sim_prob.get_val('traj.phase0.timeseries.int_time_phase')
+        int_int_one_sim = traj.sim_prob.get_val('traj.phase0.timeseries.int_int_one')
 
         # Integral of one should match time and time_phase in this case.
         assert_near_equal(int_one_sol, time_sol, tolerance=1.0E-12)
@@ -826,6 +826,7 @@ class TestIntegrateTimeParamAndState(unittest.TestCase):
 
         # Integral of time and time_phase should be t**2/2
         assert_near_equal(time_sol, time_phase_sol, tolerance=1.0E-12)
+
         assert_near_equal(int_time_sol, time_sol**2/2, tolerance=1.0E-12)
         assert_near_equal(int_time_phase_sol, time_phase_sol**2/2, tolerance=1.0E-12)
 
@@ -837,14 +838,18 @@ class TestIntegrateTimeParamAndState(unittest.TestCase):
         assert_near_equal(int_int_one_sol, int_time_sol, tolerance=1.0E-12)
         assert_near_equal(int_int_one_sim, int_time_sim, tolerance=1.0E-12)
 
-        assert_timeseries_near_equal(time_sol, int_int_one_sol, time_sim, int_int_one_sim, rel_tolerance=1.0E-12)
+        # The sim and solution should have approximately the same states.
+        assert_near_equal(int_int_one_sim[-1, ...], int_int_one_sol[-1, ...], tolerance=1.0E-6)
 
-    def test_integrated_times_params_and_states(self):
-        for tx in (dm.GaussLobatto, dm.Radau):
-            tx_name = 'GaussLobatto' if tx is dm.GaussLobatto else 'Radau'
+    def test_integrated_times_params_and_states_radau(self):
             for time_name in ('time', 'elapsed_time'):
-                with self.subTest(msg=f'{tx_name}: time_name=\'{time_name}\''):
-                    self._test_transcription(transcription=tx, time_name=time_name)
+                with self.subTest(msg=f'Radau: time_name=\'{time_name}\''):
+                    self._test_transcription(transcription=dm.Radau, time_name=time_name)
+
+    def test_integrated_times_params_and_states_gl(self):
+            for time_name in ('time', 'elapsed_time'):
+                with self.subTest(msg=f'GaussLobatto: time_name=\'{time_name}\''):
+                    self._test_transcription(transcription=dm.GaussLobatto, time_name=time_name)
 
 
 @use_tempdirs

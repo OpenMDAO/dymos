@@ -61,7 +61,7 @@ class RadauIterGroup(om.Group):
                                calc_exprs=self.options['calc_exprs'],
                                parameter_options=self.options['parameter_options'])
 
-        self.add_subsystem('ode_all', subsys=ode)
+        self.add_subsystem('rhs_all', subsys=ode)
 
         self.add_subsystem('defects',
                            subsys=RadauDefectComp(grid_data=gd,
@@ -208,7 +208,7 @@ class RadauIterGroup(om.Group):
             shape = options['shape']
 
             for tgt in options['targets']:
-                self.promotes('ode_all', [(tgt, f'states:{name}')],
+                self.promotes('rhs_all', [(tgt, f'states:{name}')],
                               src_indices=om.slicer[state_src_idxs_input_to_all, ...])
 
             self.set_input_defaults(f'states:{name}', val=1.0, units=units, src_shape=(nin,) + shape)
@@ -294,5 +294,5 @@ class RadauIterGroup(om.Group):
             var_type = phase.classify_var(rate_source_var)
 
             if var_type == 'ode':
-                self.connect(f'ode_all.{rate_source}', f'f_ode:{name}',
+                self.connect(f'rhs_all.{rate_source}', f'f_ode:{name}',
                              src_indices=om.slicer[gd.subset_node_indices['col'], ...])
