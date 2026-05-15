@@ -17,10 +17,10 @@ class TestSetVal(unittest.TestCase):
     def test_set_state_val(self):
 
         for tx in (dm.Radau(num_segments=5, order=3),
-                    dm.GaussLobatto(num_segments=5, order=3),
-                    dm.Birkhoff(num_nodes=30),
-                    dm.PicardShooting(num_segments=3, nodes_per_seg=11, solve_segments='forward'),
-                    dm.PicardShooting(num_segments=3, nodes_per_seg=11, solve_segments='backward')):
+                   dm.GaussLobatto(num_segments=5, order=3),
+                   dm.Birkhoff(num_nodes=30),
+                   dm.PicardShooting(num_segments=3, nodes_per_seg=11, solve_segments='forward'),
+                   dm.PicardShooting(num_segments=3, nodes_per_seg=11, solve_segments='backward')):
 
             with self.subTest(f'{tx.__class__.__name__}'):
 
@@ -49,7 +49,7 @@ class TestSetVal(unittest.TestCase):
                 v = phase.get_val('states:v')
 
                 # Test initial_states and final_states in those transcriptions which support them
-                if isinstance(tx, (dm.Birkhoff, dm.PicardShooting)):
+                if isinstance(tx, (dm.Radau, dm.Birkhoff, dm.PicardShooting)):
                     x0 = phase.get_val('initial_states:x')[0]
                     y0 = phase.get_val('initial_states:y')[0]
                     v0 = phase.get_val('initial_states:v')[0]

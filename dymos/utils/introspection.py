@@ -815,6 +815,8 @@ def _configure_constraint_introspection(phase):
     has_boundary_ode = phase.options['transcription']._has_boundary_ode
     has_initial_final_states = phase.options['transcription']._has_boundary_ode or \
         phase.options['transcription']._has_initial_final_states
+    has_control_boundary_outputs = phase.options['transcription']._has_boundary_ode or \
+        phase.options['transcription']._has_control_boundary_outputs
 
     for constraint_type, constraints in [('initial', phase._initial_boundary_constraints),
                                          ('final', phase._final_boundary_constraints),
@@ -869,10 +871,10 @@ def _configure_constraint_introspection(phase):
 
                 con['shape'] = control_shape
                 con['units'] = control_units if con['units'] is None else con['units']
-                if has_boundary_ode and constraint_type in ('initial', 'final'):
+                if has_control_boundary_outputs and constraint_type in ('initial', 'final'):
                     con['constraint_path'] = f'control_boundary_values:{var}'
                 else:
-                    con['constraint_path'] = f'timeseries.{prefix}{var}'
+                    con['constraint_path'] = f'control_values:{var}'
 
             elif var_type == 'control_rate':
                 prefix = 'control_rates:' if phase.timeseries_options['use_prefix'] else ''
@@ -882,10 +884,10 @@ def _configure_constraint_introspection(phase):
                 con['shape'] = control_shape
                 con['units'] = get_rate_units(control_units, time_units, deriv=1) \
                     if con['units'] is None else con['units']
-                if has_boundary_ode and constraint_type in ('initial', 'final'):
+                if has_control_boundary_outputs and constraint_type in ('initial', 'final'):
                     con['constraint_path'] = f'control_boundary_rates:{var}'
                 else:
-                    con['constraint_path'] = f'timeseries.{prefix}{var}'
+                    con['constraint_path'] = f'control_rates:{var}'
 
             elif var_type == 'control_rate2':
                 prefix = 'control_rates:' if phase.timeseries_options['use_prefix'] else ''
@@ -895,10 +897,10 @@ def _configure_constraint_introspection(phase):
                 con['shape'] = control_shape
                 con['units'] = get_rate_units(control_units, time_units, deriv=2) \
                     if con['units'] is None else con['units']
-                if has_boundary_ode and constraint_type in ('initial', 'final'):
+                if has_control_boundary_outputs and constraint_type in ('initial', 'final'):
                     con['constraint_path'] = f'control_boundary_rates:{var}'
                 else:
-                    con['constraint_path'] = f'timeseries.{prefix}{var}'
+                    con['constraint_path'] = f'control_rates:{var}'
 
             else:
                 # Failed to find variable, assume it is in the ODE. This requires introspection.

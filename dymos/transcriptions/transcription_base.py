@@ -56,6 +56,9 @@ class TranscriptionBase(object):
         # Does this transcription include separate variables for the initial and final states?
         self._has_initial_final_states = False
 
+        # Does this transcription promote control_boundary_values:* and control_boundary_rates:* at the phase level?
+        self._has_control_boundary_outputs = False
+
     def _declare_options(self):
         pass
 

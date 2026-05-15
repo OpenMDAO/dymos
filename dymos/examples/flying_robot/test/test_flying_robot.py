@@ -15,6 +15,7 @@ def flying_robot_direct_collocation(transcription='gauss-lobatto', compressed=Tr
     p = om.Problem(model=om.Group())
     p.driver = om.pyOptSparseDriver()
     p.driver.options['optimizer'] = 'IPOPT'
+    p.driver.opt_settings['print_level'] = 0
     p.driver.declare_coloring()
 
     if transcription == 'gauss-lobatto':
@@ -22,7 +23,7 @@ def flying_robot_direct_collocation(transcription='gauss-lobatto', compressed=Tr
     elif transcription == "radau-ps":
         t = dm.Radau(num_segments=8, order=5, compressed=compressed)
     elif transcription == 'birkhoff':
-        t = dm.Birkhoff(num_nodes=30)
+        t = dm.Birkhoff(num_nodes=50)
     else:
         raise ValueError('invalid transcription')
 

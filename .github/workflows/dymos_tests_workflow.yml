@@ -296,28 +296,35 @@ jobs:
           # default env on all three platforms
           - pixi-env: default
             runs-on: ubuntu-latest
+            dymos_legacy_radau: 0
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi }}
           - pixi-env: default
             runs-on: macos-latest
+            dymos_legacy_radau: 0
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi }}
           - pixi-env: default
             runs-on: windows-latest
+            dymos_legacy_radau: 0
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi }}
           # remaining envs on Linux only
           - pixi-env: oldest
             runs-on: ubuntu-latest
+            dymos_legacy_radau: 0
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi }}
           - pixi-env: dev
             runs-on: ubuntu-latest
+            dymos_legacy_radau: 0
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi }}
-          # dev-local with OpenMDAO installed from GitHub
+          # dev-local with OpenMDAO installed from GitHub, test with legacy Radau transcription.
           - pixi-env: dev-local
             runs-on: ubuntu-latest
             install_openmdao_github: true
+            dymos_legacy_radau: 1
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && inputs.dymos_pixi_openmdao_github == '' }}
           - pixi-env: dev-local
             runs-on: macos-latest
             install_openmdao_github: true
+            dymos_legacy_radau: 0
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && inputs.dymos_pixi_openmdao_github == '' }}
 
     steps:
@@ -386,6 +393,7 @@ jobs:
         if: ${{ !matrix.EXCLUDE }}
         env:
           OPENMDAO_CHECK_ALL_PARTIALS: True
+          DYMOS_LEGACY_RADAU: ${{ matrix.dymos_legacy_radau }}
         continue-on-error: true
         run: |
           eval "$(pixi shell-hook -e ${{ matrix.pixi-env }} --manifest-path $GITHUB_WORKSPACE/pyproject.toml)"
