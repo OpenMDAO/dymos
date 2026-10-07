@@ -1,7 +1,6 @@
 import numpy as np
 
 import openmdao.api as om
-from openmdao.core.constants import INF_BOUND
 from ..transcription_base import TranscriptionBase
 from ..common import TimeComp
 from .components import StateIndependentsComp, StateInterpComp, CollocationComp
@@ -214,11 +213,11 @@ class PseudospectralBase(TranscriptionBase):
                                                         options)
 
                     lb = np.zeros_like(desvar_indices, dtype=float)
-                    lb[:] = -INF_BOUND if coerce_desvar_option('lower') is None else \
+                    lb[:] = -np.inf if coerce_desvar_option('lower') is None else \
                         coerce_desvar_option('lower')
 
                     ub = np.zeros_like(desvar_indices, dtype=float)
-                    ub[:] = INF_BOUND if coerce_desvar_option('upper') is None else \
+                    ub[:] = np.inf if coerce_desvar_option('upper') is None else \
                         coerce_desvar_option('upper')
 
                     if options['initial_bounds'] is not None:

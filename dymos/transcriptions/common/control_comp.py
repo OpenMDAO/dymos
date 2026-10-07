@@ -4,7 +4,6 @@ import scipy.sparse as sp
 from scipy.linalg import block_diag
 
 import openmdao.api as om
-from openmdao.core.constants import INF_BOUND
 from openmdao.utils.general_utils import determine_adder_scaler
 
 from dymos.transcriptions.grid_data import GridData
@@ -425,8 +424,8 @@ class ControlInterpComp(om.ExplicitComponent):
                     if options['fix_final']:
                         desvar_indices = desvar_indices[:-1]
 
-                    lb = -INF_BOUND if options['lower'] is None else options['lower']
-                    ub = INF_BOUND if options['upper'] is None else options['upper']
+                    lb = -np.inf if options['lower'] is None else options['lower']
+                    ub = np.inf if options['upper'] is None else options['upper']
 
                     self.add_design_var(f'controls:{name}',
                                         lower=lb,
@@ -453,11 +452,11 @@ class ControlInterpComp(om.ExplicitComponent):
                                                             options=options)
 
                         lb = np.zeros_like(desvar_indices, dtype=float)
-                        lb[:] = -INF_BOUND if coerce_desvar_option('lower') is None else \
+                        lb[:] = -np.inf if coerce_desvar_option('lower') is None else \
                             coerce_desvar_option('lower')
 
                         ub = np.zeros_like(desvar_indices, dtype=float)
-                        ub[:] = INF_BOUND if coerce_desvar_option('upper') is None else \
+                        ub[:] = np.inf if coerce_desvar_option('upper') is None else \
                             coerce_desvar_option('upper')
 
                         self.add_design_var(name=dvname,

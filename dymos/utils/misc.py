@@ -4,7 +4,7 @@ import numpy as np
 
 import openmdao
 import openmdao.api as om
-from openmdao.core.constants import _ReprClass, INF_BOUND
+from openmdao.core.constants import _ReprClass
 
 from .indexing import get_desvar_indices
 
@@ -198,12 +198,12 @@ class CoerceDesvar(object):
         val = self.options[option]
         if option == 'lower':
             lb = np.zeros_like(self.desvar_indices, dtype=float)
-            lb[:] = -INF_BOUND if self.options['lower'] is None else val
+            lb[:] = -np.inf if self.options['lower'] is None else val
             return lb
 
         if option == 'upper':
             ub = np.zeros_like(self.desvar_indices, dtype=float)
-            ub[:] = INF_BOUND if self.options['upper'] is None else val
+            ub[:] = np.inf if self.options['upper'] is None else val
             return ub
 
         if val is None or np.isscalar(val):
