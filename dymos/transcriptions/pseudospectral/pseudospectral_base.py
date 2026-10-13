@@ -213,12 +213,10 @@ class PseudospectralBase(TranscriptionBase):
                                                         options)
 
                     lb = np.zeros_like(desvar_indices, dtype=float)
-                    lb[:] = -np.inf if coerce_desvar_option('lower') is None else \
-                        coerce_desvar_option('lower')
+                    lb[:] = coerce_desvar_option('lower')
 
                     ub = np.zeros_like(desvar_indices, dtype=float)
-                    ub[:] = np.inf if coerce_desvar_option('upper') is None else \
-                        coerce_desvar_option('upper')
+                    ub[:] = coerce_desvar_option('upper')
 
                     if options['initial_bounds'] is not None:
                         lb[0] = options['initial_bounds'][0]

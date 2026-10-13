@@ -120,8 +120,6 @@ class TranscriptionBase(object):
 
         if not (time_options['input_initial'] or time_options['fix_initial']):
             lb, ub = time_options['initial_bounds']
-            lb = -np.inf if lb is None else lb
-            ub = np.inf if ub is None else ub
 
             phase.add_design_var('t_initial',
                                  lower=lb,
@@ -133,8 +131,6 @@ class TranscriptionBase(object):
 
         if not (time_options['input_duration'] or time_options['fix_duration']):
             lb, ub = time_options['duration_bounds']
-            lb = -np.inf if lb is None else lb
-            ub = np.inf if ub is None else ub
 
             phase.add_design_var('t_duration',
                                  lower=lb,
@@ -229,11 +225,9 @@ class TranscriptionBase(object):
             for name, options in phase.parameter_options.items():
                 param_comp.add_parameter(name, val=options['val'], shape=options['shape'], units=options['units'])
                 if options['opt']:
-                    lb = -np.inf if options['lower'] is None else options['lower']
-                    ub = np.inf if options['upper'] is None else options['upper']
                     phase.add_design_var(name=f'parameters:{name}',
-                                         lower=lb,
-                                         upper=ub,
+                                         lower=options['lower'],
+                                         upper=options['upper'],
                                          scaler=options['scaler'],
                                          adder=options['adder'],
                                          ref0=options['ref0'],

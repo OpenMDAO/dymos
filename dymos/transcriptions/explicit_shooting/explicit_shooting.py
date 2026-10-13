@@ -190,8 +190,6 @@ class ExplicitShooting(TranscriptionBase):
 
         if not time_options['fix_initial']:
             lb, ub = time_options['initial_bounds']
-            lb = -np.inf if lb is None else lb
-            ub = np.inf if ub is None else ub
 
             phase.add_design_var('t_initial',
                                  lower=lb,
@@ -203,8 +201,6 @@ class ExplicitShooting(TranscriptionBase):
 
         if not (time_options['input_duration'] or time_options['fix_duration']):
             lb, ub = time_options['duration_bounds']
-            lb = -np.inf if lb is None else lb
-            ub = np.inf if ub is None else ub
 
             phase.add_design_var('t_duration',
                                  lower=lb,

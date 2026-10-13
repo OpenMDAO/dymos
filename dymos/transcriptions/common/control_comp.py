@@ -424,12 +424,9 @@ class ControlInterpComp(om.ExplicitComponent):
                     if options['fix_final']:
                         desvar_indices = desvar_indices[:-1]
 
-                    lb = -np.inf if options['lower'] is None else options['lower']
-                    ub = np.inf if options['upper'] is None else options['upper']
-
                     self.add_design_var(f'controls:{name}',
-                                        lower=lb,
-                                        upper=ub,
+                                        lower=options['lower'],
+                                        upper=options['upper'],
                                         ref=options['ref'],
                                         ref0=options['ref0'],
                                         adder=options['adder'],
@@ -452,12 +449,10 @@ class ControlInterpComp(om.ExplicitComponent):
                                                             options=options)
 
                         lb = np.zeros_like(desvar_indices, dtype=float)
-                        lb[:] = -np.inf if coerce_desvar_option('lower') is None else \
-                            coerce_desvar_option('lower')
+                        lb[:] = coerce_desvar_option('lower')
 
                         ub = np.zeros_like(desvar_indices, dtype=float)
-                        ub[:] = np.inf if coerce_desvar_option('upper') is None else \
-                            coerce_desvar_option('upper')
+                        ub[:] = coerce_desvar_option('upper')
 
                         self.add_design_var(name=dvname,
                                             lower=lb,
