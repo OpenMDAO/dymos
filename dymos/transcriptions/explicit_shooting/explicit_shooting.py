@@ -3,7 +3,6 @@ from collections.abc import Sequence
 import numpy as np
 
 import openmdao.api as om
-from openmdao.core.constants import INF_BOUND
 from openmdao.utils.om_warnings import warn_deprecation
 
 from .explicit_shooting_continuity_comp import ExplicitShootingContinuityComp
@@ -191,8 +190,6 @@ class ExplicitShooting(TranscriptionBase):
 
         if not time_options['fix_initial']:
             lb, ub = time_options['initial_bounds']
-            lb = -INF_BOUND if lb is None else lb
-            ub = INF_BOUND if ub is None else ub
 
             phase.add_design_var('t_initial',
                                  lower=lb,
@@ -204,8 +201,6 @@ class ExplicitShooting(TranscriptionBase):
 
         if not (time_options['input_duration'] or time_options['fix_duration']):
             lb, ub = time_options['duration_bounds']
-            lb = -INF_BOUND if lb is None else lb
-            ub = INF_BOUND if ub is None else ub
 
             phase.add_design_var('t_duration',
                                  lower=lb,

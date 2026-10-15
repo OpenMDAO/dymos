@@ -2,6 +2,7 @@ import warnings
 from collections import OrderedDict
 from collections.abc import Sequence
 import itertools
+import numpy as np
 
 from openmdao.utils.om_warnings import warn_deprecation
 from openmdao.utils.units import unit_conversion
@@ -9,7 +10,6 @@ from openmdao.utils.units import unit_conversion
 import networkx as nx
 
 import openmdao.api as om
-from openmdao.core.constants import INF_BOUND
 from openmdao.utils.mpi import MPI
 
 from .options import LinkageOptionsDictionary
@@ -516,12 +516,10 @@ class Trajectory(om.Group):
             param_comp = self._get_subsystem('param_comp')
             param_comp.add_parameter(name, val=options['val'], shape=options['shape'], units=options['units'])
             if options['opt']:
-                lb = -INF_BOUND if options['lower'] is None else options['lower']
-                ub = INF_BOUND if options['upper'] is None else options['upper']
 
                 self.add_design_var(name=f'parameters:{name}',
-                                    lower=lb,
-                                    upper=ub,
+                                    lower=options['lower'],
+                                    upper=options['upper'],
                                     scaler=options['scaler'],
                                     adder=options['adder'],
                                     ref0=options['ref0'],
@@ -899,20 +897,18 @@ class Trajectory(om.Group):
     def _check_phase_graph(self):
 
         # determine if we have any fixed t_initial that are outside of allowed bounds
-        def get_final_tbounds(phase_name, node_data, old_tmin=-INF_BOUND, old_tmax=INF_BOUND):
+        def get_final_tbounds(phase_name, node_data, old_tmin=-np.inf, old_tmax=np.inf):
             t_initial = node_data['t_initial']
             fixed_t_initial = node_data['fix_initial']
             duration_min, duration_max = node_data['duration_bounds']
             initial_min, initial_max = node_data['initial_bounds']
 
-            duration_min = -INF_BOUND if duration_min is None else duration_min
-            duration_max = INF_BOUND if duration_max is None else duration_max
-            old_tmin = -INF_BOUND if old_tmin is None else old_tmin
-            old_tmax = INF_BOUND if old_tmax is None else old_tmax
+            duration_min = -np.inf if duration_min is None else duration_min
+            duration_max = np.inf if duration_max is None else duration_max
 
             errs = []
-            new_min_t = -INF_BOUND
-            new_max_t = INF_BOUND
+            new_min_t = -np.inf
+            new_max_t = np.inf
 
             if fixed_t_initial:
                 # if t_initial is fixed, first check if it's within the incoming bounds
@@ -920,15 +916,15 @@ class Trajectory(om.Group):
                     errs.append(f"Fixed t_initial of {t_initial} is outside of allowed bounds "
                                 f"{(old_tmin, old_tmax)} for phase '{phase_name}'.")
 
-                if duration_min > -INF_BOUND:
+                if duration_min > -np.inf:
                     new_min_t = t_initial + duration_min
 
-                if duration_max < INF_BOUND:
+                if duration_max < np.inf:
                     new_max_t = t_initial + duration_max
 
             else:
-                initial_min = -INF_BOUND if initial_min is None else initial_min
-                initial_max = INF_BOUND if initial_max is None else initial_max
+                initial_min = -np.inf if initial_min is None else initial_min
+                initial_max = np.inf if initial_max is None else initial_max
 
                 # check for overlap of incoming bounds on t and initial_bounds
                 if not (old_tmin <= initial_min <= old_tmax or
@@ -939,16 +935,16 @@ class Trajectory(om.Group):
                                 f" with allowed bounds {(old_tmin, old_tmax)} for phase "
                                 f"'{phase_name}'.")
 
-                if duration_min > -INF_BOUND:
+                if duration_min > -np.inf:
                     tmin = max(old_tmin, initial_min)
-                    if tmin > -INF_BOUND:
+                    if tmin > -np.inf:
                         new_min_t = tmin + duration_min
                     else:
                         new_min_t = tmin
 
-                if duration_max < INF_BOUND:
+                if duration_max < np.inf:
                     tmax = min(old_tmax, initial_max)
-                    if tmax < INF_BOUND:
+                    if tmax < np.inf:
                         new_max_t = tmax + duration_max
                     else:
                         new_max_t = tmax
@@ -976,7 +972,7 @@ class Trajectory(om.Group):
         all_errs = []
         skip = set()
         for start_name in start_nodes:
-            stack = [(start_name, -INF_BOUND, INF_BOUND)]
+            stack = [(start_name, -np.inf, np.inf)]
             while stack:
                 src, oldlb, oldub = stack.pop()
                 lb, ub, errs = get_final_tbounds(src, node_data[src],
