@@ -60,7 +60,7 @@ jobs:
           - NAME: baseline
             OPENMDAO_PIXI_ENVIRONMENT: 'dev'
             OPENMDAO_INSTALL_FROM: 'pypi'
-            OPENMDAO: '3.41.0'
+            OPENMDAO: '3.45.1'
             PEP517: True
             PUBLISH_DOCS: ${{ github.event_name != 'workflow_dispatch' || inputs.publish }}
             EXCLUDE: false
@@ -69,7 +69,7 @@ jobs:
           # - NAME: no_mpi
           #   OPENMDAO_PIXI_ENVIRONMENT: 'default'
           #   OPENMDAO_INSTALL_FROM: 'pypi'
-          #   OPENMDAO: '3.41.0'
+          #   OPENMDAO: '3.45.1'
           #   EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
 
           # # latest versions
