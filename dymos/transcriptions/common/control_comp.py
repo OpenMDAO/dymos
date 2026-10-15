@@ -448,15 +448,9 @@ class ControlInterpComp(om.ExplicitComponent):
                         coerce_desvar_option = CoerceDesvar(num_input_nodes, desvar_indices,
                                                             options=options)
 
-                        lb = np.zeros_like(desvar_indices, dtype=float)
-                        lb[:] = coerce_desvar_option('lower')
-
-                        ub = np.zeros_like(desvar_indices, dtype=float)
-                        ub[:] = coerce_desvar_option('upper')
-
                         self.add_design_var(name=dvname,
-                                            lower=lb,
-                                            upper=ub,
+                                            lower=coerce_desvar_option('lower'),
+                                            upper=coerce_desvar_option('upper'),
                                             scaler=coerce_desvar_option('scaler'),
                                             adder=coerce_desvar_option('adder'),
                                             ref0=coerce_desvar_option('ref0'),

@@ -5,7 +5,7 @@ from ..transcription_base import TranscriptionBase
 from ..common import TimeComp
 from .components import StateIndependentsComp, StateInterpComp, CollocationComp
 from ..common.timeseries_output_comp import TimeseriesOutputComp
-from ...utils.misc import CoerceDesvar, get_rate_units, reshape_val
+from ...utils.misc import CoerceDesvar, get_rate_units, reshape_val, _FINITE_INF_BOUND
 from ...utils.introspection import get_promoted_vars, get_source_metadata
 from ...utils.indexing import get_src_indices_by_row
 
@@ -212,11 +212,15 @@ class PseudospectralBase(TranscriptionBase):
                     coerce_desvar_option = CoerceDesvar(num_state_input_nodes, desvar_indices,
                                                         options)
 
-                    lb = np.zeros_like(desvar_indices, dtype=float)
-                    lb[:] = coerce_desvar_option('lower')
+                    lb = coerce_desvar_option('lower')
+                    ub = coerce_desvar_option('upper')
 
-                    ub = np.zeros_like(desvar_indices, dtype=float)
-                    ub[:] = coerce_desvar_option('upper')
+                    if options['initial_bounds'] is not None or options['final_bounds'] is not None:
+                        # Endpoint bounds require per-node bound arrays.
+                        if lb is None:
+                            lb = np.full(len(desvar_indices), -_FINITE_INF_BOUND)
+                        if ub is None:
+                            ub = np.full(len(desvar_indices), _FINITE_INF_BOUND)
 
                     if options['initial_bounds'] is not None:
                         lb[0] = options['initial_bounds'][0]

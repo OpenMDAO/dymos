@@ -12,6 +12,11 @@ from .indexing import get_desvar_indices
 # unique object to check if default is given (when None is an allowed value)
 _unspecified = _ReprClass("unspecified")
 
+# Finite magnitude for the unbounded elements of a design variable bound array whose other
+# elements are bounded. Unbounded variables should use None instead. Infinity is not used here
+# because older versions of OpenMDAO pass it unaltered to optimizers that cannot accept it.
+_FINITE_INF_BOUND = 1.0E30
+
 
 def is_unspecified(obj):
     """
@@ -196,15 +201,12 @@ class CoerceDesvar(object):
 
         """
         val = self.options[option]
-        if option == 'lower':
-            lb = np.zeros_like(self.desvar_indices, dtype=float)
-            lb[:] = -np.inf if self.options['lower'] is None else val
-            return lb
-
-        if option == 'upper':
-            ub = np.zeros_like(self.desvar_indices, dtype=float)
-            ub[:] = np.inf if self.options['upper'] is None else val
-            return ub
+        if option in ('lower', 'upper'):
+            if val is None:
+                return None
+            bound = np.zeros_like(self.desvar_indices, dtype=float)
+            bound[:] = val
+            return bound
 
         if val is None or np.isscalar(val):
             return val
