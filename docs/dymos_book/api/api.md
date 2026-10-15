@@ -4,3 +4,12 @@
 - [The Phase API](phase_api)
 - [The Transcriptions API](transcriptions_api)
 - [The Trajectory API](trajectory_api)
+
+```{toctree}
+:hidden:
+
+run_problem_function
+phase_api
+transcriptions_api
+trajectory_api
+```

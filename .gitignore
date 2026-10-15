@@ -84,6 +84,7 @@ fort.6
 # Docs
 docs/dymos_book/_build
 docs/dymos_book/_srcdocs
+docs/_executed_book
 
 # Dymos and OpenMDAO files
 **/*.db

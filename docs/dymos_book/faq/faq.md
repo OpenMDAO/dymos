@@ -7,3 +7,15 @@
 - [How do I run two phases parallel-in-time?](tandem_phases.ipynb)
 - [How can I more efficiently use finite-differenced components in the ODE?](use_partial_coloring.ipynb)
 - [How can I debug models when things go wrong?](debugging.ipynb)
+
+```{toctree}
+:hidden:
+
+add_ode_output_to_timeseries
+connect_scalar_parameters_to_ode
+upstream_analysis
+downstream_analysis
+tandem_phases
+use_partial_coloring
+debugging
+```
