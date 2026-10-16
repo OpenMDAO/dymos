@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import numpy as np
 
 import openmdao.api as om
@@ -237,10 +239,13 @@ class PicardShooting(TranscriptionBase):
         """
         ODEClass = phase.options['ode_class']
         grid_data = self.grid_data
-        ode_nonlinear_solver = self.options['ode_nonlinear_solver']
-        ode_linear_solver = self.options['ode_linear_solver']
-        ms_nonlinear_solver = self.options['ms_nonlinear_solver']
-        ms_linear_solver = self.options['ms_linear_solver']
+
+        # A solver can only be assigned to one system, and one transcription can be used by
+        # several phases. Each phase gets its own copy of the solvers.
+        ode_nonlinear_solver = deepcopy(self.options['ode_nonlinear_solver'])
+        ode_linear_solver = deepcopy(self.options['ode_linear_solver'])
+        ms_nonlinear_solver = deepcopy(self.options['ms_nonlinear_solver'])
+        ms_linear_solver = deepcopy(self.options['ms_linear_solver'])
 
         ode_init_kwargs = phase.options['ode_init_kwargs']
         calc_exprs = phase._calc_exprs
