@@ -2395,7 +2395,7 @@ class Phase(om.Group):
     def _check_parameter_options(self):
         """
         Check that parameter options are valid and issue warnings if invalid
-        
+
         options are provided.
 
         Warns

@@ -4,7 +4,6 @@ import scipy.sparse as sp
 from scipy.linalg import block_diag
 
 import openmdao.api as om
-from openmdao.core.constants import INF_BOUND
 from openmdao.utils.general_utils import determine_adder_scaler
 
 from dymos.transcriptions.grid_data import GridData
@@ -425,12 +424,9 @@ class ControlInterpComp(om.ExplicitComponent):
                     if options['fix_final']:
                         desvar_indices = desvar_indices[:-1]
 
-                    lb = -INF_BOUND if options['lower'] is None else options['lower']
-                    ub = INF_BOUND if options['upper'] is None else options['upper']
-
                     self.add_design_var(f'controls:{name}',
-                                        lower=lb,
-                                        upper=ub,
+                                        lower=options['lower'],
+                                        upper=options['upper'],
                                         ref=options['ref'],
                                         ref0=options['ref0'],
                                         adder=options['adder'],
@@ -452,17 +448,9 @@ class ControlInterpComp(om.ExplicitComponent):
                         coerce_desvar_option = CoerceDesvar(num_input_nodes, desvar_indices,
                                                             options=options)
 
-                        lb = np.zeros_like(desvar_indices, dtype=float)
-                        lb[:] = -INF_BOUND if coerce_desvar_option('lower') is None else \
-                            coerce_desvar_option('lower')
-
-                        ub = np.zeros_like(desvar_indices, dtype=float)
-                        ub[:] = INF_BOUND if coerce_desvar_option('upper') is None else \
-                            coerce_desvar_option('upper')
-
                         self.add_design_var(name=dvname,
-                                            lower=lb,
-                                            upper=ub,
+                                            lower=coerce_desvar_option('lower'),
+                                            upper=coerce_desvar_option('upper'),
                                             scaler=coerce_desvar_option('scaler'),
                                             adder=coerce_desvar_option('adder'),
                                             ref0=coerce_desvar_option('ref0'),

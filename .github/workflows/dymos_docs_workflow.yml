@@ -60,7 +60,7 @@ jobs:
           - NAME: baseline
             OPENMDAO_PIXI_ENVIRONMENT: 'dev'
             OPENMDAO_INSTALL_FROM: 'pypi'
-            OPENMDAO: '3.41.0'
+            OPENMDAO: '3.45.1'
             PEP517: True
             PUBLISH_DOCS: ${{ github.event_name != 'workflow_dispatch' || inputs.publish }}
             EXCLUDE: false
@@ -69,7 +69,7 @@ jobs:
           # - NAME: no_mpi
           #   OPENMDAO_PIXI_ENVIRONMENT: 'default'
           #   OPENMDAO_INSTALL_FROM: 'pypi'
-          #   OPENMDAO: '3.41.0'
+          #   OPENMDAO: '3.45.1'
           #   EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.latest }}
 
           # # latest versions
@@ -208,22 +208,7 @@ jobs:
           echo "============================================================="
           echo "Building Docs"
           echo "============================================================="
-          cd docs
-          export PYDEVD_DISABLE_FILE_VALIDATION=1
-          jupyter-book build -W --keep-going dymos_book
-
-      - name: Display doc build reports
-        continue-on-error: True
-        if: failure() && steps.build_docs.outcome == 'failure'
-        run: |
-          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
-          echo $PWD
-          cd docs
-          find dymos_book/_build/html/reports/ -type f -name '*.log' \
-          -exec echo "#################################################################" \; \
-          -exec echo {} \; \
-          -exec echo "#################################################################" \; \
-          -exec cat {} \;
+          python docs/build_docs.py build --no-rich --workers 3
 
       - name: Publish docs to github.io
         if: |
@@ -235,7 +220,7 @@ jobs:
           echo "============================================================="
           pip install ghp-import
           cd $HOME/work/dymos/dymos
-          ghp-import -n -p -f docs/dymos_book/_build/html
+          ghp-import -n -p -f docs/_executed_book/_build/html
 
       - name: Publish docs to openmdao.org
         if: |
@@ -257,7 +242,7 @@ jobs:
             echo "============================================================="
             echo "Publish docs"
             cd $HOME/work/dymos/dymos
-            python -m openmdao.docs.upload_doc_version docs/dymos_book/_build/html/ ${{ secrets.DOCS_LOCATION }}
+            python -m openmdao.docs.upload_doc_version docs/_executed_book/_build/html/ ${{ secrets.DOCS_LOCATION }}
           else
             echo "Docs destination not available."
           fi
@@ -267,6 +252,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: dymos-docs-html
-          path: docs/dymos_book/_build/html
+          path: docs/_executed_book/_build/html
           compression-level: 9
           retention-days: 2

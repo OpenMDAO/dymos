@@ -41,12 +41,19 @@ docs = [
     "jax",
     "jaxlib",
     "jupyter",
-    "jupyter-book<2",
+    "linkify-it-py",
     "matplotlib",
+    "myst-nb",
     "nbconvert",
     "notebook",
     "numpydoc>=1.1",
+    "papermill",
     "redbaron",
+    "sphinx>=7.4,<8",
+    "sphinx-book-theme",
+    "sphinx-copybutton",
+    "sphinx-design",
+    "sphinxcontrib-bibtex",
     "tabulate",
 ]
 notebooks = [
@@ -191,12 +198,26 @@ matplotlib = "*"
 testflo = "*"
 
 [tool.pixi.feature.docs.dependencies]
-jupyter-book = ">=1.0.3,<2"
-matplotlib = "*"
+papermill = "*"
+ipykernel = "*"
+sphinx = ">=7.4,<8"
+myst-nb = "*"
+linkify-it-py = "*"
+sphinx-book-theme = "*"
+sphinxcontrib-bibtex = "*"
+sphinx-copybutton = "*"
+sphinx-design = "*"
+pydata-sphinx-theme = ">=0.15.0,<0.16.0"
 numpydoc = "*"
-sphinx-sitemap = "*"
+matplotlib = "*"
 jinja2 = "*"
 tqdm = "*"
+rich = "*"
+
+[tool.pixi.feature.docs.tasks]
+build-docs = { cmd = "python docs/build_docs.py build", description = "Execute the doc notebooks with papermill and build the HTML docs with Sphinx." }
+clean-docs = { cmd = "python docs/build_docs.py clean", description = "Remove all generated documentation files." }
+view-docs = { cmd = "python docs/build_docs.py view", description = "Serve the built documentation locally and open it in a browser." }
 
 [tool.pixi.feature.docs.pypi-dependencies]
 jax = "*"

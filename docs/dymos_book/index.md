@@ -81,3 +81,67 @@ If you use Dymos in your work, please cite:
 ```{bibliography}
 :filter: docname in docnames
 ```
+
+```{toctree}
+:caption: Installation
+:hidden:
+:maxdepth: 1
+
+installation
+```
+
+```{toctree}
+:caption: Getting Started
+:hidden:
+:maxdepth: 1
+
+getting_started/optimal_control
+getting_started/transcriptions
+getting_started/defining_odes
+getting_started/collocation
+getting_started/intro_to_dymos/intro_ivp
+getting_started/intro_to_dymos/intro_segments
+```
+
+```{toctree}
+:caption: Examples and Tutorials
+:hidden:
+:maxdepth: 1
+
+examples/examples
+```
+
+```{toctree}
+:caption: Feature Reference
+:hidden:
+:maxdepth: 1
+
+features/phases/phases_list
+features/trajectories/trajectories
+features/exploiting_sparsity
+features/plotting
+```
+
+```{toctree}
+:caption: Frequently Asked Questions
+:hidden:
+:maxdepth: 1
+
+faq/faq
+```
+
+```{toctree}
+:caption: Dymos API Reference
+:hidden:
+:maxdepth: 1
+
+api/api
+```
+
+```{toctree}
+:caption: Contributing
+:hidden:
+:maxdepth: 1
+
+contributing/contributing
+```

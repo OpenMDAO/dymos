@@ -3,7 +3,6 @@ from collections.abc import Sequence
 import numpy as np
 
 import openmdao.api as om
-from openmdao.core.constants import INF_BOUND
 
 from .common import ControlInterpComp, ParameterComp
 from ..utils.indexing import get_constraint_flat_idxs
@@ -74,7 +73,7 @@ class TranscriptionBase(object):
     def _get_refinement_error_transcription(self):
         """
         Create a new transcriptoin instance to be used for error estimation.
-        
+
         This is usually a matter of increasing the order (number of nodes per segment).
         """
         raise NotImplementedError(f'{self.__class__.__name__} does not implement _get_refinement_error_transcription.')
@@ -121,8 +120,6 @@ class TranscriptionBase(object):
 
         if not (time_options['input_initial'] or time_options['fix_initial']):
             lb, ub = time_options['initial_bounds']
-            lb = -INF_BOUND if lb is None else lb
-            ub = INF_BOUND if ub is None else ub
 
             phase.add_design_var('t_initial',
                                  lower=lb,
@@ -134,8 +131,6 @@ class TranscriptionBase(object):
 
         if not (time_options['input_duration'] or time_options['fix_duration']):
             lb, ub = time_options['duration_bounds']
-            lb = -INF_BOUND if lb is None else lb
-            ub = INF_BOUND if ub is None else ub
 
             phase.add_design_var('t_duration',
                                  lower=lb,
@@ -230,11 +225,9 @@ class TranscriptionBase(object):
             for name, options in phase.parameter_options.items():
                 param_comp.add_parameter(name, val=options['val'], shape=options['shape'], units=options['units'])
                 if options['opt']:
-                    lb = -INF_BOUND if options['lower'] is None else options['lower']
-                    ub = INF_BOUND if options['upper'] is None else options['upper']
                     phase.add_design_var(name=f'parameters:{name}',
-                                         lower=lb,
-                                         upper=ub,
+                                         lower=options['lower'],
+                                         upper=options['upper'],
                                          scaler=options['scaler'],
                                          adder=options['adder'],
                                          ref0=options['ref0'],
