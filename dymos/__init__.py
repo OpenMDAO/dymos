@@ -1,4 +1,4 @@
-__version__ = '1.15.2-dev'
+__version__ = '1.16.0'
 
 
 from openmdao.utils.general_utils import env_truthy as _env_truthy
