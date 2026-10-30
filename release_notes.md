@@ -1,4 +1,28 @@
 ********************************
+# Release Notes for Dymos 1.16.0
+
+October 30, 2026
+
+This release continues primarily with minor cleanup and a performance improvement in Birkhoff interpolation. Thanks to [inayatku](https://github.com/inayatku) and [sandeep026](https://github.com/sandeep026) for their contribuions.
+
+## Enhancements
+
+- Faster and more accurate Birkhoff interpolation [#1232](https://github.com/OpenMDAO/dymos/pull/1232)
+
+## Bug Fixes
+
+- Remove deprecated INF_BOUND from openmdao, replacing with np.inf [#1240](https://github.com/OpenMDAO/dymos/pull/1240)
+- Fixed a bug where one PicardShooting transcription could not be used by more than one phase. [#1243](https://github.com/OpenMDAO/dymos/pull/1243)
+
+## Miscellaneous
+
+- Linting and pixi Improvements [#1231](https://github.com/OpenMDAO/dymos/pull/1231)
+- Use OPENMDAO_CHECK_ALL_PARTIALS instead of dymos option for testing library partials. [#1234](https://github.com/OpenMDAO/dymos/pull/1234)
+- Added dev-docs for claude and updated pre-commit hook to use local ruff check command. [#1235](https://github.com/OpenMDAO/dymos/pull/1235)
+- Removed various duplicate tests. [#1238](https://github.com/OpenMDAO/dymos/pull/1238)
+- Replace jupyter-book with papermill + Sphinx doc build [#1242](https://github.com/OpenMDAO/dymos/pull/1242)
+
+********************************
 # Release Notes for Dymos 1.15.1
 
 March 12, 2026

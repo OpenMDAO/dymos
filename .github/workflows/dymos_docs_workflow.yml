@@ -52,6 +52,9 @@ jobs:
 
     timeout-minutes: 90
 
+    permissions:
+      contents: write
+
     strategy:
       fail-fast: false
       matrix:
@@ -246,6 +249,22 @@ jobs:
           else
             echo "Docs destination not available."
           fi
+
+      - name: Attach docs tarball to GitHub release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          ARCHIVE="dymos-docs-${TAG}.tar.gz"
+          echo "============================================================="
+          echo "Creating ${ARCHIVE} and attaching it to release ${TAG}"
+          echo "============================================================="
+          tar -czf "${ARCHIVE}" \
+            -C docs/_executed_book/_build \
+            --transform "s|^html|dymos-docs-${TAG}|" \
+            html
+          gh release upload "${TAG}" "${ARCHIVE}" --clobber --repo "${GITHUB_REPOSITORY}"
 
       - name: Upload docs artifact
         if: github.event_name == 'workflow_dispatch' && inputs.upload_docs_artifact
