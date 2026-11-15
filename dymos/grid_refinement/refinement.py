@@ -8,6 +8,8 @@ from .write_iteration import write_error, write_refine_iter
 from dymos.grid_refinement.error_estimation import check_error
 from dymos.load_case import find_phases
 
+from copy import deepcopy
+
 import numpy as np
 import sys
 
@@ -67,7 +69,21 @@ def _refine_iter(problem, refine_iteration_limit=0, refine_method='hp', case_pre
                                                           units=True, prom_name=True)
                 }
 
+                # Setup resets the value of every variable. Keep the values of the independent
+                # variables, so that those whose shape is unchanged can be restored after setup.
+                prev_indeps = {name: (deepcopy(meta['val']), meta.get('units'))
+                               for name, meta in dict(problem.list_indep_vars(out_stream=None)).items()}
+
                 problem.setup()
+                problem.final_setup()
+
+                for name, meta in dict(problem.list_indep_vars(out_stream=None)).items():
+                    if name in prev_indeps:
+                        val, units = prev_indeps[name]
+                        if np.shape(val) == np.shape(meta['val']):
+                            problem.set_val(name, val, units=units)
+
+                # Interpolate the previous solution onto the new grid of the refined phases.
                 for phase_path in refined_phases:
                     phs = problem.model._get_subsystem(phase_path)
                     phs.load_case(prev_soln)
