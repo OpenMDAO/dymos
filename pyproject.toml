@@ -149,13 +149,15 @@ convention = "numpy"
 ##############################
 
 [tool.pixi.workspace]
+requires-pixi = ">=0.82.1"
 channels = ["conda-forge"]
 platforms = ["linux-64", "osx-64", "osx-arm64", "win-64"]
 exclude-newer = "5d"
 
 [tool.pixi.dependencies]
-python = ">=3.11"
-pip = "*"
+# Reject Python releases predating the eMudhra/emSign certificate denylist.
+python = ">=3.11.18,<3.12|>=3.12.16,<3.13|>=3.13.18,<3.14|>=3.14.10,<3.15|>=3.15.2"
+pip = ">=26.2.2"
 compilers = ">=1.8.0,<2"
 networkx = ">=3.3"
 packaging = ">=25.0"
@@ -189,6 +191,9 @@ petsc = "*"
 petsc4py = "*"
 
 [tool.pixi.feature.test.dependencies]
+certifi = ">=2026.10.19"
+ca-certificates = ">=2026.10.23"
+virtualenv = ">=21.14.12"
 pre-commit = "*"
 ruff = "*"
 coverage = ">=7.6.0"
@@ -235,8 +240,8 @@ numba = "*"
 actionlint = "*"
 
 [tool.pixi.feature.local-test.dependencies]
-python = ">=3.11"
-pip = "*"
+python = ">=3.11.18,<3.12|>=3.12.16,<3.13|>=3.13.18,<3.14|>=3.14.10,<3.15|>=3.15.2"
+pip = ">=26.2.2"
 compilers = ">=1.8.0,<2"
 networkx = ">=3.3"
 packaging = ">=25.0"
@@ -246,7 +251,7 @@ requests = ">=2.32.5"
 jax = "*"
 
 [tool.pixi.feature.oldest.dependencies]
-python = "3.11.*"
+python = ">=3.11.18,<3.12"
 numpy = "2.0.*"
 scipy = "1.13.*"
 
