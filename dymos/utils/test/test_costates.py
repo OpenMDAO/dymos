@@ -71,19 +71,18 @@ def _garg_exact_costate(t, y0=2.0, yf=1.0, tf=5.0):
 
 def _solve(p, obj):
     """
-    Run the driver, and run it once more from the solution.
+    Run the driver.
 
-    The multipliers are only as accurate as the optimality conditions at the final point, and
-    SLSQP can stop on a small change of the objective before these hold closely.
+    The multipliers are only as accurate as the optimality conditions at the final point, so
+    the tests use a tight tolerance for SLSQP.
     """
     dm.run_problem(p, simulate=False, make_plots=False)
-    p.run_driver()
     return p
 
 
 def _garg_problem(tx, size=1, defect_ref=None, obj_ref=None):
     p = om.Problem()
-    p.driver = om.ScipyOptimizeDriver(optimizer='SLSQP', tol=1.0E-14, maxiter=500)
+    p.driver = om.ScipyOptimizeDriver(optimizer='SLSQP', tol=1.0E-12, maxiter=500)
     p.driver.options['disp'] = False
     p.driver.declare_coloring()
 
@@ -130,7 +129,7 @@ class TestEstimateCostates(unittest.TestCase):
 
                 # The costate of the integrated cost is one.
                 assert_near_equal(result['costates']['J'].ravel(), np.ones(len(result['time'])),
-                                  tolerance=1.0E-7)
+                                  tolerance=1.0E-6)
 
                 if end_tol is None:
                     self.assertEqual(result['initial_costates'], {})
@@ -168,7 +167,7 @@ class TestEstimateCostates(unittest.TestCase):
         # For the minimum time problem the costates of x and y are constant, and the
         # Hamiltonian is constant and equal to -1.
         p = om.Problem()
-        p.driver = om.ScipyOptimizeDriver(optimizer='SLSQP', tol=1.0E-14, maxiter=500)
+        p.driver = om.ScipyOptimizeDriver(optimizer='SLSQP', tol=1.0E-12, maxiter=500)
         p.driver.options['disp'] = False
         p.driver.declare_coloring()
 

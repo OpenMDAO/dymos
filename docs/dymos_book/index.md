@@ -120,6 +120,7 @@ features/phases/phases_list
 features/trajectories/trajectories
 features/exploiting_sparsity
 features/plotting
+features/costate_estimation
 ```
 
 ```{toctree}
