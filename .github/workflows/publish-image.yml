@@ -37,7 +37,7 @@ jobs:
 
     defaults:
       run:
-        shell: bash -l {0}
+        shell: bash -l -eo pipefail {0}
 
     steps:
       - name: Checkout repository
@@ -80,7 +80,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Test image and MPI/PETSc
-        run: bash .github/scripts/test-docker-image.sh dymos-test:release
+        run: bash .github/scripts/test-docker-image.sh --runtime docker --no-build dymos-test:release
 
       - name: Publish tested Docker image
         env:

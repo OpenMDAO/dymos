@@ -14,6 +14,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+defaults:
+  run:
+    shell: bash -eo pipefail {0}
+
 jobs:
   test_image:
     runs-on: ${{ matrix.os }}
@@ -41,4 +45,4 @@ jobs:
           tags: dymos-test:ci
 
       - name: Test image and MPI/PETSc
-        run: bash .github/scripts/test-docker-image.sh dymos-test:ci
+        run: bash .github/scripts/test-docker-image.sh --runtime docker --no-build dymos-test:ci

@@ -48,7 +48,7 @@ jobs:
 
     defaults:
       run:
-        shell: bash -l {0}
+        shell: bash -l -eo pipefail {0}
 
     timeout-minutes: 90
 
@@ -129,7 +129,8 @@ jobs:
       - name: Install Dymos
         if: ${{ ! matrix.EXCLUDE }}
         run: |
-          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
+          PIXI_SHELL_HOOK=$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})
+          eval "$PIXI_SHELL_HOOK"
           echo "============================================================="
           echo "Install Dymos"
           echo "============================================================="
@@ -152,7 +153,8 @@ jobs:
       - name: Install optional dependencies
         if: matrix.OPENMDAO_PIXI_ENVIRONMENT == 'dev'
         run: |
-          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
+          PIXI_SHELL_HOOK=$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})
+          eval "$PIXI_SHELL_HOOK"
           echo "============================================================="
           echo "Install additional packages for testing/coverage"
           echo "============================================================="
@@ -163,7 +165,8 @@ jobs:
       - name: Check MPI and PETSc
         run: |
           set -e
-          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
+          PIXI_SHELL_HOOK=$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})
+          eval "$PIXI_SHELL_HOOK"
           if python -c "import mpi4py, petsc4py" 2>/dev/null; then
             echo "============================================================="
             echo "Check MPI and PETSc installation"
@@ -197,7 +200,8 @@ jobs:
       - name: Build docs
         id: build_docs
         run: |
-          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
+          PIXI_SHELL_HOOK=$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})
+          eval "$PIXI_SHELL_HOOK"
           echo "============================================================="
           echo "Building Docs"
           echo "============================================================="
@@ -220,7 +224,8 @@ jobs:
         if: |
           (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && matrix.PUBLISH_DOCS
         run: |
-          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
+          PIXI_SHELL_HOOK=$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})
+          eval "$PIXI_SHELL_HOOK"
           echo "============================================================="
           echo "Publishing Docs to github.io"
           echo "============================================================="
@@ -235,7 +240,8 @@ jobs:
         env:
           DOCS_LOCATION: ${{ secrets.DOCS_LOCATION }}
         run: |
-          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
+          PIXI_SHELL_HOOK=$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})
+          eval "$PIXI_SHELL_HOOK"
           if [[ "${#DOCS_LOCATION}" ]]; then
             echo "============================================================="
             echo "Create env with openssl compatible with hosting service"

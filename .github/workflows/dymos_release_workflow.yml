@@ -11,6 +11,10 @@ on:
   # This might be useful if the automated publish fails for some reason (use with CARE!!)
   workflow_dispatch:
 
+defaults:
+  run:
+    shell: bash -eo pipefail {0}
+
 jobs:
   pypi-publish:
     name: Upload release to PyPI
