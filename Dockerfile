@@ -2,7 +2,7 @@
 
 FROM ubuntu:24.04
 
-SHELL ["/bin/bash", "-c"]
+SHELL ["/bin/bash", "-e", "-o", "pipefail", "-c"]
 
 # Install updates
 RUN apt-get update -y && apt-get -y install sudo vim curl wget git g++ gfortran make cmake graphviz libblas-dev liblapack-dev
@@ -20,50 +20,21 @@ RUN chmod u+s /usr/bin/sudo
 USER ${USER}
 WORKDIR /home/${USER}
 
-# Install Miniforge
-RUN wget -q -O Miniforge3.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh" ;\
-    bash Miniforge3.sh -b ;\
-    rm Miniforge3.sh ;\
-    export PATH=$HOME/miniforge3/bin:$PATH ;\
-    conda init bash
+# Use the project environment and lock file for all Python dependencies.
+COPY --from=ghcr.io/prefix-dev/pixi:0.82.1 /usr/local/bin/pixi /usr/local/bin/pixi
+COPY --chown=omdao:omdao . /home/omdao/dymos
+ENV PIXI_WORKSPACE_MANIFEST=/home/omdao/dymos/pyproject.toml
+ENV PIXI_ENVIRONMENT_NAME=dev
 
-# Create conda environment
-RUN source $HOME/miniforge3/etc/profile.d/conda.sh ;\
-    #
-    # Create conda environment
-    #
-    conda create -n mdaowork python=3.12 'numpy<2' scipy cython swig -q -y ;\
-    conda activate mdaowork ;\
-    conda install matplotlib graphviz -q -y ;\
-    conda install mpi4py openmpi petsc4py=3.20 pyoptsparse -q -y ;\
-    python -m pip install pyparsing psutil objgraph plotly pyxdsm pydot ;\
-    #
-    # Install pyoptsparse
-    #
-    python -m pip install git+https://github.com/openmdao/build_pyoptsparse ;\
-    # build_pyoptsparse -v ;\
-    #
-    # Install OpenMDAO
-    #
-    git clone https://github.com/OpenMDAO/OpenMDAO.git ;\
-    python -m pip install -e 'OpenMDAO[all]' ;\
-    #
-    # Install Dymos
-    #
-    git clone https://github.com/OpenMDAO/dymos.git ;\
-    python -m pip install -e 'dymos[all]'
+RUN pixi install --locked -e dev --manifest-path "$PIXI_WORKSPACE_MANIFEST"
 
-# Modify .bashrc
-RUN echo "## Always activate mdaowork environment on startup ##" >> ~/.bashrc ;\
-    echo "conda activate mdaowork" >> ~/.bashrc ;\
-    echo "" >> ~/.bashrc ;\
-    echo "## OpenMPI settings" >> ~/.bashrc ;\
-    echo "export OMPI_MCA_rmaps_base_oversubscribe=1" >> ~/.bashrc ;\
-    echo "export OMPI_MCA_btl=^openib" >> ~/.bashrc ;\
-    echo "" >> ~/.bashrc ;\
-    echo "## Required for some newer MPI / libfabric instances" >> ~/.bashrc ;\
-    echo "export RDMAV_FORK_SAFE=true" >> ~/.bashrc ;\
-    echo "" >> ~/.bashrc
+# Activate the same environment for interactive shells.
+RUN echo 'eval "$(pixi shell-hook -e dev --manifest-path /home/omdao/dymos/pyproject.toml)"' >> ~/.bashrc
+
+ENV PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe
+ENV OMPI_MCA_rmaps_base_oversubscribe=1
+ENV OMPI_MCA_btl=^openib
+ENV RDMAV_FORK_SAFE=true
 
 # Set up a work directory that can be shared with the host operating system
 WORKDIR /home/${USER}/work

@@ -1,0 +1,44 @@
+name: Dymos Docker Tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test_image:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-26.04
+            file: Dockerfile
+          - os: ubuntu-26.04-arm
+            file: Dockerfile.arm
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build test image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ${{ matrix.file }}
+          load: true
+          tags: dymos-test:ci
+
+      - name: Test image and MPI/PETSc
+        run: bash .github/scripts/test-docker-image.sh dymos-test:ci

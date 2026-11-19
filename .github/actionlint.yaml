@@ -1,6 +1,6 @@
 self-hosted-runner:
-  # Labels of self-hosted runner in array of strings.
-  labels: [ubuntu-24.04-arm]
+  # Hosted labels not yet recognized by the installed actionlint version.
+  labels: [ubuntu-26.04, ubuntu-26.04-arm]
 
 # Configuration variables in array of strings defined in your repository or
 # organization. `null` means disabling configuration variables check.

@@ -14,17 +14,18 @@ on:
 jobs:
   pypi-publish:
     name: Upload release to PyPI
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
 
     environment: release
 
     permissions:
+      contents: read
       id-token: write
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.x"
 
@@ -40,10 +41,10 @@ jobs:
   test-pypi-release:
     name: Test Dymos PyPi Release
     needs: [pypi-publish]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
 
     steps:
-    - uses: benc-uk/workflow-dispatch@v1
+    - uses: benc-uk/workflow-dispatch@v1.3.3
       with:
         workflow: Dymos Tests
         repo: ${{ github.repository_owner }}/Dymos

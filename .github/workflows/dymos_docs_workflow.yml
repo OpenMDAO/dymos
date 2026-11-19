@@ -44,7 +44,7 @@ concurrency:
 jobs:
 
   test_ubuntu:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
 
     defaults:
       run:
@@ -99,7 +99,6 @@ jobs:
     steps:
       - name: Display run details
         run: |
-          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
           echo "============================================================="
           echo "Run #${GITHUB_RUN_NUMBER}"
           echo "Run ID: ${GITHUB_RUN_ID}"
@@ -117,17 +116,7 @@ jobs:
 
       - name: Checkout code
         if: ${{ ! matrix.EXCLUDE }}
-        uses: actions/checkout@v6
-
-      - name: Create SSH key
-        env:
-          SSH_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}
-          SSH_KNOWN_HOSTS: ${{secrets.SSH_KNOWN_HOSTS}}
-        run: |
-          mkdir -p ~/.ssh/
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-          sudo chmod 600 ~/.ssh/id_rsa
-          echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+        uses: actions/checkout@v7
 
       - name: 'Setup OpenMDAO pixi Environment'
         id: setup_pixi_environment
@@ -172,8 +161,8 @@ jobs:
           playwright install --with-deps
 
       - name: Check MPI and PETSc
-        continue-on-error: true
         run: |
+          set -e
           eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
           if python -c "import mpi4py, petsc4py" 2>/dev/null; then
             echo "============================================================="
@@ -201,7 +190,8 @@ jobs:
             echo "Workaround for intermittent failures with OMPI https://github.com/open-mpi/ompi/issues/7393"
             echo "TMPDIR=/tmp" >> "$GITHUB_ENV"
           else
-            echo "mpi4py or petsc4py not installed in this environment, skipping MPI checks"
+            echo "Required MPI/PETSc installation is missing or broken"
+            exit 1
           fi
 
       - name: Build docs
@@ -213,22 +203,35 @@ jobs:
           echo "============================================================="
           python docs/build_docs.py build --no-rich --workers 3
 
+      - name: Create SSH key
+        if: |
+          (github.event_name == 'push' || github.event_name == 'release' ||
+           github.event_name == 'workflow_dispatch') && matrix.PUBLISH_DOCS
+        env:
+          SSH_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}
+          SSH_KNOWN_HOSTS: ${{secrets.SSH_KNOWN_HOSTS}}
+        run: |
+          mkdir -p ~/.ssh/
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          sudo chmod 600 ~/.ssh/id_rsa
+          echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
       - name: Publish docs to github.io
         if: |
-          github.event_name == 'push' && matrix.PUBLISH_DOCS
+          (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && matrix.PUBLISH_DOCS
         run: |
           eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
           echo "============================================================="
           echo "Publishing Docs to github.io"
           echo "============================================================="
           pip install ghp-import
-          cd $HOME/work/dymos/dymos
+          cd "$GITHUB_WORKSPACE"
           ghp-import -n -p -f docs/_executed_book/_build/html
 
       - name: Publish docs to openmdao.org
         if: |
-          (github.event_name == 'push' || github.event_name == 'release') &&
-          matrix.PUBLISH_DOCS
+          (github.event_name == 'push' || github.event_name == 'release' ||
+           github.event_name == 'workflow_dispatch') && matrix.PUBLISH_DOCS
         env:
           DOCS_LOCATION: ${{ secrets.DOCS_LOCATION }}
         run: |
@@ -237,15 +240,13 @@ jobs:
             echo "============================================================="
             echo "Create env with openssl compatible with hosting service"
             echo "============================================================="
-            conda create -n upload python=3.11 packaging openssl=3 openmdao -y
-            conda activate upload
-
             echo "============================================================="
             echo "Publishing Docs to openmdao.org"
             echo "============================================================="
             echo "Publish docs"
-            cd $HOME/work/dymos/dymos
-            python -m openmdao.docs.upload_doc_version docs/_executed_book/_build/html/ ${{ secrets.DOCS_LOCATION }}
+            cd "$GITHUB_WORKSPACE"
+            pixi exec --spec 'python=3.11' --spec packaging --spec 'openssl=3' --spec openmdao \
+              python -m openmdao.docs.upload_doc_version docs/_executed_book/_build/html/ "$DOCS_LOCATION"
           else
             echo "Docs destination not available."
           fi
@@ -268,7 +269,7 @@ jobs:
 
       - name: Upload docs artifact
         if: github.event_name == 'workflow_dispatch' && inputs.upload_docs_artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dymos-docs-html
           path: docs/_executed_book/_build/html

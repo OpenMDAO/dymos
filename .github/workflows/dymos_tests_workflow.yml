@@ -67,7 +67,7 @@ run-name:  ${{ inputs.run_name }}
 jobs:
 
   test_ubuntu:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-26.04
 
     defaults:
       run:
@@ -98,7 +98,6 @@ jobs:
     steps:
       - name: Display run details
         run: |
-          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
           echo "============================================================="
           echo "Run #${GITHUB_RUN_NUMBER}"
           echo "Run ID: ${GITHUB_RUN_ID}"
@@ -116,9 +115,10 @@ jobs:
 
       - name: Checkout code
         if: ${{ ! matrix.EXCLUDE }}
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: 'Setup OpenMDAO pixi Environment'
+        if: ${{ ! matrix.EXCLUDE }}
         id: setup_pixi_environment
         uses: OpenMDAO/OpenMDAO/.github/actions/setup_openmdao_pixi@master
         with:
@@ -173,8 +173,9 @@ jobs:
           ruff check . --config pyproject.toml
 
       - name: Check MPI and PETSc
-        continue-on-error: true
+        if: ${{ ! matrix.EXCLUDE }}
         run: |
+          set -e
           eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
           if python -c "import mpi4py, petsc4py" 2>/dev/null; then
             echo "============================================================="
@@ -202,7 +203,8 @@ jobs:
             echo "Workaround for intermittent failures with OMPI https://github.com/open-mpi/ompi/issues/7393"
             echo "TMPDIR=/tmp" >> "$GITHUB_ENV"
           else
-            echo "mpi4py or petsc4py not installed in this environment, skipping MPI checks"
+            echo "Required MPI/PETSc installation is missing or broken"
+            exit 1
           fi
 
       - name: Run tests
@@ -259,13 +261,13 @@ jobs:
           pip install coveralls
           coveralls --basedir $GITHUB_WORKSPACE/dymos
           # Copy coverage file back to repo for artifact upload
-          cp $HOME/.coverage .
+          cp "$HOME/.coverage" "$GITHUB_WORKSPACE/.coverage"
 
       # Uncomment for debug if coverage isn't working as expected.
       # - name: Upload coverage artifacts
       #   if: steps.run_tests.outcome == 'success' && github.event_name != 'workflow_dispatch' && ! matrix.SKIP_COVERAGE
       #   continue-on-error: true
-      #   uses: actions/upload-artifact@v4
+      #   uses: actions/upload-artifact@v7
       #   with:
       #     name: coverage-${{ matrix.NAME }}
       #     path: .coverage
@@ -274,13 +276,13 @@ jobs:
       #     include-hidden-files: true
 
       - name: Fail the workflow if tests failed
-        if: steps.run_tests.outcome != 'success'
+        if: ${{ ! matrix.EXCLUDE && steps.run_tests.outcome != 'success' }}
         run: |
           echo "Tests failed"
           exit 1
 
   test_dymos_pixi:
-    # Test dymos-native pixi environments defined in pixi.toml using the frozen pixi.lock.
+    # Test dymos-native pixi environments defined in pyproject.toml using pixi.lock.
     runs-on: ${{ matrix.runs-on }}
 
     defaults:
@@ -295,35 +297,35 @@ jobs:
         include:
           # default env on all three platforms
           - pixi-env: default
-            runs-on: ubuntu-latest
+            runs-on: ubuntu-26.04
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi }}
           - pixi-env: default
-            runs-on: macos-latest
+            runs-on: macos-26
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi }}
           - pixi-env: default
-            runs-on: windows-latest
+            runs-on: windows-2025
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi }}
           # remaining envs on Linux only
           - pixi-env: oldest
-            runs-on: ubuntu-latest
+            runs-on: ubuntu-26.04
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi }}
           - pixi-env: dev
-            runs-on: ubuntu-latest
+            runs-on: ubuntu-26.04
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi }}
           # dev-local with OpenMDAO installed from GitHub
           - pixi-env: dev-local
-            runs-on: ubuntu-latest
+            runs-on: ubuntu-26.04
             install_openmdao_github: true
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && inputs.dymos_pixi_openmdao_github == '' }}
           - pixi-env: dev-local
-            runs-on: macos-latest
+            runs-on: macos-26
             install_openmdao_github: true
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && inputs.dymos_pixi_openmdao_github == '' }}
 
     steps:
       - name: Checkout code
         if: ${{ !matrix.EXCLUDE }}
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Upload pixi.lock artifact
         if: ${{ !matrix.EXCLUDE && github.event_name == 'workflow_dispatch' && inputs.save_pixi_lock }}
@@ -335,7 +337,7 @@ jobs:
 
       - name: Setup pixi
         if: ${{ !matrix.EXCLUDE }}
-        uses: prefix-dev/setup-pixi@v0.9.5
+        uses: prefix-dev/setup-pixi@v0.11.3
         with:
           environments: ${{ matrix.pixi-env }}
 
@@ -347,18 +349,19 @@ jobs:
 
       - name: Install OpenMDAO from GitHub
         if: ${{ !matrix.EXCLUDE && matrix.install_openmdao_github }}
+        env:
+          OPENMDAO_REF: ${{ inputs.dymos_pixi_openmdao_github || 'master' }}
         run: |
           eval "$(pixi shell-hook -e ${{ matrix.pixi-env }} --manifest-path $GITHUB_WORKSPACE/pyproject.toml)"
-          OPENMDAO_REF="${{ inputs.dymos_pixi_openmdao_github || 'master' }}"
           echo "============================================================="
           echo "Install OpenMDAO from GitHub ref: $OPENMDAO_REF"
           echo "============================================================="
-          pip install --no-deps git+https://github.com/OpenMDAO/OpenMDAO@${OPENMDAO_REF}
+          pip install --no-deps "git+https://github.com/OpenMDAO/OpenMDAO@${OPENMDAO_REF}"
 
       - name: Check MPI and PETSc
-        if: ${{ !matrix.EXCLUDE }}
-        continue-on-error: true
+        if: ${{ !matrix.EXCLUDE && runner.os != 'Windows' }}
         run: |
+          set -e
           if pixi run -e ${{ matrix.pixi-env }} python -c "import mpi4py, petsc4py" 2>/dev/null; then
             echo "============================================================="
             echo "Check MPI and PETSc installation"
@@ -369,6 +372,8 @@ jobs:
             echo "-----------------------"
             echo "Quick test of mpi4py:"
             pixi run -e ${{ matrix.pixi-env }} mpirun -n 3 python -c "from mpi4py import MPI; print(f'Rank: {MPI.COMM_WORLD.rank}')"
+            pixi run -e ${{ matrix.pixi-env }} mpirun -n 3 python -c "from mpi4py import MPI; from petsc4py import PETSc; \
+              v = PETSc.Vec().createMPI(3, comm=MPI.COMM_WORLD); v.set(1); assert v.sum() == 3"
             echo "-----------------------"
 
             # shellcheck disable=SC2129
@@ -378,7 +383,8 @@ jobs:
             echo "Workaround for intermittent failures with OMPI https://github.com/open-mpi/ompi/issues/7393"
             echo "TMPDIR=/tmp" >> "$GITHUB_ENV"
           else
-            echo "mpi4py or petsc4py not installed in this environment, skipping MPI checks"
+            echo "Required MPI/PETSc installation is missing or broken"
+            exit 1
           fi
 
       - name: Run tests
@@ -417,9 +423,9 @@ jobs:
     if: github.event_name != 'workflow_dispatch'
     continue-on-error: true
     needs: test_ubuntu
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
-    - uses: coverallsapp/github-action@master
+    - uses: coverallsapp/github-action@v2.3.8
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         parallel-finished: true
