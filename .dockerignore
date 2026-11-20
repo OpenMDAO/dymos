@@ -1,0 +1,20 @@
+# Include only project source and test resources in the image.
+*
+!dymos/
+!dymos/**
+!docs/
+!docs/**
+!joss/
+!joss/**
+!benchmark/
+!benchmark/**
+!pyproject.toml
+!pixi.lock
+!readme.md
+!LICENSE
+**/__pycache__
+**/*_out
+**/*.bak
+**/*.prof
+docs/_executed_book
+docs/_build

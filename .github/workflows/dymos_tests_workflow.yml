@@ -2,6 +2,16 @@
 
 name: Dymos Tests
 
+env:
+  # Hosted runners do not provide usable RDMA devices for UCX.
+  OMPI_MCA_pml: ob1
+  OMPI_MCA_osc: ^ucx
+  # Parallel test workers should not each start a full BLAS thread pool.
+  OMP_NUM_THREADS: '1'
+  OPENBLAS_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  PYTHONFAULTHANDLER: '1'
+
 on:
   # Trigger on push, pull request
   push:
@@ -66,226 +76,13 @@ run-name:  ${{ inputs.run_name }}
 
 jobs:
 
-  test_ubuntu:
-    runs-on: ubuntu-22.04
-
-    defaults:
-      run:
-        shell: bash -l {0}
-
-    timeout-minutes: 90
-
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          # baseline versions
-          - NAME: baseline
-            OPENMDAO_PIXI_ENVIRONMENT: 'py313'
-            OPENMDAO_INSTALL_FROM: 'pypi'
-            OPENMDAO: ''
-            EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.baseline }}
-
-          # test PEP517 wheel build (no coverage)
-          - NAME: pep517
-            OPENMDAO_PIXI_ENVIRONMENT: 'py313'
-            OPENMDAO_INSTALL_FROM: 'pypi'
-            OPENMDAO: ''
-            PEP517: True
-            SKIP_COVERAGE: True
-            EXCLUDE: ${{ github.event_name == 'workflow_dispatch'  && ! inputs.pep517 }}
-
-    steps:
-      - name: Display run details
-        run: |
-          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
-          echo "============================================================="
-          echo "Run #${GITHUB_RUN_NUMBER}"
-          echo "Run ID: ${GITHUB_RUN_ID}"
-          echo "Testing: ${GITHUB_REPOSITORY}"
-          echo "Triggered by: ${GITHUB_EVENT_NAME}"
-          echo "Initiated by: ${GITHUB_ACTOR}"
-          echo "============================================================="
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            if [[ "${{ matrix.EXCLUDE }}" == "false" ]]; then
-              echo "Triggered by 'workflow_dispatch', '${{ matrix.NAME }}' build was selected and will run."
-            else
-              echo "Triggered by 'workflow_dispatch', '${{ matrix.NAME }}' build not selected and will not run."
-            fi
-          fi
-
-      - name: Checkout code
-        if: ${{ ! matrix.EXCLUDE }}
-        uses: actions/checkout@v6
-
-      - name: 'Setup OpenMDAO pixi Environment'
-        id: setup_pixi_environment
-        uses: OpenMDAO/OpenMDAO/.github/actions/setup_openmdao_pixi@master
-        with:
-          environment: '${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }}'
-          openmdao_install_from: '${{ matrix.OPENMDAO_INSTALL_FROM }}'
-          openmdao_version: '${{ matrix.OPENMDAO }}'
-
-      - name: Install Dymos
-        if: ${{ ! matrix.EXCLUDE }}
-        run: |
-          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
-          echo "============================================================="
-          echo "Install Dymos"
-          echo "============================================================="
-          if [[  "${{ inputs.use_pypi }}" == "true" ]]; then
-            echo "-----------------------------------------------------------"
-            echo "Installing from PyPI"
-            echo "-----------------------------------------------------------"
-            python -m pip install dymos --no-deps
-          elif [[ "${{ matrix.PEP517 }}" == "true" ]]; then
-            pip wheel --no-deps --use-pep517 .
-            WHEEL=$(find dymos-*.whl)
-            echo "-----------------------------------------------------------"
-            echo "Installing from wheel: $WHEEL"
-            echo "-----------------------------------------------------------"
-            python -m pip install "$WHEEL"
-          else
-            echo "-----------------------------------------------------------"
-            echo "Installing as editable install for coverage support"
-            echo "-----------------------------------------------------------"
-            python -m pip install -e . --no-deps
-          fi
-
-      - name: Install optional dependencies
-        if: matrix.OPENMDAO_PIXI_ENVIRONMENT == 'dev'
-        run: |
-          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
-          echo "============================================================="
-          echo "Install additional packages for testing/coverage"
-          echo "============================================================="
-          echo "Pre-install playwright dependencies to avoid 'Playwright Host validation warning'"
-          pip install playwright
-          playwright install --with-deps
-
-      - name: Perform linting with Ruff
-        if: ${{ ! matrix.EXCLUDE && matrix.NAME == 'baseline' }}
-        run: |
-          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
-          echo "============================================================="
-          echo "Lint Dymos code per settings in pyproject.toml"
-          echo "============================================================="
-          ruff check . --config pyproject.toml
-
-      - name: Check MPI and PETSc
-        continue-on-error: true
-        run: |
-          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
-          if python -c "import mpi4py, petsc4py" 2>/dev/null; then
-            echo "============================================================="
-            echo "Check MPI and PETSc installation"
-            echo "============================================================="
-            export PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe
-            export OMPI_MCA_rmaps_base_oversubscribe=1
-            export OMPI_MCA_btl=^openib
-            echo "-----------------------"
-            echo "Quick test of mpi4py:"
-            mpirun -n 3 python -c "from mpi4py import MPI; print(f'Rank: {MPI.COMM_WORLD.rank}')"
-            echo "-----------------------"
-            echo "Quick test of petsc4py:"
-            mpirun -n 3 python -c "import numpy; from mpi4py import MPI; comm = MPI.COMM_WORLD; \
-              import petsc4py; petsc4py.init(); \
-              x = petsc4py.PETSc.Vec().createWithArray(numpy.ones(5)*comm.rank, comm=comm);  \
-              print(x.getArray())"
-            echo "-----------------------"
-
-            # shellcheck disable=SC2129
-            echo "PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe" >> "$GITHUB_ENV"
-            echo "OMPI_MCA_rmaps_base_oversubscribe=1" >> "$GITHUB_ENV"
-            echo "OMPI_MCA_btl=^openib" >> "$GITHUB_ENV"
-
-            echo "Workaround for intermittent failures with OMPI https://github.com/open-mpi/ompi/issues/7393"
-            echo "TMPDIR=/tmp" >> "$GITHUB_ENV"
-          else
-            echo "mpi4py or petsc4py not installed in this environment, skipping MPI checks"
-          fi
-
-      - name: Run tests
-        id: run_tests
-        if: ${{ ! matrix.EXCLUDE }}
-        env:
-          OPENMDAO_CHECK_ALL_PARTIALS: True
-        continue-on-error: true
-        run: |
-          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
-          echo "============================================================="
-          echo "Run Tests"
-          echo "Environment:"
-          echo "   OPENMDAO_CHECK_ALL_PARTIALS: $OPENMDAO_CHECK_ALL_PARTIALS"
-          echo "============================================================="
-          testflo -n 1 docs/dymos_book/test --pre_announce || HAS_ERRORS=true
-          testflo -n 1 joss/test --pre_announce || HAS_ERRORS=true
-          testflo -b benchmark --pre_announce || HAS_ERRORS=true
-          # Run the readme test from the checked out directory.
-          testflo -n 1 ./dymos/test/test_readme.py --pre_announce || HAS_ERRORS=true
-          if [[ "${{ matrix.NAME }}" != "latest" && "${{ matrix.SKIP_COVERAGE }}" != "true" ]]; then
-            echo "Coverage files before moving to HOME:"
-            ls -la .coverage* 2>/dev/null || echo "No .coverage files found"
-            cp .coveragerc $HOME
-            cd $HOME
-            testflo dymos -n 4 --pre_announce --show_skipped --durations 20 --coverage --coverpkg dymos || HAS_ERRORS=true
-          else
-            cd $HOME
-            testflo dymos -n 4 --pre_announce --show_skipped --durations 20 || HAS_ERRORS=true
-          fi
-
-          if [ "$HAS_ERRORS" = true ]; then
-            echo "One or more commands failed"
-            exit 1
-          fi
-
-      - name: Submit coverage
-        if: steps.run_tests.outcome == 'success' && github.event_name != 'workflow_dispatch' && ! matrix.SKIP_COVERAGE
-        continue-on-error: true
-        env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COVERALLS_SERVICE_NAME: "github"
-          COVERALLS_PARALLEL: True
-          # These three ensure the SHA and branch are NEVER empty
-          COVERALLS_GIT_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
-          COVERALLS_GIT_BRANCH: ${{ github.head_ref || github.ref_name }}
-        run: |
-          eval "$(pixi shell-hook -e ${{ matrix.OPENMDAO_PIXI_ENVIRONMENT }} --manifest-path=${{ env.PIXI_MANIFEST }})"
-          echo "============================================================="
-          echo "Submit coverage"
-          echo "============================================================="
-          cd $HOME
-          coverage report -m
-          pip install coveralls
-          coveralls --basedir $GITHUB_WORKSPACE/dymos
-          # Copy coverage file back to repo for artifact upload
-          cp $HOME/.coverage .
-
-      # Uncomment for debug if coverage isn't working as expected.
-      # - name: Upload coverage artifacts
-      #   if: steps.run_tests.outcome == 'success' && github.event_name != 'workflow_dispatch' && ! matrix.SKIP_COVERAGE
-      #   continue-on-error: true
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: coverage-${{ matrix.NAME }}
-      #     path: .coverage
-      #     retention-days: 7
-      #     if-no-files-found: warn
-      #     include-hidden-files: true
-
-      - name: Fail the workflow if tests failed
-        if: steps.run_tests.outcome != 'success'
-        run: |
-          echo "Tests failed"
-          exit 1
-
   test_dymos_pixi:
-    # Test dymos-native pixi environments defined in pixi.toml using the frozen pixi.lock.
+    # Test dymos-native pixi environments defined in pyproject.toml using pixi.lock.
     runs-on: ${{ matrix.runs-on }}
 
     defaults:
       run:
-        shell: bash
+        shell: bash -eo pipefail {0}
 
     timeout-minutes: 90
 
@@ -295,35 +92,54 @@ jobs:
         include:
           # default env on all three platforms
           - pixi-env: default
-            runs-on: ubuntu-latest
+            runs-on: ubuntu-26.04
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi }}
           - pixi-env: default
-            runs-on: macos-latest
+            runs-on: macos-26
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi }}
+          # Hosted Windows runners crash intermittently with "Windows fatal
+          # exception: access violation" inside BLAS calls. Suspected (but not
+          # confirmed) to be the Emerald Rapids AMX CPUID bug at
+          # https://github.com/actions/runner-images/issues/14483 /
+          # https://github.com/golang/go/issues/81238, but it reproduces on
+          # both windows-latest and windows-2022, so it is not clearly tied to
+          # one runner image/CPU generation. The "Run tests" step logs CPU
+          # details and runs a minimal test subset on Windows while this is
+          # investigated.
           - pixi-env: default
             runs-on: windows-latest
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi }}
           # remaining envs on Linux only
           - pixi-env: oldest
-            runs-on: ubuntu-latest
+            runs-on: ubuntu-26.04
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi }}
+          # coverage is collected from this entry and submitted to coveralls
           - pixi-env: dev
-            runs-on: ubuntu-latest
+            runs-on: ubuntu-26.04
+            coverage: true
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi }}
           # dev-local with OpenMDAO installed from GitHub
           - pixi-env: dev-local
-            runs-on: ubuntu-latest
-            install_openmdao_github: true
-            EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && inputs.dymos_pixi_openmdao_github == '' }}
-          - pixi-env: dev-local
-            runs-on: macos-latest
+            runs-on: ubuntu-26.04
             install_openmdao_github: true
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && inputs.dymos_pixi_openmdao_github == '' }}
 
     steps:
       - name: Checkout code
         if: ${{ !matrix.EXCLUDE }}
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
+
+      - name: Log CPU info (Windows)
+        # Hosted Windows runners have been crashing intermittently in BLAS calls
+        # (see comment on the windows-latest matrix entry above); log which host
+        # CPU we landed on so repeated runs can be checked for a pattern.
+        if: ${{ !matrix.EXCLUDE && runner.os == 'Windows' }}
+        shell: pwsh
+        run: |
+          Get-CimInstance Win32_Processor |
+            Select-Object Name, Manufacturer, Caption, ProcessorId, Family, Revision, NumberOfCores, NumberOfLogicalProcessors |
+            Format-List
+          Write-Host "PROCESSOR_IDENTIFIER: $env:PROCESSOR_IDENTIFIER"
 
       - name: Upload pixi.lock artifact
         if: ${{ !matrix.EXCLUDE && github.event_name == 'workflow_dispatch' && inputs.save_pixi_lock }}
@@ -335,30 +151,36 @@ jobs:
 
       - name: Setup pixi
         if: ${{ !matrix.EXCLUDE }}
-        uses: prefix-dev/setup-pixi@v0.9.5
+        uses: prefix-dev/setup-pixi@v0.11.3
         with:
           environments: ${{ matrix.pixi-env }}
+          locked: true
+          cache: true
+          cache-write: ${{ github.event_name == 'push' && github.ref_name == 'master' }}
 
       - name: Install Dymos
         if: ${{ !matrix.EXCLUDE }}
         run: |
-          eval "$(pixi shell-hook -e ${{ matrix.pixi-env }} --manifest-path $GITHUB_WORKSPACE/pyproject.toml)"
+          PIXI_SHELL_HOOK=$(pixi shell-hook -e ${{ matrix.pixi-env }} --manifest-path $GITHUB_WORKSPACE/pyproject.toml)
+          eval "$PIXI_SHELL_HOOK"
           pip install --no-deps -e $GITHUB_WORKSPACE
 
       - name: Install OpenMDAO from GitHub
         if: ${{ !matrix.EXCLUDE && matrix.install_openmdao_github }}
+        env:
+          OPENMDAO_REF: ${{ inputs.dymos_pixi_openmdao_github || 'master' }}
         run: |
-          eval "$(pixi shell-hook -e ${{ matrix.pixi-env }} --manifest-path $GITHUB_WORKSPACE/pyproject.toml)"
-          OPENMDAO_REF="${{ inputs.dymos_pixi_openmdao_github || 'master' }}"
+          PIXI_SHELL_HOOK=$(pixi shell-hook -e ${{ matrix.pixi-env }} --manifest-path $GITHUB_WORKSPACE/pyproject.toml)
+          eval "$PIXI_SHELL_HOOK"
           echo "============================================================="
           echo "Install OpenMDAO from GitHub ref: $OPENMDAO_REF"
           echo "============================================================="
-          pip install --no-deps git+https://github.com/OpenMDAO/OpenMDAO@${OPENMDAO_REF}
+          pip install --no-deps "git+https://github.com/OpenMDAO/OpenMDAO@${OPENMDAO_REF}"
 
       - name: Check MPI and PETSc
-        if: ${{ !matrix.EXCLUDE }}
-        continue-on-error: true
+        if: ${{ !matrix.EXCLUDE && runner.os != 'Windows' }}
         run: |
+          set -e
           if pixi run -e ${{ matrix.pixi-env }} python -c "import mpi4py, petsc4py" 2>/dev/null; then
             echo "============================================================="
             echo "Check MPI and PETSc installation"
@@ -368,7 +190,9 @@ jobs:
             export OMPI_MCA_btl=^openib
             echo "-----------------------"
             echo "Quick test of mpi4py:"
-            pixi run -e ${{ matrix.pixi-env }} mpirun -n 3 python -c "from mpi4py import MPI; print(f'Rank: {MPI.COMM_WORLD.rank}')"
+            pixi run -e ${{ matrix.pixi-env }} mpirun --timeout 120 -n 3 python -c "from mpi4py import MPI; print(f'Rank: {MPI.COMM_WORLD.rank}')"
+            pixi run -e ${{ matrix.pixi-env }} mpirun --timeout 120 -n 3 python -c "from mpi4py import MPI; from petsc4py import PETSc; \
+              v = PETSc.Vec().createMPI(3, comm=MPI.COMM_WORLD); v.set(1); assert v.sum() == 3"
             echo "-----------------------"
 
             # shellcheck disable=SC2129
@@ -378,7 +202,8 @@ jobs:
             echo "Workaround for intermittent failures with OMPI https://github.com/open-mpi/ompi/issues/7393"
             echo "TMPDIR=/tmp" >> "$GITHUB_ENV"
           else
-            echo "mpi4py or petsc4py not installed in this environment, skipping MPI checks"
+            echo "Required MPI/PETSc installation is missing or broken"
+            exit 1
           fi
 
       - name: Run tests
@@ -388,23 +213,89 @@ jobs:
           OPENMDAO_CHECK_ALL_PARTIALS: True
         continue-on-error: true
         run: |
-          eval "$(pixi shell-hook -e ${{ matrix.pixi-env }} --manifest-path $GITHUB_WORKSPACE/pyproject.toml)"
+          HAS_ERRORS=false
+          PIXI_SHELL_HOOK=$(pixi shell-hook -e ${{ matrix.pixi-env }} --manifest-path $GITHUB_WORKSPACE/pyproject.toml)
+          eval "$PIXI_SHELL_HOOK"
           echo "============================================================="
           echo "Run Tests (pixi environment: ${{ matrix.pixi-env }})"
           echo "============================================================="
           cd $GITHUB_WORKSPACE
-          testflo -n 1 docs/dymos_book/test --pre_announce || HAS_ERRORS=true
-          testflo -n 1 joss/test --pre_announce || HAS_ERRORS=true
-          testflo -b benchmark --pre_announce || HAS_ERRORS=true
-          # Run the readme test from the checked out directory.
-          testflo -n 1 ./dymos/test/test_readme.py --pre_announce || HAS_ERRORS=true
-          cd $HOME
-          testflo dymos -n 4 --pre_announce --show_skipped --durations 20 || HAS_ERRORS=true
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            # Hosted Windows runners currently crash intermittently with "Windows
+            # fatal exception: access violation" inside BLAS calls, suspected to be
+            # due to a CPUID bug on some host CPUs
+            # (https://github.com/actions/runner-images/issues/14483). This
+            # reproduces on both windows-latest and windows-2022, so it looks like
+            # an Azure host-pool issue rather than something tied to one runner
+            # image. Until that is resolved upstream, run a minimal smoke-test
+            # subset on Windows instead of the full suite.
+            echo "Windows: running a minimal smoke-test subset (see comment above) instead of the full suite."
+            testflo -n 1 ./dymos/test/test_readme.py --pre_announce || HAS_ERRORS=true
+            testflo dymos/examples/brachistochrone/test/test_ex_brachistochrone.py \
+              -n 1 --pre_announce --show_skipped || {
+              TEST_EXIT_CODE=$?
+              echo "::error::Dymos test process exited with status $TEST_EXIT_CODE"
+              HAS_ERRORS=true
+            }
+          else
+            testflo -n 1 docs/dymos_book/test --pre_announce || HAS_ERRORS=true
+            testflo -n 1 joss/test --pre_announce || HAS_ERRORS=true
+            testflo -b benchmark --pre_announce --nocapture || HAS_ERRORS=true
+            # Run the readme test from the checked out directory.
+            testflo -n 1 ./dymos/test/test_readme.py --pre_announce || HAS_ERRORS=true
+            COVERAGE_ARGS=()
+            if [[ "${{ matrix.coverage }}" == "true" ]]; then
+              # Write coverage data outside the repo with no .coveragerc so that file
+              # paths are recorded as absolute paths; the lcov report generated from
+              # the workspace then makes them relative to the repository root.
+              COVERAGE_ARGS=(--coverage --coverpkg dymos --cover-dir "$RUNNER_TEMP/coverage")
+              mkdir -p "$RUNNER_TEMP/coverage"
+            fi
+            cd $HOME
+            testflo dymos -n 4 --pre_announce --show_skipped --durations 20 "${COVERAGE_ARGS[@]}" || {
+              TEST_EXIT_CODE=$?
+              echo "::error::Dymos test process exited with status $TEST_EXIT_CODE"
+              HAS_ERRORS=true
+            }
+          fi
 
           if [ "$HAS_ERRORS" = true ]; then
             echo "One or more commands failed"
             exit 1
           fi
+
+      - name: Generate coverage report
+        id: coverage_report
+        if: ${{ !matrix.EXCLUDE && matrix.coverage && steps.run_dymos_pixi_tests.outcome == 'success' && github.event_name != 'workflow_dispatch' }}
+        continue-on-error: true
+        run: |
+          PIXI_SHELL_HOOK=$(pixi shell-hook -e ${{ matrix.pixi-env }} --manifest-path $GITHUB_WORKSPACE/pyproject.toml)
+          eval "$PIXI_SHELL_HOOK"
+          # testflo imports the test modules (and therefore dymos) in the parent process
+          # during discovery, before coverage starts, so the forked workers never record
+          # module-level lines (imports, def/class statements, class bodies). Record a
+          # discovery-only pass under coverage and merge it into the testflo data.
+          cd $HOME
+          coverage run --data-file="$RUNNER_TEMP/coverage/.coverage.discovery" --source=dymos \
+            -m testflo dymos -n 1 --dryrun > /dev/null
+          coverage combine --append --data-file "$RUNNER_TEMP/coverage/.coverage" \
+            "$RUNNER_TEMP/coverage/.coverage.discovery"
+          cd $GITHUB_WORKSPACE
+          coverage report --data-file "$RUNNER_TEMP/coverage/.coverage" --skip-empty
+          coverage lcov --data-file "$RUNNER_TEMP/coverage/.coverage" -o coverage.lcov
+          head -n 3 coverage.lcov
+
+      - name: Submit coverage
+        if: ${{ !matrix.EXCLUDE && matrix.coverage && steps.coverage_report.outcome == 'success' }}
+        continue-on-error: true
+        uses: coverallsapp/github-action@v2.3.8
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          file: coverage.lcov
+          format: lcov
+          flag-name: ${{ matrix.pixi-env }}-${{ matrix.runs-on }}
+          parallel: true
+          fail-on-error: false
 
       - name: Fail the workflow if tests failed
         if: ${{ !matrix.EXCLUDE && steps.run_dymos_pixi_tests.outcome != 'success' }}
@@ -414,12 +305,14 @@ jobs:
 
   coveralls:
     name: Finish coveralls
-    if: github.event_name != 'workflow_dispatch'
+    # Run even if a test leg failed so the parallel coveralls build is closed out.
+    if: ${{ always() && github.event_name != 'workflow_dispatch' }}
     continue-on-error: true
-    needs: test_ubuntu
-    runs-on: ubuntu-latest
+    needs: test_dymos_pixi
+    runs-on: ubuntu-26.04
     steps:
-    - uses: coverallsapp/github-action@master
+    - uses: coverallsapp/github-action@v2.3.8
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         parallel-finished: true
+        fail-on-error: false
