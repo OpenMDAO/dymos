@@ -324,7 +324,7 @@ jobs:
             runs-on: macos-26
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi }}
           - pixi-env: default
-            runs-on: windows-latest
+            runs-on: windows-2022
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi }}
           # remaining envs on Linux only
           - pixi-env: oldest
