@@ -310,12 +310,13 @@ jobs:
     # windows-2025/windows-latest runners have a CPUID bug (see comment near the
     # windows-latest matrix entry below) that makes AMX instructions look
     # available when they are not, corrupting the stack on any later hardware
-    # fault. These vars are no-ops on non-Windows runners.
+    # fault. matrix.runs-on (not the runner context, which isn't available at
+    # job-level env) selects these; they are no-ops on non-Windows runners.
     env:
-      MKL_ENABLE_INSTRUCTIONS: ${{ runner.os == 'Windows' && 'AVX2' || '' }}
-      OPENBLAS_CORETYPE: ${{ runner.os == 'Windows' && 'Haswell' || '' }}
-      NPY_DISABLE_CPU_FEATURES: ${{ runner.os == 'Windows' && 'AVX512_SPR AMX_TILE AMX_BF16 AMX_INT8' || '' }}
-      ONEDNN_MAX_CPU_ISA: ${{ runner.os == 'Windows' && 'AVX2' || '' }}
+      MKL_ENABLE_INSTRUCTIONS: ${{ startsWith(matrix.runs-on, 'windows') && 'AVX2' || '' }}
+      OPENBLAS_CORETYPE: ${{ startsWith(matrix.runs-on, 'windows') && 'Haswell' || '' }}
+      NPY_DISABLE_CPU_FEATURES: ${{ startsWith(matrix.runs-on, 'windows') && 'AVX512_SPR AMX_TILE AMX_BF16 AMX_INT8' || '' }}
+      ONEDNN_MAX_CPU_ISA: ${{ startsWith(matrix.runs-on, 'windows') && 'AVX2' || '' }}
 
     defaults:
       run:
