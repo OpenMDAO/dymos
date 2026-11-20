@@ -15,6 +15,28 @@ import openmdao.api as om
 import sys
 
 
+def _phases_to_refine(phases, refine_results):
+    """
+    Return the paths of the phases which allow refinement and do not satisfy their tolerance.
+
+    Parameters
+    ----------
+    phases : dict of {phase_path: Phase}
+        The phases in the problem being refined.
+    refine_results : dict
+        A dictionary containing the grid refinement data for each phase, keyed by the phase path
+        in the model.
+
+    Returns
+    -------
+    list of str
+        The paths of the phases to be refined.
+    """
+    return [phase_path for phase_path in refine_results if
+            phases[phase_path].refine_options['refine'] and
+            np.any(refine_results[phase_path]['need_refinement'])]
+  
+  
 def find_phases(sys):
     """
     Find all instances of Dymos Phases within the given system, and returns them as a dictionary.
@@ -72,9 +94,7 @@ def _refine_iter(problem, refine_iteration_limit=0, refine_method='hp', case_pre
             for i in range(1, refine_iteration_limit + 1):
                 refine_results = check_error(phases)
 
-                refined_phases = [phase_path for phase_path in refine_results if
-                                  phases[phase_path].refine_options['refine'] and
-                                  np.any(refine_results[phase_path]['need_refinement'])]
+                refined_phases = _phases_to_refine(phases, refine_results)
 
                 for stream in f, sys.stdout:
                     write_error(stream, i, phases, refine_results)
@@ -114,13 +134,23 @@ def _refine_iter(problem, refine_iteration_limit=0, refine_method='hp', case_pre
                     phs.load_case(prev_soln)
 
                 failed = problem.run_driver(case_prefix=f'{_case_prefix}{refine_method}_{i}_')
+            else:
+                # The iteration limit was reached. Check the error on the grid of the last iteration.
+                refine_results = check_error(phases)
+
+                refined_phases = _phases_to_refine(phases, refine_results)
+
+                for stream in f, sys.stdout:
+                    write_error(stream, refine_iteration_limit + 1, phases, refine_results)
 
             for stream in [f, sys.stdout]:
-                if i == refine_iteration_limit - 1:
+                if refined_phases:
                     print('Iteration limit exceeded. Unable to satisfy specified tolerance', file=stream)
-                    failed = True
                 else:
                     print('Successfully completed grid refinement.', file=stream)
             print(50 * '=')
+
+            if refined_phases:
+                failed = True
 
     return failed
