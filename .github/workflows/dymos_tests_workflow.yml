@@ -153,6 +153,7 @@ jobs:
         uses: prefix-dev/setup-pixi@v0.11.3
         with:
           environments: ${{ matrix.pixi-env }}
+          locked: true
           cache: true
           cache-write: ${{ github.event_name == 'push' && github.ref_name == 'master' }}
 
