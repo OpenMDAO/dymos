@@ -217,6 +217,17 @@ class BirkhoffDefectComp(om.ExplicitComponent):
         self._B = scipy.linalg.block_diag(*B_blocks)
         self._C = scipy.linalg.block_diag(*C_blocks)
 
+        # These depend only on the grid (num_nodes, self._xv_idxs), not on the
+        # state being processed, so compute them once rather than per state.
+        # dXV_dX/dXV_dV are row-permuted identity/zero blocks (at most one
+        # nonzero per row), so convert to sparse before the matmul rather than
+        # after, to avoid a dense BLAS call on them.
+        d_state_defect_dXV = sp.csr_matrix(self._A)
+        dXV_dX = sp.csr_matrix(np.vstack((np.eye(num_nodes), np.zeros((num_nodes, num_nodes))))[self._xv_idxs])
+        dXV_dV = sp.csr_matrix(np.vstack((np.zeros((num_nodes, num_nodes)), np.eye(num_nodes)))[self._xv_idxs])
+        dstate_defect_dX = d_state_defect_dXV.dot(dXV_dX)
+        dstate_defect_dV = d_state_defect_dXV.dot(dXV_dV)
+
         # Setup partials
         for state_name, options in state_options.items():
             shape = options['shape']
@@ -249,11 +260,8 @@ class BirkhoffDefectComp(om.ExplicitComponent):
                                   wrt=var_names['state_final_value'],
                                   rows=d_dxa_r[-size:], cols=d_dxa_c[-size:], val=-1.0)
 
-            d_state_defect_dXV = self._A
-            dXV_dX = np.vstack((np.eye(num_nodes), np.zeros((num_nodes, num_nodes))))[self._xv_idxs]
-            dXV_dV = np.vstack((np.zeros((num_nodes, num_nodes)), np.eye(num_nodes)))[self._xv_idxs]
-            d_state_defect_dX = sp.csr_matrix(np.kron(np.dot(d_state_defect_dXV, dXV_dX), np.eye(size)))
-            d_state_defect_dV = sp.csr_matrix(np.kron(np.dot(d_state_defect_dXV, dXV_dV), np.eye(size)))
+            d_state_defect_dX = sp.kron(dstate_defect_dX, sp.eye(size), format='csr')
+            d_state_defect_dV = sp.kron(dstate_defect_dV, sp.eye(size), format='csr')
 
             rs_dX, cs_dX = d_state_defect_dX.nonzero()
             rs_dV, cs_dV = d_state_defect_dV.nonzero()
