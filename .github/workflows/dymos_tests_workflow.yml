@@ -97,19 +97,17 @@ jobs:
           - pixi-env: default
             runs-on: macos-26
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi }}
-          # windows-2025/windows-latest runners use Emerald Rapids Xeons with a
-          # CPUID bug that misreports AMX support (see
-          # https://github.com/actions/runner-images/issues/14483), which we
-          # believe corrupts the stack on the next hardware fault anywhere in
-          # the process (see https://github.com/golang/go/issues/81238 for the
-          # mechanism), crashing BLAS calls with "Windows fatal exception:
-          # access violation". Forcing MKL/OpenBLAS/numpy off AMX-capable
-          # instructions via env vars did not stop the crash (conda-forge's
-          # win-64 libopenblas build may not honor OPENBLAS_CORETYPE at
-          # runtime), so pin to windows-2022 until the upstream runner-images
-          # issue is resolved.
+          # Hosted Windows runners crash intermittently with "Windows fatal
+          # exception: access violation" inside BLAS calls. Suspected (but not
+          # confirmed) to be the Emerald Rapids AMX CPUID bug at
+          # https://github.com/actions/runner-images/issues/14483 /
+          # https://github.com/golang/go/issues/81238, but it reproduces on
+          # both windows-latest and windows-2022, so it is not clearly tied to
+          # one runner image/CPU generation. The "Run tests" step logs CPU
+          # details and runs a minimal test subset on Windows while this is
+          # investigated.
           - pixi-env: default
-            runs-on: windows-2022
+            runs-on: windows-latest
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi }}
           # remaining envs on Linux only
           - pixi-env: oldest
@@ -130,6 +128,18 @@ jobs:
       - name: Checkout code
         if: ${{ !matrix.EXCLUDE }}
         uses: actions/checkout@v7
+
+      - name: Log CPU info (Windows)
+        # Hosted Windows runners have been crashing intermittently in BLAS calls
+        # (see comment on the windows-latest matrix entry above); log which host
+        # CPU we landed on so repeated runs can be checked for a pattern.
+        if: ${{ !matrix.EXCLUDE && runner.os == 'Windows' }}
+        shell: pwsh
+        run: |
+          Get-CimInstance Win32_Processor |
+            Select-Object Name, Manufacturer, Caption, ProcessorId, Family, Revision, NumberOfCores, NumberOfLogicalProcessors |
+            Format-List
+          Write-Host "PROCESSOR_IDENTIFIER: $env:PROCESSOR_IDENTIFIER"
 
       - name: Upload pixi.lock artifact
         if: ${{ !matrix.EXCLUDE && github.event_name == 'workflow_dispatch' && inputs.save_pixi_lock }}
@@ -210,25 +220,44 @@ jobs:
           echo "Run Tests (pixi environment: ${{ matrix.pixi-env }})"
           echo "============================================================="
           cd $GITHUB_WORKSPACE
-          testflo -n 1 docs/dymos_book/test --pre_announce || HAS_ERRORS=true
-          testflo -n 1 joss/test --pre_announce || HAS_ERRORS=true
-          testflo -b benchmark --pre_announce --nocapture || HAS_ERRORS=true
-          # Run the readme test from the checked out directory.
-          testflo -n 1 ./dymos/test/test_readme.py --pre_announce || HAS_ERRORS=true
-          COVERAGE_ARGS=()
-          if [[ "${{ matrix.coverage }}" == "true" ]]; then
-            # Write coverage data outside the repo with no .coveragerc so that file
-            # paths are recorded as absolute paths; the lcov report generated from
-            # the workspace then makes them relative to the repository root.
-            COVERAGE_ARGS=(--coverage --coverpkg dymos --cover-dir "$RUNNER_TEMP/coverage")
-            mkdir -p "$RUNNER_TEMP/coverage"
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            # Hosted Windows runners currently crash intermittently with "Windows
+            # fatal exception: access violation" inside BLAS calls, suspected to be
+            # due to a CPUID bug on some host CPUs
+            # (https://github.com/actions/runner-images/issues/14483). This
+            # reproduces on both windows-latest and windows-2022, so it looks like
+            # an Azure host-pool issue rather than something tied to one runner
+            # image. Until that is resolved upstream, run a minimal smoke-test
+            # subset on Windows instead of the full suite.
+            echo "Windows: running a minimal smoke-test subset (see comment above) instead of the full suite."
+            testflo -n 1 ./dymos/test/test_readme.py --pre_announce || HAS_ERRORS=true
+            testflo dymos/examples/brachistochrone/test/test_ex_brachistochrone.py \
+              -n 1 --pre_announce --show_skipped || {
+              TEST_EXIT_CODE=$?
+              echo "::error::Dymos test process exited with status $TEST_EXIT_CODE"
+              HAS_ERRORS=true
+            }
+          else
+            testflo -n 1 docs/dymos_book/test --pre_announce || HAS_ERRORS=true
+            testflo -n 1 joss/test --pre_announce || HAS_ERRORS=true
+            testflo -b benchmark --pre_announce --nocapture || HAS_ERRORS=true
+            # Run the readme test from the checked out directory.
+            testflo -n 1 ./dymos/test/test_readme.py --pre_announce || HAS_ERRORS=true
+            COVERAGE_ARGS=()
+            if [[ "${{ matrix.coverage }}" == "true" ]]; then
+              # Write coverage data outside the repo with no .coveragerc so that file
+              # paths are recorded as absolute paths; the lcov report generated from
+              # the workspace then makes them relative to the repository root.
+              COVERAGE_ARGS=(--coverage --coverpkg dymos --cover-dir "$RUNNER_TEMP/coverage")
+              mkdir -p "$RUNNER_TEMP/coverage"
+            fi
+            cd $HOME
+            testflo dymos -n 4 --pre_announce --show_skipped --durations 20 "${COVERAGE_ARGS[@]}" || {
+              TEST_EXIT_CODE=$?
+              echo "::error::Dymos test process exited with status $TEST_EXIT_CODE"
+              HAS_ERRORS=true
+            }
           fi
-          cd $HOME
-          testflo dymos -n 4 --pre_announce --show_skipped --durations 20 "${COVERAGE_ARGS[@]}" || {
-            TEST_EXIT_CODE=$?
-            echo "::error::Dymos test process exited with status $TEST_EXIT_CODE"
-            HAS_ERRORS=true
-          }
 
           if [ "$HAS_ERRORS" = true ]; then
             echo "One or more commands failed"
