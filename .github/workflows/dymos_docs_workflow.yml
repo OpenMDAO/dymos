@@ -2,6 +2,11 @@
 
 name: Dymos Docs
 
+env:
+  # Hosted runners do not provide usable RDMA devices for UCX.
+  OMPI_MCA_pml: ob1
+  OMPI_MCA_osc: ^ucx
+
 on:
   # Trigger on push, pull request
   push:
@@ -176,10 +181,10 @@ jobs:
             export OMPI_MCA_btl=^openib
             echo "-----------------------"
             echo "Quick test of mpi4py:"
-            mpirun -n 3 python -c "from mpi4py import MPI; print(f'Rank: {MPI.COMM_WORLD.rank}')"
+            mpirun --timeout 120 -n 3 python -c "from mpi4py import MPI; print(f'Rank: {MPI.COMM_WORLD.rank}')"
             echo "-----------------------"
             echo "Quick test of petsc4py:"
-            mpirun -n 3 python -c "import numpy; from mpi4py import MPI; comm = MPI.COMM_WORLD; \
+            mpirun --timeout 120 -n 3 python -c "import numpy; from mpi4py import MPI; comm = MPI.COMM_WORLD; \
               import petsc4py; petsc4py.init(); \
               x = petsc4py.PETSc.Vec().createWithArray(numpy.ones(5)*comm.rank, comm=comm);  \
               print(x.getArray())"

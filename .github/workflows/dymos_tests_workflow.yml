@@ -2,6 +2,16 @@
 
 name: Dymos Tests
 
+env:
+  # Hosted runners do not provide usable RDMA devices for UCX.
+  OMPI_MCA_pml: ob1
+  OMPI_MCA_osc: ^ucx
+  # Parallel test workers should not each start a full BLAS thread pool.
+  OMP_NUM_THREADS: '1'
+  OPENBLAS_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  PYTHONFAULTHANDLER: '1'
+
 on:
   # Trigger on push, pull request
   push:
@@ -190,10 +200,10 @@ jobs:
             export OMPI_MCA_btl=^openib
             echo "-----------------------"
             echo "Quick test of mpi4py:"
-            mpirun -n 3 python -c "from mpi4py import MPI; print(f'Rank: {MPI.COMM_WORLD.rank}')"
+            mpirun --timeout 120 -n 3 python -c "from mpi4py import MPI; print(f'Rank: {MPI.COMM_WORLD.rank}')"
             echo "-----------------------"
             echo "Quick test of petsc4py:"
-            mpirun -n 3 python -c "import numpy; from mpi4py import MPI; comm = MPI.COMM_WORLD; \
+            mpirun --timeout 120 -n 3 python -c "import numpy; from mpi4py import MPI; comm = MPI.COMM_WORLD; \
               import petsc4py; petsc4py.init(); \
               x = petsc4py.PETSc.Vec().createWithArray(numpy.ones(5)*comm.rank, comm=comm);  \
               print(x.getArray())"
@@ -228,7 +238,7 @@ jobs:
           echo "============================================================="
           testflo -n 1 docs/dymos_book/test --pre_announce || HAS_ERRORS=true
           testflo -n 1 joss/test --pre_announce || HAS_ERRORS=true
-          testflo -b benchmark --pre_announce || HAS_ERRORS=true
+          testflo -b benchmark --pre_announce --nocapture || HAS_ERRORS=true
           # Run the readme test from the checked out directory.
           testflo -n 1 ./dymos/test/test_readme.py --pre_announce || HAS_ERRORS=true
           if [[ "${{ matrix.NAME }}" != "latest" && "${{ matrix.SKIP_COVERAGE }}" != "true" ]]; then
@@ -239,7 +249,11 @@ jobs:
             testflo dymos -n 4 --pre_announce --show_skipped --durations 20 --coverage --coverpkg dymos || HAS_ERRORS=true
           else
             cd $HOME
-            testflo dymos -n 4 --pre_announce --show_skipped --durations 20 || HAS_ERRORS=true
+            testflo dymos -n 4 --pre_announce --show_skipped --durations 20 || {
+              TEST_EXIT_CODE=$?
+              echo "::error::Dymos test process exited with status $TEST_EXIT_CODE"
+              HAS_ERRORS=true
+            }
           fi
 
           if [ "$HAS_ERRORS" = true ]; then
@@ -380,8 +394,8 @@ jobs:
             export OMPI_MCA_btl=^openib
             echo "-----------------------"
             echo "Quick test of mpi4py:"
-            pixi run -e ${{ matrix.pixi-env }} mpirun -n 3 python -c "from mpi4py import MPI; print(f'Rank: {MPI.COMM_WORLD.rank}')"
-            pixi run -e ${{ matrix.pixi-env }} mpirun -n 3 python -c "from mpi4py import MPI; from petsc4py import PETSc; \
+            pixi run -e ${{ matrix.pixi-env }} mpirun --timeout 120 -n 3 python -c "from mpi4py import MPI; print(f'Rank: {MPI.COMM_WORLD.rank}')"
+            pixi run -e ${{ matrix.pixi-env }} mpirun --timeout 120 -n 3 python -c "from mpi4py import MPI; from petsc4py import PETSc; \
               v = PETSc.Vec().createMPI(3, comm=MPI.COMM_WORLD); v.set(1); assert v.sum() == 3"
             echo "-----------------------"
 
@@ -412,11 +426,15 @@ jobs:
           cd $GITHUB_WORKSPACE
           testflo -n 1 docs/dymos_book/test --pre_announce || HAS_ERRORS=true
           testflo -n 1 joss/test --pre_announce || HAS_ERRORS=true
-          testflo -b benchmark --pre_announce || HAS_ERRORS=true
+          testflo -b benchmark --pre_announce --nocapture || HAS_ERRORS=true
           # Run the readme test from the checked out directory.
           testflo -n 1 ./dymos/test/test_readme.py --pre_announce || HAS_ERRORS=true
           cd $HOME
-          testflo dymos -n 4 --pre_announce --show_skipped --durations 20 || HAS_ERRORS=true
+          testflo dymos -n 4 --pre_announce --show_skipped --durations 20 || {
+            TEST_EXIT_CODE=$?
+            echo "::error::Dymos test process exited with status $TEST_EXIT_CODE"
+            HAS_ERRORS=true
+          }
 
           if [ "$HAS_ERRORS" = true ]; then
             echo "One or more commands failed"

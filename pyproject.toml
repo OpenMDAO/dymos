@@ -168,6 +168,13 @@ dymos = { path = ".", editable = true }
 openmdao = ">=3.39.0"
 jax = "*"
 
+[tool.pixi.target.win-64.dependencies]
+# Legacy Fortran dependencies bring openmp 5, which conflicts with MKL's DLL.
+# https://github.com/conda-forge/numpy-feedstock/issues/308
+libblas = { version = "*", build = "*openblas" }
+libcblas = { version = "*", build = "*openblas" }
+liblapack = { version = "*", build = "*openblas" }
+
 [tool.pixi.feature.opt.dependencies]
 pyoptsparse = ">=2.14.0"
 cyipopt = "*"

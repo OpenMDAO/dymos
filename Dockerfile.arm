@@ -8,9 +8,6 @@ SHELL ["/bin/bash", "-e", "-o", "pipefail", "-c"]
 # Install updates
 RUN apt-get update -y && apt-get -y install sudo vim curl wget git g++ gfortran make cmake graphviz libblas-dev liblapack-dev
 
-# install a browser
-RUN apt-get update -y && apt-get install firefox --fix-missing -y
-
 # Create user
 ENV USER=omdao
 RUN adduser --shell /bin/bash --disabled-password ${USER}
@@ -28,6 +25,10 @@ ENV PIXI_WORKSPACE_MANIFEST=/home/omdao/dymos/pyproject.toml
 ENV PIXI_ENVIRONMENT_NAME=dev
 
 RUN pixi install --locked -e dev --manifest-path "$PIXI_WORKSPACE_MANIFEST"
+
+# Install Chromium and its native libraries using the locked Playwright version.
+RUN pixi run --locked -e dev --manifest-path "$PIXI_WORKSPACE_MANIFEST" \
+    python -m playwright install --with-deps chromium
 
 # Activate the same environment for interactive shells.
 RUN echo 'eval "$(pixi shell-hook -e dev --manifest-path /home/omdao/dymos/pyproject.toml)"' >> ~/.bashrc
