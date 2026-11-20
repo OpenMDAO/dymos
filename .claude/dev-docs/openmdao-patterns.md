@@ -158,6 +158,17 @@ This often surfaces as a hidden duplicate when a connection is made in two place
 
 ## MPI / Distributed Component Hang
 
+### Hosted runner transport failures
+
+GitHub Ubuntu runners can expose Azure MANA devices that UCX detects but cannot use.
+Symptoms include `uct_iface_open(ud_verbs/mana_0:1) failed` and PETSc initialization
+errors followed by a stuck MPI job. In CI, select `OMPI_MCA_pml=ob1` and exclude
+the UCX one-sided component with `OMPI_MCA_osc=^ucx`. Do not force `osc=pt2pt`:
+some OpenMPI 5 builds do not provide that component. Bound smoke checks with
+`mpirun --timeout 120` so failed initialization cannot consume the job timeout.
+
+### Rank-local setup errors
+
 When one MPI rank raises an exception during `setup()`, the other ranks continue
 to wait at the MPI barrier, causing the process to hang. The symptom looks like a hang
 but the root cause is a setup error on one rank. Fix the setup error first; the hang
@@ -167,3 +178,13 @@ The vanderpol distributed ODE (`VanderpolODE` with `distrib=True`) is the canoni
 example: it uses `evenly_distrib_idxs(comm.size, num_nodes)` so each rank owns
 `num_nodes // n_ranks` elements. With `num_nodes=120` and 2 ranks, each rank owns 60
 nodes.
+
+---
+
+## Windows Numerical Library Crashes
+
+Legacy Fortran packages can bring `libflang 5` and `openmp 5`, whose
+`libiomp5md.dll` conflicts with the DLL supplied by MKL/Intel OpenMP. This can
+terminate numerical tests without a Python traceback. The Windows Pixi target
+selects OpenBLAS for BLAS, CBLAS, and LAPACK to avoid that combination. See
+[conda-forge/numpy-feedstock#308](https://github.com/conda-forge/numpy-feedstock/issues/308).

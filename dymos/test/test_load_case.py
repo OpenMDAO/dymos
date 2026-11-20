@@ -54,6 +54,54 @@ def setup_problem(trans=dm.GaussLobatto(num_segments=10), polynomial_control=Fal
     return p
 
 
+class _ConstantRateODE(om.ExplicitComponent):
+
+    def initialize(self):
+        self.options.declare('num_nodes', types=int)
+        self.options.declare('units', types=str)
+
+    def setup(self):
+        nn = self.options['num_nodes']
+        units = self.options['units']
+        self.add_input('x', shape=(nn,), units=units)
+        self.add_input('u', shape=(nn,), units=units)
+        self.add_output('x_dot', shape=(nn,), units=f'{units}/s')
+
+    def compute(self, inputs, outputs):
+        outputs['x_dot'] = 1.0E-3
+
+
+def setup_bounded_problem(units, timeseries_units, lower, upper, x0, xf, num_segments=4):
+    """
+    Build a phase with a bounded state and a bounded control that vary linearly from x0 to xf.
+
+    The state, the control and their bounds are in `units`. The timeseries records the state
+    and the control in `timeseries_units`.
+    """
+    p = om.Problem()
+
+    phase = dm.Phase(ode_class=_ConstantRateODE, ode_init_kwargs={'units': units},
+                     transcription=dm.Radau(num_segments=num_segments, order=3))
+
+    p.model.add_subsystem('phase0', phase)
+
+    phase.set_time_options(fix_initial=True, fix_duration=True, units='s')
+    phase.add_state('x', rate_source='x_dot', units=units, fix_initial=True,
+                    lower=lower, upper=upper)
+    phase.add_control('u', units=units, lower=lower, upper=upper, opt=False)
+
+    phase.add_timeseries_output('x', units=timeseries_units)
+    phase.add_timeseries_output('u', units=timeseries_units)
+
+    p.setup()
+
+    phase.set_time_val(initial=0.0, duration=50.0)
+    phase.set_state_val('x', [x0, xf])
+    phase.set_control_val('u', [x0, xf])
+
+    return p
+
+
 @use_tempdirs
 class TestLoadCase(unittest.TestCase):
 
@@ -349,6 +397,81 @@ class TestLoadCase(unittest.TestCase):
 
         with assert_warning(UserWarning, msg):
             q.load_case(case)
+
+    def _load_bounded_case(self, units, timeseries_units, lower, upper, x0, xf, num_segments):
+        """
+        Record a linear state and control history and load it into a new problem.
+
+        Return the loaded problem and the fraction of the phase duration at its state input
+        nodes and at its control input nodes.
+        """
+        p = setup_bounded_problem(units, timeseries_units, lower, upper, x0, xf)
+
+        dm.run_problem(p, run_driver=False, simulate=False)
+
+        case = om.CaseReader(p.get_outputs_dir() / 'dymos_solution.db').get_case('final')
+
+        q = setup_bounded_problem(units, timeseries_units, lower, upper, x0, xf,
+                                  num_segments=num_segments)
+        q.load_case(case)
+
+        gd = q.model.phase0.options['transcription'].grid_data
+        frac = 0.5 * (gd.node_ptau + 1.0)
+
+        return (q, frac[gd.subset_node_indices['state_input']],
+                frac[gd.subset_node_indices['control_input']])
+
+    def test_load_case_bounds_and_timeseries_units(self):
+        from openmdao.utils.assert_utils import assert_near_equal
+
+        # units, timeseries units, lower, upper, initial value, final value
+        cases = [('rad', 'rad', -0.15, 0.15, 0.0, 0.05),
+                 ('rad', 'deg', -0.15, 0.15, 0.0, 0.05),
+                 ('rad', 'deg', 0.02, None, 0.03, 0.05),
+                 ('rad', 'deg', None, 0.15, 0.03, 0.05),
+                 ('K', 'degC', 280.0, 320.0, 290.0, 300.0)]
+
+        for units, timeseries_units, lower, upper, x0, xf in cases:
+            # Load into the grid of the recorded case and into a finer one.
+            for num_segments in (4, 6):
+                with self.subTest(units=units, timeseries_units=timeseries_units, lower=lower,
+                                  upper=upper, num_segments=num_segments):
+                    q, state_frac, control_frac = self._load_bounded_case(
+                        units, timeseries_units, lower, upper, x0, xf, num_segments)
+
+                    # The values are within the bounds, so they are loaded unchanged.
+                    assert_near_equal(q.get_val('phase0.states:x', units=units).ravel(),
+                                      x0 + (xf - x0) * state_frac, tolerance=1.0E-12)
+                    assert_near_equal(q.get_val('phase0.controls:u', units=units).ravel(),
+                                      x0 + (xf - x0) * control_frac, tolerance=1.0E-12)
+
+    def test_load_case_clips_to_bounds_in_timeseries_units(self):
+        from openmdao.utils.assert_utils import assert_near_equal
+
+        x0, xf = 0.0, 0.05
+        lower, upper = 0.01, 0.03
+
+        for timeseries_units in ('rad', 'deg'):
+            with self.subTest(timeseries_units=timeseries_units):
+                # The bounds are relaxed when recording and tightened when loading.
+                p = setup_bounded_problem('rad', timeseries_units, -1.0, 1.0, x0, xf)
+
+                dm.run_problem(p, run_driver=False, simulate=False)
+
+                case = om.CaseReader(p.get_outputs_dir() / 'dymos_solution.db').get_case('final')
+
+                q = setup_bounded_problem('rad', timeseries_units, lower, upper, x0, xf,
+                                          num_segments=6)
+                q.load_case(case)
+
+                x = q.get_val('phase0.states:x', units='rad')
+                u = q.get_val('phase0.controls:u', units='rad')
+
+                # Values outside of the bounds are moved to the bounds, in the units of the bounds.
+                assert_near_equal(x.min(), lower, tolerance=1.0E-12)
+                assert_near_equal(x.max(), upper, tolerance=1.0E-12)
+                assert_near_equal(u.min(), lower, tolerance=1.0E-12)
+                assert_near_equal(u.max(), upper, tolerance=1.0E-12)
 
 
 if __name__ == '__main__':  # pragma: no cover

@@ -6,9 +6,12 @@ from .hp_adaptive.hp_adaptive import HPAdaptive
 from .write_iteration import write_error, write_refine_iter
 
 from dymos.grid_refinement.error_estimation import check_error
-from dymos.load_case import find_phases
+from dymos.phase import Phase
+
+from copy import deepcopy
 
 import numpy as np
+import openmdao.api as om
 import sys
 
 
@@ -32,6 +35,30 @@ def _phases_to_refine(phases, refine_results):
     return [phase_path for phase_path in refine_results if
             phases[phase_path].refine_options['refine'] and
             np.any(refine_results[phase_path]['need_refinement'])]
+  
+  
+def find_phases(sys):
+    """
+    Find all instances of Dymos Phases within the given system, and returns them as a dictionary.
+
+    Parameters
+    ----------
+    sys : om.Group
+        The OpenMDAO Group to be searched for Dymos Phases.
+
+    Returns
+    -------
+    dict
+        A dictionary mapping the absolute path of each Phase object in the given group to each
+        Phase object.
+    """
+    phase_paths = {}
+    if isinstance(sys, Phase):
+        phase_paths[sys.pathname] = sys
+    elif isinstance(sys, om.Group):
+        for sub in sys.system_iter(recurse=False):
+            phase_paths.update(find_phases(sub))
+    return phase_paths
 
 
 def _refine_iter(problem, refine_iteration_limit=0, refine_method='hp', case_prefix=None, reset_iter_counts=True):
@@ -87,7 +114,21 @@ def _refine_iter(problem, refine_iteration_limit=0, refine_method='hp', case_pre
                                                           units=True, prom_name=True)
                 }
 
+                # Setup resets the value of every variable. Keep the values of the independent
+                # variables, so that those whose shape is unchanged can be restored after setup.
+                prev_indeps = {name: (deepcopy(meta['val']), meta.get('units'))
+                               for name, meta in dict(problem.list_indep_vars(out_stream=None)).items()}
+
                 problem.setup()
+                problem.final_setup()
+
+                for name, meta in dict(problem.list_indep_vars(out_stream=None)).items():
+                    if name in prev_indeps:
+                        val, units = prev_indeps[name]
+                        if np.shape(val) == np.shape(meta['val']):
+                            problem.set_val(name, val, units=units)
+
+                # Interpolate the previous solution onto the new grid of the refined phases.
                 for phase_path in refined_phases:
                     phs = problem.model._get_subsystem(phase_path)
                     phs.load_case(prev_soln)
