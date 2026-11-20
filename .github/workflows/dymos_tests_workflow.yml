@@ -253,6 +253,15 @@ jobs:
         run: |
           PIXI_SHELL_HOOK=$(pixi shell-hook -e ${{ matrix.pixi-env }} --manifest-path $GITHUB_WORKSPACE/pyproject.toml)
           eval "$PIXI_SHELL_HOOK"
+          # testflo imports the test modules (and therefore dymos) in the parent process
+          # during discovery, before coverage starts, so the forked workers never record
+          # module-level lines (imports, def/class statements, class bodies). Record a
+          # discovery-only pass under coverage and merge it into the testflo data.
+          cd $HOME
+          coverage run --data-file="$RUNNER_TEMP/coverage/.coverage.discovery" --source=dymos \
+            -m testflo dymos -n 1 --dryrun > /dev/null
+          coverage combine --append --data-file "$RUNNER_TEMP/coverage/.coverage" \
+            "$RUNNER_TEMP/coverage/.coverage.discovery"
           cd $GITHUB_WORKSPACE
           coverage report --data-file "$RUNNER_TEMP/coverage/.coverage" --skip-empty
           coverage lcov --data-file "$RUNNER_TEMP/coverage/.coverage" -o coverage.lcov
