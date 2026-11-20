@@ -6,10 +6,35 @@ from .hp_adaptive.hp_adaptive import HPAdaptive
 from .write_iteration import write_error, write_refine_iter
 
 from dymos.grid_refinement.error_estimation import check_error
-from dymos.load_case import find_phases
+from dymos.phase import Phase
 
 import numpy as np
+import openmdao.api as om
 import sys
+
+
+def find_phases(sys):
+    """
+    Find all instances of Dymos Phases within the given system, and returns them as a dictionary.
+
+    Parameters
+    ----------
+    sys : om.Group
+        The OpenMDAO Group to be searched for Dymos Phases.
+
+    Returns
+    -------
+    dict
+        A dictionary mapping the absolute path of each Phase object in the given group to each
+        Phase object.
+    """
+    phase_paths = {}
+    if isinstance(sys, Phase):
+        phase_paths[sys.pathname] = sys
+    elif isinstance(sys, om.Group):
+        for sub in sys.system_iter(recurse=False):
+            phase_paths.update(find_phases(sub))
+    return phase_paths
 
 
 def _refine_iter(problem, refine_iteration_limit=0, refine_method='hp', case_prefix=None, reset_iter_counts=True):
