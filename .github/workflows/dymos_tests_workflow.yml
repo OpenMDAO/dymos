@@ -306,6 +306,17 @@ jobs:
     # Test dymos-native pixi environments defined in pyproject.toml using pixi.lock.
     runs-on: ${{ matrix.runs-on }}
 
+    # Keep MKL/OpenBLAS/numpy off AMX-capable code paths on Windows. GitHub's
+    # windows-2025/windows-latest runners have a CPUID bug (see comment near the
+    # windows-latest matrix entry below) that makes AMX instructions look
+    # available when they are not, corrupting the stack on any later hardware
+    # fault. These vars are no-ops on non-Windows runners.
+    env:
+      MKL_ENABLE_INSTRUCTIONS: ${{ runner.os == 'Windows' && 'AVX2' || '' }}
+      OPENBLAS_CORETYPE: ${{ runner.os == 'Windows' && 'Haswell' || '' }}
+      NPY_DISABLE_CPU_FEATURES: ${{ runner.os == 'Windows' && 'AVX512_SPR AMX_TILE AMX_BF16 AMX_INT8' || '' }}
+      ONEDNN_MAX_CPU_ISA: ${{ runner.os == 'Windows' && 'AVX2' || '' }}
+
     defaults:
       run:
         shell: bash -eo pipefail {0}
@@ -323,8 +334,18 @@ jobs:
           - pixi-env: default
             runs-on: macos-26
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi }}
+          # windows-2025/windows-latest runners use Emerald Rapids Xeons with a
+          # CPUID bug that misreports AMX support (see
+          # https://github.com/actions/runner-images/issues/14483). Native libraries
+          # that probe for AMX (MKL, OpenBLAS, numpy) then try to use it, which
+          # corrupts the stack on the next hardware fault anywhere in the process
+          # (see https://github.com/golang/go/issues/81238 for the mechanism) and
+          # crashes with "Windows fatal exception: access violation" in unrelated
+          # code. Trying windows-latest again with AMX-capable instructions
+          # disabled below (MKL_ENABLE_INSTRUCTIONS/OPENBLAS_CORETYPE/etc.); revert
+          # to windows-2022 if that is not sufficient.
           - pixi-env: default
-            runs-on: windows-2022
+            runs-on: windows-latest
             EXCLUDE: ${{ github.event_name == 'workflow_dispatch' && !inputs.dymos_pixi }}
           # remaining envs on Linux only
           - pixi-env: oldest
