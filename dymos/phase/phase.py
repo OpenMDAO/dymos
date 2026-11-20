@@ -9,6 +9,7 @@ from scipy import interpolate
 
 import openmdao.api as om
 from openmdao.utils.om_warnings import issue_warning
+from openmdao.utils.units import convert_units
 from openmdao.core.system import System
 from openmdao.recorders.case import Case
 
@@ -28,6 +29,32 @@ from dymos.utils.introspection import configure_time_introspection, _configure_c
     configure_timeseries_output_introspection, classify_var
 from dymos.utils.misc import _unspecified, create_subprob, is_scalar_or_singleton
 from dymos.utils.lgl import lgl
+
+
+def _bounds_in_units(options, units):
+    """
+    Return the lower and upper bounds of a state or control in the given units.
+
+    Parameters
+    ----------
+    options : StateOptionsDictionary or ControlOptionsDictionary
+        The options of the variable, whose bounds are given in options['units'].
+    units : str or None
+        The units in which the bounds are needed.
+
+    Returns
+    -------
+    lower : ndarray or None
+        The lower bound in the given units, or None if the variable has no lower bound.
+    upper : ndarray or None
+        The upper bound in the given units, or None if the variable has no upper bound.
+    """
+    bounds = []
+    for bound in (options['lower'], options['upper']):
+        if bound is not None:
+            bound = convert_units(np.asarray(bound, dtype=float), options['units'], units)
+        bounds.append(bound)
+    return tuple(bounds)
 
 
 class Phase(om.Group):
@@ -3040,7 +3067,8 @@ class Phase(om.Group):
                 prev_state_val = prev_vars[prev_state_path]['val']
                 prev_state_units = prev_vars[prev_state_path]['units']
                 if options['lower'] is not None or options['upper'] is not None:
-                    prev_state_val = prev_state_val.clip(options['lower'], options['upper'])
+                    # The bounds are in the units of the state. The recorded values may not be.
+                    prev_state_val = prev_state_val.clip(*_bounds_in_units(options, prev_state_units))
                 self.set_state_val(state_name,
                                    vals=prev_state_val[unique_idxs],
                                    time_vals=prev_time_val,
@@ -3066,7 +3094,8 @@ class Phase(om.Group):
                 prev_control_val = prev_vars[prev_control_path]['val']
                 prev_control_units = prev_vars[prev_control_path]['units']
                 if options['lower'] is not None or options['upper'] is not None:
-                    prev_control_val = prev_control_val.clip(options['lower'], options['upper'])
+                    # The bounds are in the units of the control. The recorded values may not be.
+                    prev_control_val = prev_control_val.clip(*_bounds_in_units(options, prev_control_units))
                 self.set_control_val(control_name,
                                      vals=prev_control_val[unique_idxs],
                                      time_vals=prev_time_val,
