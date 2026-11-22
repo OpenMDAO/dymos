@@ -497,6 +497,13 @@ def cmd_build(args):
     sphinx_cmd += [str(OUT_DIR), str(HTML_DIR)]
     subprocess.run(sphinx_cmd, check=True)
 
+    _banner('Copy build artifacts')
+    # Sphinx does not collect files referenced only from raw HTML (for example
+    # the water-rocket N2 SVGs). Copy them into the HTML output, preserving
+    # the relative paths used by those <img> tags.
+    subprocess.run([sys.executable, str(HERE / 'copy_build_artifacts.py'), str(OUT_DIR)],
+                   check=True)
+
     print(f'\nDone. Docs available at: {(HTML_DIR / ROOT_DOC).relative_to(HERE.parent)}')
 
 
